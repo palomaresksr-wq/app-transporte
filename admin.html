@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel Jefe — Entregas</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#0b1220;color:#eaf0ff}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  .card{background:#121b2f;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;margin:12px 0}
+  h1{margin:8px 0 14px}
+  input,button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#0b1220;color:#eaf0ff}
+  button{cursor:pointer;font-weight:900}
+  .btn{background:linear-gradient(135deg,#ff7a18,#ffb074);border:none;color:#1b0c02}
+  .btn2{background:rgba(255,255,255,.08)}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;font-size:13px;vertical-align:top}
+  th{color:rgba(255,255,255,.7);font-size:12px}
+  tr:hover td{background: rgba(255,255,255,.03)}
+  a{color:#ffb074}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-size:12px}
+  .ok{color:#7CFF8A}
+  .err{color:#ff7c7c}
+  small{color:rgba(255,255,255,.65)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📑 Panel Jefe — Entregas</h1>
+
+  <div class="card">
+    <div class="row">
+      <input id="q" placeholder="Buscar (conductor, cliente, CP, dirección…)" style="flex:1;min-width:260px" />
+      <button id="search" class="btn2">Buscar</button>
+      <button id="clear" class="btn2">Limpiar</button>
+      <button id="refresh" class="btn">Actualizar</button>
+      <button id="csv" class="btn2">Descargar CSV</button>
+    </div>
+    <small id="status"></small>
+
+    <div style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>CP</th>
+            <th>Bultos</th>
+            <th>Kg</th>
+            <th>m³</th>
+            <th>Foto</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <small>
+    Enlace directo del panel: <span class="pill">/admin.html</span><br/>
+    Ejemplo: <span class="pill">https://palomaresksr-wq.github.io/app-transporte/admin.html</span>
+  </small>
+</div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const supabase = createClient(
+    "https://jpnritlcfumjmdpoaytr.supabase.co",
+    "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+  );
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const tbody = $("tbody");
+  let rows = [];
+
+  function fmt(d){
+    try { return new Date(d).toLocaleString("es-ES"); }
+    catch { return d || ""; }
+  }
+
+  function setStatus(txt, cls){
+    statusEl.textContent = txt || "";
+    statusEl.className = cls || "";
+  }
+
+  async function load(){
+    setStatus("Cargando entregas…");
+    const { data, error } = await supabase
+      .from("deliveries")
+      .select("created_at,driver_name,client_name,address,postal_code,bultos,kg,m3,photo_url")
+      .order("created_at", { ascending: false })
+      .limit(300);
+
+    if (error){
+      setStatus("❌ Error: " + error.message, "err");
+      return;
+    }
+
+    rows = data || [];
+    render(rows);
+    setStatus("✅ " + rows.length + " entregas", "ok");
+  }
+
+  function render(list){
+    tbody.innerHTML = "";
+    if (!list.length){
+      tbody.innerHTML = `<tr><td colspan="9">No hay entregas.</td></tr>`;
+      return;
+    }
+
+    for (const r of list){
+      const tr = document.createElement("tr");
+      const photo = r.photo_url ? `<a href="${r.photo_url}" target="_blank" rel="noopener">Ver</a>` : "—";
+      tr.innerHTML = `
+        <td>${fmt(r.created_at)}</td>
+        <td>${r.driver_name || ""}</td>
+        <td>${r.client_name || ""}</td>
+        <td>${r.address || ""}</td>
+        <td>${r.postal_code || ""}</td>
+        <td>${r.bultos ?? ""}</td>
+        <td>${r.kg ?? ""}</td>
+        <td>${r.m3 ?? ""}</td>
+        <td>${photo}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  $("refresh").onclick = load;
+
+  $("search").onclick = () => {
+    const q = $("q").value.trim().toLowerCase();
+    if (!q) return render(rows);
+    const filtered = rows.filter(r =>
+      String(r.driver_name||"").toLowerCase().includes(q) ||
+      String(r.client_name||"").toLowerCase().includes(q) ||
+      String(r.postal_code||"").toLowerCase().includes(q) ||
+      String(r.address||"").toLowerCase().includes(q)
+    );
+    render(filtered);
+    setStatus("🔎 " + filtered.length + " resultados", "");
+  };
+
+  $("clear").onclick = () => {
+    $("q").value = "";
+    render(rows);
+    setStatus("✅ " + rows.length + " entregas", "ok");
+  };
+
+  $("csv").onclick = () => {
+    const header = ["created_at","driver_name","client_name","address","postal_code","bultos","kg","m3","photo_url"];
+    const lines = [header.join(",")];
+    for (const r of rows){
+      const line = [
+        r.created_at,
+        `"${String(r.driver_name||"").replace(/"/g,'""')}"`,
+        `"${String(r.client_name||"").replace(/"/g,'""')}"`,
+        `"${String(r.address||"").replace(/"/g,'""')}"`,
+        `"${String(r.postal_code||"").replace(/"/g,'""')}"`,
+        r.bultos ?? "",
+        r.kg ?? "",
+        r.m3 ?? "",
+        `"${String(r.photo_url||"").replace(/"/g,'""')}"`
+      ].join(",");
+      lines.push(line);
+    }
+    const blob = new Blob([lines.join("\n")], { type:"text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `entregas-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  };
+
+  load();
+</script>
+</body>
+</html>
