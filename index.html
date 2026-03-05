@@ -80,7 +80,10 @@ margin-top:15px;
 
 <label>M3</label>
 <input id="m3" type="number">
-
+  
+<label>Foto albarán</label>
+<input id="photo" type="file" accept="image/*" capture="environment">
+  
 <button onclick="guardarEntrega()">Guardar entrega</button>
 
 <div id="status"></div>
@@ -110,7 +113,33 @@ let m3 = document.getElementById("m3").value;
 let status = document.getElementById("status");
 
 status.innerText = "Guardando...";
+  
+// subir foto si hay
+let photoFile = document.getElementById("photo").files[0];
+let photo_url = null;
 
+if(photoFile){
+
+status.innerText = "Subiendo foto...";
+
+let fileExt = photoFile.name.split(".").pop();
+let fileName = Date.now() + "." + fileExt;
+
+let { error: uploadError } = await supabase
+.storage
+.from("pod")
+.upload(fileName, photoFile);
+
+if(uploadError){
+status.innerText = "Error subiendo foto: " + uploadError.message;
+return;
+}
+
+photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
+
+}
+
+// guardar entrega
 let { error } = await supabase
 .from("deliveries")
 .insert({
@@ -122,7 +151,8 @@ bultos: bultos,
 kg: kg,
 m3: m3,
 distance_km: 0,
-price_eur: 0
+price_eur: 0,
+photo_url: photo_url
 });
 
 if(error){
