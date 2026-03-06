@@ -98,6 +98,8 @@ margin-top:15px;
 
 <div id="status"></div>
 
+<img id="previewFoto" style="margin-top:10px;max-width:100%;display:none;border-radius:8px;">
+
 </div>
 
 <script type="module">
@@ -160,6 +162,11 @@ async function leerFotoAutomatica() {
     }
 
     statusEl.innerText = "He detectado la foto";
+    
+    let preview = document.getElementById("previewFoto");
+    preview.src = URL.createObjectURL(photoFile);
+    preview.style.display = "block";
+    
     await new Promise(r => setTimeout(r, 300));
 
     ultimaPhotoUrl = await subirFoto(photoFile, "preview-");
@@ -207,6 +214,8 @@ window.guardarEntrega = async function () {
     }
 
    statusEl.innerText = "Entrega guardada correctamente";
+
+    document.getElementById("previewFoto").style.display = "none";
 
 driverInput.value = "";
 clientInput.value = "";
