@@ -130,7 +130,7 @@ if(!photoFile){
 return;
 }
 
-status.innerText = "Subiendo foto y leyendo albarán...";
+128 alert("He detectado la foto");
 
 let fileExt = photoFile.name.split(".").pop();
 let fileName = "preview-" + Date.now() + "." + fileExt;
@@ -147,7 +147,7 @@ return;
 
 let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 
-status.innerText = "Foto subida correctamente";
+145 alert("Foto subida correctamente");
 };
 window.guardarEntrega = async function(){
 
