@@ -167,6 +167,69 @@ clientSelect.addEventListener("change", () => {
   
 let ultimaPhotoUrl = null;
 
+  function obtenerClientesFrecuentes() {
+  const guardados = localStorage.getItem("clientesFrecuentes");
+  return guardados ? JSON.parse(guardados) : [];
+}
+
+function guardarClientesFrecuentes(lista) {
+  localStorage.setItem("clientesFrecuentes", JSON.stringify(lista));
+}
+
+function cargarClientesFrecuentesEnSelect() {
+  const clientes = obtenerClientesFrecuentes();
+
+  clientSelect.innerHTML = '<option value="">Seleccionar cliente frecuente</option>';
+
+  clientes.forEach(cliente => {
+    const option = document.createElement("option");
+    option.value = cliente.nombre;
+    option.textContent = cliente.nombre;
+    clientSelect.appendChild(option);
+  });
+}
+
+function guardarClienteSiEsNuevo() {
+  const nombre = clientInput.value.trim();
+  const direccion = addressInput.value.trim();
+  const cp = postalInput.value.trim();
+
+  if (!nombre || !direccion || !cp) return;
+
+  const clientes = obtenerClientesFrecuentes();
+
+  const yaExiste = clientes.some(
+    c => c.nombre.toLowerCase() === nombre.toLowerCase()
+  );
+
+  if (yaExiste) return;
+
+  clientes.push({
+    nombre: nombre,
+    direccion: direccion,
+    cp: cp
+  });
+
+  guardarClientesFrecuentes(clientes);
+  cargarClientesFrecuentesEnSelect();
+}
+
+clientSelect.addEventListener("change", () => {
+  const clientes = obtenerClientesFrecuentes();
+
+  const seleccionado = clientes.find(
+    c => c.nombre === clientSelect.value
+  );
+
+  if (!seleccionado) return;
+
+  clientInput.value = seleccionado.nombre;
+  addressInput.value = seleccionado.direccion;
+  postalInput.value = seleccionado.cp;
+});
+
+cargarClientesFrecuentesEnSelect();
+
 function getSelectedPhotoFile() {
   return cameraInput.files[0] || galleryInput.files[0] || null;
 }
@@ -266,6 +329,7 @@ if (photoFile && !photo_url) {
     }
 
    statusEl.innerText = "Entrega guardada correctamente";
+    guardarClienteSiEsNuevo();
 
     document.getElementById("previewFoto").style.display = "none";
 
