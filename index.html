@@ -177,8 +177,10 @@ window.guardarEntrega = async function () {
   try {
     statusEl.innerText = "Guardando...";
 
-    const photoFile = getSelectedPhotoFile();
-    let photo_url = ultimaPhotoUrl;
+    if (!driverInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
+  statusEl.innerText = "Faltan conductor, cliente, dirección o código postal";
+  return;
+}
 
     if (photoFile && !photo_url) {
       photo_url = await subirFoto(photoFile);
@@ -204,8 +206,20 @@ window.guardarEntrega = async function () {
       return;
     }
 
-    statusEl.innerText = "Entrega guardada correctamente";
-  } catch (e) {
+   statusEl.innerText = "Entrega guardada correctamente";
+
+driverInput.value = "";
+clientInput.value = "";
+addressInput.value = "";
+postalInput.value = "";
+bultosInput.value = "";
+kgInput.value = "";
+m3Input.value = "";
+cameraInput.value = "";
+galleryInput.value = "";
+ultimaPhotoUrl = null;
+
+} catch (e) {
     statusEl.innerText = e.message;
   }
 };
