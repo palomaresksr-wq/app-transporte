@@ -191,9 +191,9 @@ window.guardarEntrega = async function () {
         client_name: clientInput.value,
         address: addressInput.value,
         postal_code: postalInput.value,
-        bultos: bultosInput.value,
-        kg: kgInput.value,
-        m3: m3Input.value,
+        bultos: bultosInput.value ? parseInt(bultosInput.value, 10) : null,
+        kg: kgInput.value ? parseFloat(kgInput.value.replace(",", ".")) : null,
+        m3: m3Input.value ? parseFloat(m3Input.value.replace(",", ".")) : null,
         distance_km: 0,
         price_eur: 0,
         photo_url: photo_url
