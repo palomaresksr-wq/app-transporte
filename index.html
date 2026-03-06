@@ -208,8 +208,7 @@ let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/publ
 
 await leerAlbaranOCR(photo_url);
 
-status.innerText = "Datos leídos ✅ Revisa y pulsa Guardar entrega";
-
+status.innerText = "OCR leído: " + texto.substring(0,200);
 };
 
 
