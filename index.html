@@ -101,117 +101,114 @@ margin-top:15px;
 </div>
 
 <script type="module">
-
-  const googleVisionAPI = "";
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-async function leerAlbaranOCR(imageUrl){
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const statusEl = document.getElementById("status");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+const driverInput = document.getElementById("driver");
+const clientInput = document.getElementById("client");
+const addressInput = document.getElementById("address");
+const postalInput = document.getElementById("postal");
+const bultosInput = document.getElementById("bultos");
+const kgInput = document.getElementById("kg");
+const m3Input = document.getElementById("m3");
+
+let ultimaPhotoUrl = null;
+
+function getSelectedPhotoFile() {
+  return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const fileName = `${prefix}${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
+
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
+
+  return "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
+}
+
+// OCR DESACTIVADO DE MOMENTO POR SEGURIDAD
+async function leerAlbaranOCR(_imageUrl) {
   return "";
 }
 
-function extraerDatos(texto){
+function extraerDatos(_texto) {
+  // OCR desactivado temporalmente
 }
 
-const supabase = createClient(
-"https://jpnritlcfumjmdpoaytr.supabase.co",
-"sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
-);
+async function leerFotoAutomatica() {
+  try {
+    const photoFile = getSelectedPhotoFile();
 
-window.leerFotoAutomatica = async function(){
+    if (!photoFile) {
+      statusEl.innerText = "No se ha seleccionado ninguna foto";
+      return;
+    }
 
-let status = document.getElementById("status");
+    statusEl.innerText = "He detectado la foto";
+    await new Promise(r => setTimeout(r, 300));
 
-let photoFile =
-document.getElementById("cameraInput").files[0] ||
-document.getElementById("galleryInput").files[0];
+    ultimaPhotoUrl = await subirFoto(photoFile, "preview-");
 
-if(!photoFile){
-return;
+    statusEl.innerText = "Foto subida correctamente";
+  } catch (e) {
+    statusEl.innerText = e.message;
+  }
 }
 
-alert("He detectado la foto");
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
 
-let fileExt = photoFile.name.split(".").pop();
-let fileName = "preview-" + Date.now() + "." + fileExt;
+window.guardarEntrega = async function () {
+  try {
+    statusEl.innerText = "Guardando...";
 
-let { error: uploadError } = await supabase
-.storage
-.from("pod")
-.upload(fileName, photoFile, { upsert: true });
+    const photoFile = getSelectedPhotoFile();
+    let photo_url = ultimaPhotoUrl;
 
-if(uploadError){
-status.innerText = "Error subiendo foto: " + uploadError.message;
-return;
-}
+    if (photoFile && !photo_url) {
+      photo_url = await subirFoto(photoFile);
+    }
 
-let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
+    const { error } = await supabase
+      .from("deliveries")
+      .insert({
+        driver_name: driverInput.value,
+        client_name: clientInput.value,
+        address: addressInput.value,
+        postal_code: postalInput.value,
+        bultos: bultosInput.value,
+        kg: kgInput.value,
+        m3: m3Input.value,
+        distance_km: 0,
+        price_eur: 0,
+        photo_url: photo_url
+      });
 
-alert("Foto subida correctamente");
+    if (error) {
+      statusEl.innerText = "Error: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = "Entrega guardada correctamente";
+  } catch (e) {
+    statusEl.innerText = e.message;
+  }
 };
-window.guardarEntrega = async function(){
-
-let driver = document.getElementById("driver").value;
-let client = document.getElementById("client").value;
-let address = document.getElementById("address").value;
-let postal = document.getElementById("postal").value;
-
-let bultos = document.getElementById("bultos").value;
-let kg = document.getElementById("kg").value;
-let m3 = document.getElementById("m3").value;
-
-let status = document.getElementById("status");
-
-status.innerText = "Guardando...";
-
-let photoFile =
-document.getElementById("cameraInput").files[0] ||
-document.getElementById("galleryInput").files[0];
-
-let photo_url = null;
-
-if(photoFile){
-
-let fileExt = photoFile.name.split(".").pop();
-let fileName = Date.now() + "." + fileExt;
-
-let { error: uploadError } = await supabase
-.storage
-.from("pod")
-.upload(fileName, photoFile);
-
-if(uploadError){
-status.innerText = "Error subiendo foto: " + uploadError.message;
-return;
-}
-
-photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
-
-}
-
-let { error } = await supabase
-.from("deliveries")
-.insert({
-driver_name: driver,
-client_name: client,
-address: address,
-postal_code: postal,
-bultos: bultos,
-kg: kg,
-m3: m3,
-distance_km: 0,
-price_eur: 0,
-photo_url: photo_url
-});
-
-if(error){
-status.innerText = "Error: " + error.message;
-}else{
-status.innerText = "Entrega guardada correctamente";
-}
-
-};
-
 </script>
 </body>
 </html>
