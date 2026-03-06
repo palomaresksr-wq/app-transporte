@@ -106,32 +106,50 @@ margin-top:15px;
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  async function leerAlbaranOCR(imageUrl){
-  const response = await fetch(
-    `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionAPI}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requests: [{
-          image: { source: { imageUri: imageUrl } },
-          features: [{ type: "TEXT_DETECTION" }]
-        }]
-      })
+async function leerAlbaranOCR(imageUrl){
+  let status = document.getElementById("status");
+
+  try {
+    const response = await fetch(
+      `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionAPI}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requests: [{
+            image: { source: { imageUri: imageUrl } },
+            features: [{ type: "TEXT_DETECTION" }]
+          }]
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+      status.innerText = "Error OCR: " + data.error.message;
+      return;
     }
-  );
 
-  const data = await response.json();
+    if (!data.responses || !data.responses[0]) {
+      status.innerText = "OCR sin respuesta válida";
+      return;
+    }
 
-  if (!data.responses || !data.responses[0]) {
-    console.log("OCR sin respuesta válida", data);
-    return;
+    const texto = data.responses[0]?.fullTextAnnotation?.text || "";
+
+    if (!texto) {
+      status.innerText = "OCR no encontró texto en la imagen";
+      return;
+    }
+
+    status.innerText = "OCR leído ✅ " + texto.substring(0, 120);
+
+    extraerDatos(texto);
+
+  } catch (e) {
+    status.innerText = "Error OCR/fetch: " + e.message;
   }
-
-  const texto = data.responses[0]?.fullTextAnnotation?.text || "";
-  console.log("OCR TEXTO:", texto);
-
-  extraerDatos(texto);
 }
 
 function extraerDatos(texto){
@@ -259,5 +277,6 @@ status.innerText = "Entrega guardada correctamente";
 
 };
 
+</script>
 </body>
 </html>
