@@ -102,7 +102,7 @@ margin-top:15px;
 
 <script type="module">
 
-  const googleVisionAPI = "AIzaSyAH2Rd3oLI8KIOKxIqe5PsEBwGXwG-a4aw";
+  const googleVisionAPI = "";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -206,12 +206,11 @@ return;
 
 let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 
-await leerAlbaranOCR(photo_url);
+let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 
-status.innerText = "OCR leído: " + texto.substring(0,200);
+let texto = await leerAlbaranOCR(photo_url);
+status.innerText = "Datos leídos: " + texto.substring(0,200);
 };
-
-
 
 window.guardarEntrega = async function(){
 
