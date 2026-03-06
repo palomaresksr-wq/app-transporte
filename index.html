@@ -91,8 +91,8 @@ margin-top:15px;
 🖼 Elegir de galería
 </button>
 
-<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
-<input id="galleryInput" type="file" accept="image/*" style="display:none">
+<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFotoAutomatica()">
+<input id="galleryInput" type="file" accept="image/*" style="display:none" onchange="leerFotoAutomatica()">
   
 <button onclick="guardarEntrega()">Guardar entrega</button>
 
@@ -159,6 +159,43 @@ const supabase = createClient(
 "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
 );
 
+window.leerFotoAutomatica = async function(){
+
+let status = document.getElementById("status");
+
+let photoFile =
+document.getElementById("cameraInput").files[0] ||
+document.getElementById("galleryInput").files[0];
+
+if(!photoFile){
+return;
+}
+
+status.innerText = "Subiendo foto y leyendo albarán...";
+
+let fileExt = photoFile.name.split(".").pop();
+let fileName = "preview-" + Date.now() + "." + fileExt;
+
+let { error: uploadError } = await supabase
+.storage
+.from("pod")
+.upload(fileName, photoFile, { upsert: true });
+
+if(uploadError){
+status.innerText = "Error subiendo foto: " + uploadError.message;
+return;
+}
+
+let photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
+
+await leerAlbaranOCR(photo_url);
+
+status.innerText = "Datos leídos ✅ Revisa y pulsa Guardar entrega";
+
+};
+
+
+
 window.guardarEntrega = async function(){
 
 let driver = document.getElementById("driver").value;
@@ -173,16 +210,14 @@ let m3 = document.getElementById("m3").value;
 let status = document.getElementById("status");
 
 status.innerText = "Guardando...";
-  
-// subir foto si hay
+
 let photoFile =
 document.getElementById("cameraInput").files[0] ||
 document.getElementById("galleryInput").files[0];
+
 let photo_url = null;
 
 if(photoFile){
-
-status.innerText = "Subiendo foto...";
 
 let fileExt = photoFile.name.split(".").pop();
 let fileName = Date.now() + "." + fileExt;
@@ -199,10 +234,8 @@ return;
 
 photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 
-  await leerAlbaranOCR(photo_url);
 }
 
-// guardar entrega
 let { error } = await supabase
 .from("deliveries")
 .insert({
@@ -219,18 +252,12 @@ photo_url: photo_url
 });
 
 if(error){
-
 status.innerText = "Error: " + error.message;
-
 }else{
-
 status.innerText = "Entrega guardada correctamente";
-
 }
 
-}
-
-</script>
+};
 
 </body>
 </html>
