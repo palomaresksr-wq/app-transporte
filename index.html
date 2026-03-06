@@ -127,49 +127,33 @@ const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
 const clientSelect = document.getElementById("clientSelect");
 
-const clientesFrecuentes = [
-  {
-    nombre: "OPERINTER",
-    direccion: "Calle ejemplo 1",
-    cp: "28022"
-  },
-  {
-    nombre: "cotransa",
-    direccion: "calle foxtrot",
-    cp: "28823"
-  },
-  {
-    nombre: "Albepet",
-    direccion: "calle morse",
-    cp: "28906"
-  }
-];
-clientesFrecuentes.forEach(cliente => {
-  const option = document.createElement("option");
-  option.value = cliente.nombre;
-  option.textContent = cliente.nombre;
-  clientSelect.appendChild(option);
-});
-
-clientSelect.addEventListener("change", () => {
-
-  const seleccionado = clientesFrecuentes.find(
-    c => c.nombre === clientSelect.value
-  );
-
-  if (!seleccionado) return;
-
-  clientInput.value = seleccionado.nombre;
-  addressInput.value = seleccionado.direccion;
-  postalInput.value = seleccionado.cp;
-
-});
   
 let ultimaPhotoUrl = null;
 
-  function obtenerClientesFrecuentes() {
+ function obtenerClientesFrecuentes() {
   const guardados = localStorage.getItem("clientesFrecuentes");
-  return guardados ? JSON.parse(guardados) : [];
+
+  if (guardados) {
+    return JSON.parse(guardados);
+  }
+
+  return [
+    {
+      nombre: "OPERINTER",
+      direccion: "Calle ejemplo 1",
+      cp: "28022"
+    },
+    {
+      nombre: "cotransa",
+      direccion: "calle foxtrot",
+      cp: "28823"
+    },
+    {
+      nombre: "Albepet",
+      direccion: "calle morse",
+      cp: "28906"
+    }
+  ];
 }
 
 function guardarClientesFrecuentes(lista) {
@@ -291,10 +275,6 @@ window.guardarEntrega = async function () {
   try {
     statusEl.innerText = "Guardando...";
 
-    if (!driverInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
-  statusEl.innerText = "Faltan conductor, cliente, dirección o código postal";
-  return;
-}
 
     if (!driverInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
   statusEl.innerText = "Faltan conductor, cliente, dirección o código postal";
