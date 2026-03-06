@@ -96,6 +96,54 @@ margin-top:15px;
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+  async function leerAlbaranOCR(imageUrl){
+  const response = await fetch(
+    `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionAPI}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requests: [{
+          image: { source: { imageUri: imageUrl } },
+          features: [{ type: "TEXT_DETECTION" }]
+        }]
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!data.responses || !data.responses[0]) {
+    console.log("OCR sin respuesta válida", data);
+    return;
+  }
+
+  const texto = data.responses[0]?.fullTextAnnotation?.text || "";
+  console.log("OCR TEXTO:", texto);
+
+  extraerDatos(texto);
+}
+
+function extraerDatos(texto){
+  const limpio = texto.replace(/\n/g, " ");
+
+  const bultos = limpio.match(/BULTOS\s*:?\s*(\d+)/i);
+  const kg = limpio.match(/Kgs?\.?\s*:?\s*([\d.,]+)/i);
+  const m3 = limpio.match(/Vol.*?\(m3\)\s*:?\s*([\d.,]+)/i);
+
+  if (bultos) {
+    document.getElementById("bultos").value = bultos[1];
+  }
+
+  if (kg) {
+    document.getElementById("kg").value = kg[1].replace(",", ".");
+  }
+
+  if (m3) {
+    document.getElementById("m3").value = m3[1].replace(",", ".");
+  }
+}
+
 const supabase = createClient(
 "https://jpnritlcfumjmdpoaytr.supabase.co",
 "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
@@ -139,6 +187,7 @@ return;
 
 photo_url = "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 
+  await leerAlbaranOCR(photo_url);
 }
 
 // guardar entrega
