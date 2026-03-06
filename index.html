@@ -189,9 +189,17 @@ window.guardarEntrega = async function () {
   return;
 }
 
-    if (photoFile && !photo_url) {
-      photo_url = await subirFoto(photoFile);
-    }
+    if (!driverInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
+  statusEl.innerText = "Faltan conductor, cliente, dirección o código postal";
+  return;
+}
+
+    const photoFile = getSelectedPhotoFile();
+let photo_url = ultimaPhotoUrl;
+
+if (photoFile && !photo_url) {
+  photo_url = await subirFoto(photoFile);
+}
 
     const { error } = await supabase
       .from("deliveries")
