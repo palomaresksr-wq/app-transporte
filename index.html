@@ -82,7 +82,17 @@ margin-top:15px;
 <input id="m3" type="number">
   
 <label>Foto albarán</label>
-<input id="photo" type="file" accept="image/*" capture="environment">
+
+<button type="button" onclick="document.getElementById('cameraInput').click()">
+📷 Hacer foto
+</button>
+
+<button type="button" onclick="document.getElementById('galleryInput').click()">
+🖼 Elegir de galería
+</button>
+
+<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+<input id="galleryInput" type="file" accept="image/*" style="display:none">
   
 <button onclick="guardarEntrega()">Guardar entrega</button>
 
@@ -165,7 +175,9 @@ let status = document.getElementById("status");
 status.innerText = "Guardando...";
   
 // subir foto si hay
-let photoFile = document.getElementById("photo").files[0];
+let photoFile =
+document.getElementById("cameraInput").files[0] ||
+document.getElementById("galleryInput").files[0];
 let photo_url = null;
 
 if(photoFile){
