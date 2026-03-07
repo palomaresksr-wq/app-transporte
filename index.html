@@ -58,6 +58,11 @@ margin-top:15px;
 
 <div class="card">
 
+<div id="sessionBar" style="margin-bottom:15px;padding:10px;background:#0f1a2e;border-radius:8px;">
+  Usuario: <span id="currentUser"></span>
+  <button type="button" onclick="cerrarSesion()" style="margin-top:10px;">Salir</button>
+</div>
+  
 <h2>Nueva entrega</h2>
 
 <label>Matrícula vehículo</label>
@@ -127,6 +132,20 @@ const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
 const clientSelect = document.getElementById("clientSelect");
 
+const currentUserEl = document.getElementById("currentUser");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.href = "login.html";
+}
+
+currentUserEl.innerText = sesion.username;
+
+window.cerrarSesion = function(){
+  localStorage.removeItem("sesionAppTransporte");
+  window.location.href = "login.html";
+};
   
 let ultimaPhotoUrl = null;
 
@@ -291,7 +310,8 @@ if (photoFile && !photo_url) {
     const { error } = await supabase
       .from("deliveries")
       .insert({
-        driver_name: vehicleInput.value,
+        driver_name: sesion.username,
+vehicle_plate: vehicleInput.value,
         client_name: clientInput.value,
         address: addressInput.value,
         postal_code: postalInput.value,
