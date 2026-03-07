@@ -36,6 +36,10 @@ h1{
   font-size:28px;
 }
 
+h3{
+  margin-top:0;
+}
+
 button, .btn{
   padding:10px 14px;
   border:none;
@@ -66,7 +70,13 @@ button.sec, .btn.sec{
   gap:10px;
 }
 
-input, select{
+.grid2{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:10px;
+}
+
+input, select, textarea{
   width:100%;
   padding:10px;
   border:none;
@@ -134,6 +144,55 @@ th{
   font-size:13px;
 }
 
+.invoicePreview{
+  background:#fff;
+  color:#111;
+  border-radius:12px;
+  padding:20px;
+  overflow:auto;
+}
+
+.invoicePreview table{
+  min-width:100%;
+  background:#fff;
+}
+
+.invoicePreview th,
+.invoicePreview td{
+  border:1px solid #ddd;
+  color:#111;
+}
+
+.invoicePreview th{
+  background:#f2f2f2;
+  position:static;
+}
+
+.invoiceHeader{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+.invoiceBox{
+  min-width:280px;
+}
+
+.invoiceTitle{
+  font-size:28px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.invoiceTotal{
+  text-align:right;
+  font-size:22px;
+  font-weight:bold;
+  margin-top:20px;
+}
+
 @media (max-width:700px){
   body{
     padding:12px;
@@ -162,7 +221,7 @@ th{
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0;">Filtros</h3>
+    <h3>Filtros</h3>
     <div class="grid">
       <div>
         <label>Conductor</label>
@@ -191,7 +250,7 @@ th{
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0;">Tarifa de cálculo</h3>
+    <h3>Tarifa de cálculo</h3>
     <div class="grid">
       <div>
         <label>Precio base (€)</label>
@@ -238,10 +297,91 @@ th{
   </div>
 
   <div class="card">
+    <h3>Datos de la factura</h3>
+    <div class="grid2">
+      <div>
+        <label>Número de factura</label>
+        <input id="invoiceNumber" placeholder="FAC-2026-001">
+      </div>
+
+      <div>
+        <label>Fecha de factura</label>
+        <input id="invoiceDate" type="date">
+      </div>
+
+      <div>
+        <label>Empresa emisora</label>
+        <input id="issuerName" placeholder="Nombre de tu empresa">
+      </div>
+
+      <div>
+        <label>NIF emisor</label>
+        <input id="issuerNif" placeholder="NIF/CIF">
+      </div>
+
+      <div>
+        <label>Dirección emisor</label>
+        <input id="issuerAddress" placeholder="Dirección de tu empresa">
+      </div>
+
+      <div>
+        <label>Teléfono / email emisor</label>
+        <input id="issuerContact" placeholder="Teléfono o email">
+      </div>
+
+      <div>
+        <label>Nombre cliente factura</label>
+        <input id="invoiceClientName" placeholder="Nombre del cliente">
+      </div>
+
+      <div>
+        <label>NIF cliente</label>
+        <input id="invoiceClientNif" placeholder="NIF/CIF del cliente">
+      </div>
+
+      <div>
+        <label>Dirección cliente</label>
+        <input id="invoiceClientAddress" placeholder="Dirección del cliente">
+      </div>
+
+      <div>
+        <label>Concepto</label>
+        <input id="invoiceConcept" placeholder="Servicios de transporte">
+      </div>
+
+      <div>
+        <label>IVA (%)</label>
+        <input id="invoiceVat" type="number" step="0.01" value="21">
+      </div>
+
+      <div>
+        <label>Observaciones factura</label>
+        <input id="invoiceNotes" placeholder="Observaciones o forma de pago">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="generarFacturaPreview()">Generar factura</button>
+      <button class="sec" onclick="imprimirFactura()">Imprimir / Guardar PDF</button>
+      <button class="sec" onclick="guardarDatosFactura()">Guardar datos de factura</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="totalBox">
       <div class="kpi">
         <div class="label">Entregas calculadas</div>
         <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Base imponible</div>
+        <div class="value" id="kpiBase">0.00 €</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">IVA</div>
+        <div class="value" id="kpiIva">0.00 €</div>
       </div>
 
       <div class="kpi">
@@ -280,6 +420,13 @@ th{
     </div>
   </div>
 
+  <div class="card">
+    <h3>Vista previa de factura</h3>
+    <div id="invoicePreview" class="invoicePreview">
+      Genera la factura para ver aquí el documento listo para imprimir o guardar en PDF.
+    </div>
+  </div>
+
 </div>
 
 <script type="module">
@@ -303,7 +450,10 @@ const clientFilter = document.getElementById("clientFilter");
 const dateFrom = document.getElementById("dateFrom");
 const dateTo = document.getElementById("dateTo");
 const kpiEntregas = document.getElementById("kpiEntregas");
+const kpiBase = document.getElementById("kpiBase");
+const kpiIva = document.getElementById("kpiIva");
 const kpiTotal = document.getElementById("kpiTotal");
+const invoicePreview = document.getElementById("invoicePreview");
 
 const tarifaBase = document.getElementById("tarifaBase");
 const tarifaBulto = document.getElementById("tarifaBulto");
@@ -313,12 +463,34 @@ const tarifaMozo = document.getElementById("tarifaMozo");
 const tarifaTrampilla = document.getElementById("tarifaTrampilla");
 const tarifaUrgente = document.getElementById("tarifaUrgente");
 
+const invoiceNumber = document.getElementById("invoiceNumber");
+const invoiceDate = document.getElementById("invoiceDate");
+const issuerName = document.getElementById("issuerName");
+const issuerNif = document.getElementById("issuerNif");
+const issuerAddress = document.getElementById("issuerAddress");
+const issuerContact = document.getElementById("issuerContact");
+const invoiceClientName = document.getElementById("invoiceClientName");
+const invoiceClientNif = document.getElementById("invoiceClientNif");
+const invoiceClientAddress = document.getElementById("invoiceClientAddress");
+const invoiceConcept = document.getElementById("invoiceConcept");
+const invoiceVat = document.getElementById("invoiceVat");
+const invoiceNotes = document.getElementById("invoiceNotes");
+
 let entregasGlobal = [];
 let entregasCalculadas = [];
 
 function numero(valor) {
   const n = parseFloat(valor);
   return isNaN(n) ? 0 : n;
+}
+
+function escaparHtml(texto) {
+  return String(texto ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function formatearEuros(valor) {
@@ -330,6 +502,21 @@ function formatearFecha(fechaIso) {
   const fecha = new Date(fechaIso);
   if (isNaN(fecha.getTime())) return fechaIso;
   return fecha.toLocaleString("es-ES");
+}
+
+function formatearFechaSoloDia(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleDateString("es-ES");
+}
+
+function hoyISO() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function cargarTarifas() {
@@ -370,6 +557,43 @@ function obtenerTarifas() {
     urgente: numero(tarifaUrgente.value)
   };
 }
+
+function cargarDatosFacturaGuardados() {
+  const guardados = JSON.parse(localStorage.getItem("datosFacturaAppTransporte") || "{}");
+
+  invoiceNumber.value = guardados.invoiceNumber ?? "";
+  invoiceDate.value = guardados.invoiceDate ?? hoyISO();
+  issuerName.value = guardados.issuerName ?? "";
+  issuerNif.value = guardados.issuerNif ?? "";
+  issuerAddress.value = guardados.issuerAddress ?? "";
+  issuerContact.value = guardados.issuerContact ?? "";
+  invoiceClientName.value = guardados.invoiceClientName ?? "";
+  invoiceClientNif.value = guardados.invoiceClientNif ?? "";
+  invoiceClientAddress.value = guardados.invoiceClientAddress ?? "";
+  invoiceConcept.value = guardados.invoiceConcept ?? "Servicios de transporte";
+  invoiceVat.value = guardados.invoiceVat ?? 21;
+  invoiceNotes.value = guardados.invoiceNotes ?? "";
+}
+
+window.guardarDatosFactura = function() {
+  const datos = {
+    invoiceNumber: invoiceNumber.value.trim(),
+    invoiceDate: invoiceDate.value,
+    issuerName: issuerName.value.trim(),
+    issuerNif: issuerNif.value.trim(),
+    issuerAddress: issuerAddress.value.trim(),
+    issuerContact: issuerContact.value.trim(),
+    invoiceClientName: invoiceClientName.value.trim(),
+    invoiceClientNif: invoiceClientNif.value.trim(),
+    invoiceClientAddress: invoiceClientAddress.value.trim(),
+    invoiceConcept: invoiceConcept.value.trim(),
+    invoiceVat: numero(invoiceVat.value),
+    invoiceNotes: invoiceNotes.value.trim()
+  };
+
+  localStorage.setItem("datosFacturaAppTransporte", JSON.stringify(datos));
+  statusEl.innerText = "Datos de factura guardados correctamente";
+};
 
 function calcularImporte(entrega) {
   const tarifas = obtenerTarifas();
@@ -412,6 +636,10 @@ function rellenarFiltros(lista) {
 
   driverFilter.value = drivers.includes(driverActual) ? driverActual : "";
   clientFilter.value = clients.includes(clientActual) ? clientActual : "";
+
+  if (clientFilter.value && !invoiceClientName.value.trim()) {
+    invoiceClientName.value = clientFilter.value;
+  }
 }
 
 function aplicarFiltrosYCalculo() {
@@ -449,6 +677,8 @@ function renderFactura(lista) {
       </tr>
     `;
     kpiEntregas.innerText = "0";
+    kpiBase.innerText = "0.00 €";
+    kpiIva.innerText = "0.00 €";
     kpiTotal.innerText = "0.00 €";
     return;
   }
@@ -456,11 +686,11 @@ function renderFactura(lista) {
   tbodyFactura.innerHTML = lista.map(entrega => `
     <tr>
       <td>${formatearFecha(entrega.created_at)}</td>
-      <td>${entrega.driver_name || ""}</td>
-      <td>${entrega.client_name || ""}</td>
-      <td>${entrega.vehicle_plate || ""}</td>
-      <td>${entrega.pickup_place || ""}</td>
-      <td>${entrega.dropoff_place || ""}</td>
+      <td>${escaparHtml(entrega.driver_name || "")}</td>
+      <td>${escaparHtml(entrega.client_name || "")}</td>
+      <td>${escaparHtml(entrega.vehicle_plate || "")}</td>
+      <td>${escaparHtml(entrega.pickup_place || "")}</td>
+      <td>${escaparHtml(entrega.dropoff_place || "")}</td>
       <td>${entrega.bultos ?? ""}</td>
       <td>${entrega.kg ?? ""}</td>
       <td>${entrega.m3 ?? ""}</td>
@@ -471,10 +701,213 @@ function renderFactura(lista) {
     </tr>
   `).join("");
 
-  const total = lista.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const base = lista.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const ivaImporte = base * (numero(invoiceVat.value) / 100);
+  const total = base + ivaImporte;
+
   kpiEntregas.innerText = String(lista.length);
+  kpiBase.innerText = formatearEuros(base);
+  kpiIva.innerText = formatearEuros(ivaImporte);
   kpiTotal.innerText = formatearEuros(total);
 }
+
+function construirHtmlFactura() {
+  if (!entregasCalculadas.length) {
+    return `<div>No hay entregas filtradas para generar factura.</div>`;
+  }
+
+  const base = entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const ivaPorcentaje = numero(invoiceVat.value);
+  const ivaImporte = base * (ivaPorcentaje / 100);
+  const total = base + ivaImporte;
+
+  const clienteAutomatico = clientFilter.value || "";
+  const nombreClienteFinal = invoiceClientName.value.trim() || clienteAutomatico;
+
+  const rangoFechas = `${dateFrom.value || "sin inicio"} - ${dateTo.value || "sin fin"}`;
+
+  const filas = entregasCalculadas.map((entrega, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escaparHtml(formatearFechaSoloDia(entrega.created_at))}</td>
+      <td>${escaparHtml(entrega.vehicle_plate || "")}</td>
+      <td>${escaparHtml(entrega.pickup_place || "")}</td>
+      <td>${escaparHtml(entrega.dropoff_place || "")}</td>
+      <td>${escaparHtml(entrega.bultos ?? "")}</td>
+      <td>${escaparHtml(entrega.kg ?? "")}</td>
+      <td>${escaparHtml(entrega.m3 ?? "")}</td>
+      <td>${escaparHtml(entrega.mozo ? "Sí" : "No")}</td>
+      <td>${escaparHtml(entrega.trampilla ? "Sí" : "No")}</td>
+      <td>${escaparHtml(entrega.urgente ? "Sí" : "No")}</td>
+      <td>${formatearEuros(entrega.importe_calculado)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div class="invoiceHeader">
+      <div class="invoiceBox">
+        <div class="invoiceTitle">FACTURA</div>
+        <div><strong>Nº factura:</strong> ${escaparHtml(invoiceNumber.value || "")}</div>
+        <div><strong>Fecha:</strong> ${escaparHtml(invoiceDate.value || "")}</div>
+        <div><strong>Concepto:</strong> ${escaparHtml(invoiceConcept.value || "Servicios de transporte")}</div>
+        <div><strong>Periodo:</strong> ${escaparHtml(rangoFechas)}</div>
+      </div>
+
+      <div class="invoiceBox">
+        <div><strong>Emisor</strong></div>
+        <div>${escaparHtml(issuerName.value || "")}</div>
+        <div>${escaparHtml(issuerNif.value || "")}</div>
+        <div>${escaparHtml(issuerAddress.value || "")}</div>
+        <div>${escaparHtml(issuerContact.value || "")}</div>
+      </div>
+
+      <div class="invoiceBox">
+        <div><strong>Cliente</strong></div>
+        <div>${escaparHtml(nombreClienteFinal)}</div>
+        <div>${escaparHtml(invoiceClientNif.value || "")}</div>
+        <div>${escaparHtml(invoiceClientAddress.value || "")}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Matrícula</th>
+          <th>Carga</th>
+          <th>Descarga</th>
+          <th>Bultos</th>
+          <th>Kg</th>
+          <th>M3</th>
+          <th>Mozo</th>
+          <th>Trampilla</th>
+          <th>Urgente</th>
+          <th>Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas}
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px; max-width:380px; margin-left:auto;">
+      <table>
+        <tr>
+          <th>Base imponible</th>
+          <td>${formatearEuros(base)}</td>
+        </tr>
+        <tr>
+          <th>IVA (${ivaPorcentaje.toFixed(2)}%)</th>
+          <td>${formatearEuros(ivaImporte)}</td>
+        </tr>
+        <tr>
+          <th>Total</th>
+          <td><strong>${formatearEuros(total)}</strong></td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin-top:20px;">
+      <strong>Observaciones:</strong><br>
+      ${escaparHtml(invoiceNotes.value || "")}
+    </div>
+  `;
+}
+
+window.generarFacturaPreview = function() {
+  if (!entregasCalculadas.length) {
+    alert("No hay entregas filtradas para generar la factura.");
+    return;
+  }
+
+  if (clientFilter.value && !invoiceClientName.value.trim()) {
+    invoiceClientName.value = clientFilter.value;
+  }
+
+  invoicePreview.innerHTML = construirHtmlFactura();
+  statusEl.innerText = "Factura generada correctamente";
+};
+
+window.imprimirFactura = function() {
+  if (!entregasCalculadas.length) {
+    alert("No hay entregas filtradas para imprimir.");
+    return;
+  }
+
+  const contenido = construirHtmlFactura();
+  const titulo = `Factura ${invoiceNumber.value || ""}`.trim();
+
+  const ventana = window.open("", "_blank");
+  if (!ventana) {
+    alert("El navegador ha bloqueado la ventana de impresión.");
+    return;
+  }
+
+  ventana.document.write(`
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>${escaparHtml(titulo)}</title>
+      <style>
+        body{
+          font-family: Arial, sans-serif;
+          color:#111;
+          padding:30px;
+        }
+        h1,h2,h3{
+          margin:0 0 10px 0;
+        }
+        table{
+          width:100%;
+          border-collapse:collapse;
+          margin-top:15px;
+        }
+        th, td{
+          border:1px solid #ccc;
+          padding:8px;
+          text-align:left;
+          vertical-align:top;
+          font-size:12px;
+        }
+        th{
+          background:#f2f2f2;
+        }
+        .invoiceHeader{
+          display:flex;
+          justify-content:space-between;
+          gap:20px;
+          flex-wrap:wrap;
+          margin-bottom:20px;
+        }
+        .invoiceBox{
+          min-width:240px;
+        }
+        .invoiceTitle{
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:10px;
+        }
+        @media print {
+          body{
+            padding:0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${contenido}
+    </body>
+    </html>
+  `);
+
+  ventana.document.close();
+  ventana.focus();
+  setTimeout(() => {
+    ventana.print();
+  }, 300);
+};
 
 async function cargarDatos() {
   try {
@@ -554,13 +987,31 @@ async function guardarPreciosCalculados() {
 
 window.guardarPreciosCalculados = guardarPreciosCalculados;
 
-driverFilter.addEventListener("change", aplicarFiltrosYCalculo);
-clientFilter.addEventListener("change", aplicarFiltrosYCalculo);
+driverFilter.addEventListener("change", () => {
+  aplicarFiltrosYCalculo();
+  if (clientFilter.value && !invoiceClientName.value.trim()) {
+    invoiceClientName.value = clientFilter.value;
+  }
+});
+
+clientFilter.addEventListener("change", () => {
+  aplicarFiltrosYCalculo();
+  if (clientFilter.value) {
+    invoiceClientName.value = clientFilter.value;
+  }
+});
+
 dateFrom.addEventListener("change", aplicarFiltrosYCalculo);
 dateTo.addEventListener("change", aplicarFiltrosYCalculo);
+invoiceVat.addEventListener("input", aplicarFiltrosYCalculo);
 
 cargarTarifas();
+cargarDatosFacturaGuardados();
 cargarDatos();
+
+if (!invoiceDate.value) {
+  invoiceDate.value = hoyISO();
+}
 </script>
 </body>
 </html>
