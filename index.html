@@ -314,6 +314,7 @@ cameraInput.addEventListener("change", leerFotoAutomatica);
 galleryInput.addEventListener("change", leerFotoAutomatica);
 
 window.guardarEntrega = async function () {
+  alert("He entrado en guardar");
   try {
     statusEl.innerText = "Guardando...";
 
@@ -350,10 +351,11 @@ price_eur: 0,
 photo_url: photo_url
       });
 
-    if (error) {
-      statusEl.innerText = "Error: " + error.message;
-      return;
-    }
+   if (error) {
+  statusEl.innerText = "Error: " + error.message;
+  alert("Error al guardar: " + error.message);
+  return;
+}
 
    statusEl.innerText = "Entrega guardada correctamente";
    guardarDireccionFrecuenteSiEsNueva();
@@ -377,8 +379,9 @@ galleryInput.value = "";
 ultimaPhotoUrl = null;;
 
 } catch (e) {
-    statusEl.innerText = e.message;
-  }
+  statusEl.innerText = e.message;
+  alert("Fallo: " + e.message);
+}
 };
 </script>
 </body>
