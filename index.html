@@ -6,64 +6,70 @@
 <title>App Transporte</title>
 
 <style>
-
 body{
-font-family: Arial;
-background:#0b1220;
-color:white;
-margin:0;
-padding:30px;
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:30px;
 }
 
 .card{
-background:#121b2f;
-padding:20px;
-border-radius:10px;
-max-width:500px;
-margin:auto;
+  background:#121b2f;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
+  margin:auto;
 }
 
 label{
-display:block;
-margin-top:10px;
+  display:block;
+  margin-top:10px;
 }
 
-input{
-width:100%;
-padding:10px;
-margin-top:5px;
-border-radius:6px;
-border:none;
-}
-
-  select{
-width:100%;
-padding:10px;
-margin-top:5px;
-border-radius:6px;
-border:none;
+input, select, textarea{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:none;
+  box-sizing:border-box;
 }
 
 input[type="checkbox"]{
-width:auto;
-margin:0;
+  width:auto;
+  margin:0;
 }
 
 button{
-margin-top:20px;
-width:100%;
-padding:12px;
-background:#ff7a18;
-border:none;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  background:#ff7a18;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
 #status{
-margin-top:15px;
+  margin-top:15px;
+  font-weight:bold;
 }
 
+.checkline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+}
+
+.checkline label{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 </style>
 </head>
 
@@ -71,75 +77,87 @@ margin-top:15px;
 
 <div class="card">
 
-<div id="sessionBar" style="margin-bottom:15px;padding:10px;background:#0f1a2e;border-radius:8px;">
-  Usuario: <span id="currentUser"></span>
-  <button type="button" onclick="cerrarSesion()" style="margin-top:10px;">Salir</button>
-</div>
-  
-<h2>Nueva entrega</h2>
+  <div id="sessionBar" style="margin-bottom:15px;padding:10px;background:#0f1a2e;border-radius:8px;">
+    Usuario: <span id="currentUser"></span>
+    <button type="button" onclick="cerrarSesion()" style="margin-top:10px;">Salir</button>
+  </div>
 
-<label>Matrícula vehículo</label>
-<input id="vehicle">
+  <h2>Nueva entrega</h2>
 
-<label>Cliente</label>
-<input id="client" placeholder="Nombre del cliente">
+  <label>Matrícula vehículo</label>
+  <input id="vehicle">
 
-<label>Lugar de carga</label>
-<input id="pickupPlace" placeholder="Dirección o empresa de recogida">
+  <label>Cliente frecuente</label>
+  <select id="clientSelect">
+    <option value="">Seleccionar cliente frecuente</option>
+  </select>
 
-<label>Lugar de descarga</label>
+  <label>Cliente</label>
+  <input id="client" placeholder="Nombre del cliente">
 
-<select id="dropoffSelect">
-  <option value="">Seleccionar dirección frecuente</option>
-</select>
+  <label>Lugar de carga frecuente</label>
+  <select id="pickupSelect">
+    <option value="">Seleccionar lugar de carga frecuente</option>
+  </select>
 
-<input id="dropoffPlace" placeholder="O escribir dirección de descarga nueva">
+  <label>Lugar de carga</label>
+  <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
 
-<label>Bultos</label>
-<input id="bultos" type="number">
+  <label>Lugar de descarga frecuente</label>
+  <select id="dropoffSelect">
+    <option value="">Seleccionar dirección frecuente</option>
+  </select>
 
-<label>Kg</label>
-<input id="kg" type="number">
+  <label>Lugar de descarga</label>
+  <input id="dropoffPlace" placeholder="O escribir dirección de descarga nueva">
 
-<label>M3</label>
-<input id="m3" type="number">
+  <label>Bultos</label>
+  <input id="bultos" type="number">
 
-<label>Observaciones</label>
-<input id="observations" placeholder="Tiempo de espera, averías, nº bultos, etc.">
+  <label>Kg</label>
+  <input id="kg" type="number">
 
-<div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="mozo" type="checkbox" style="width:auto;">
-    Mozo
-  </label>
+  <label>M3</label>
+  <input id="m3" type="number">
 
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="trampilla" type="checkbox" style="width:auto;">
-    Trampilla
-  </label>
+  <label>Observaciones</label>
+  <textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
 
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="urgente" type="checkbox" style="width:auto;">
-    Urgente
-  </label>
-</div>
+  <div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="mozo" type="checkbox">
+      Mozo
+    </label>
 
-<button type="button" onclick="document.getElementById('cameraInput').click()">
-📷 Hacer foto
-</button>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="trampilla" type="checkbox">
+      Trampilla
+    </label>
 
-<button type="button" onclick="document.getElementById('galleryInput').click()">
-🖼 Elegir de galería
-</button>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="urgente" type="checkbox">
+      Urgente
+    </label>
+  </div>
 
-<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="leerFotoAutomatica()">
-<input id="galleryInput" type="file" accept="image/*" style="display:none" onchange="leerFotoAutomatica()">
-  
-<button onclick="guardarEntrega()">Guardar entrega</button>
+  <label>Foto albarán</label>
 
-<div id="status"></div>
+  <button type="button" onclick="document.getElementById('cameraInput').click()">
+    📷 Hacer foto
+  </button>
 
-<img id="previewFoto" style="margin-top:10px;max-width:100%;display:none;border-radius:8px;">
+  <button type="button" onclick="document.getElementById('galleryInput').click()">
+    🖼 Elegir de galería
+  </button>
+
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+  <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+  <img id="previewFoto" style="margin-top:10px;max-width:100%;display:none;border-radius:8px;">
+
+  <button onclick="guardarEntrega()">Guardar entrega</button>
+
+  <div id="status"></div>
 
 </div>
 
@@ -154,18 +172,28 @@ const supabase = createClient(
 const statusEl = document.getElementById("status");
 const cameraInput = document.getElementById("cameraInput");
 const galleryInput = document.getElementById("galleryInput");
+const previewFoto = document.getElementById("previewFoto");
+
 const vehicleInput = document.getElementById("vehicle");
+
+const clientSelect = document.getElementById("clientSelect");
 const clientInput = document.getElementById("client");
+
+const pickupSelect = document.getElementById("pickupSelect");
 const pickupPlaceInput = document.getElementById("pickupPlace");
-const dropoffPlaceInput = document.getElementById("dropoffPlace");
+
 const dropoffSelect = document.getElementById("dropoffSelect");
+const dropoffPlaceInput = document.getElementById("dropoffPlace");
+
 const bultosInput = document.getElementById("bultos");
 const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
 const observationsInput = document.getElementById("observations");
+
 const mozoInput = document.getElementById("mozo");
 const trampillaInput = document.getElementById("trampilla");
 const urgenteInput = document.getElementById("urgente");
+
 const currentUserEl = document.getElementById("currentUser");
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
@@ -180,21 +208,99 @@ window.cerrarSesion = function(){
   localStorage.removeItem("sesionAppTransporte");
   window.location.href = "login.html";
 };
-  
+
 let ultimaPhotoUrl = null;
 
- function obtenerDireccionesFrecuentes() {
+/* =========================
+   CLIENTES FRECUENTES
+========================= */
+function obtenerClientesFrecuentes() {
+  const guardados = localStorage.getItem("clientesFrecuentes");
+  return guardados ? JSON.parse(guardados) : [];
+}
+
+function guardarClientesFrecuentes(lista) {
+  localStorage.setItem("clientesFrecuentes", JSON.stringify(lista));
+}
+
+function cargarClientesFrecuentesEnSelect() {
+  const clientes = obtenerClientesFrecuentes();
+  clientSelect.innerHTML = '<option value="">Seleccionar cliente frecuente</option>';
+
+  clientes.forEach(nombre => {
+    const option = document.createElement("option");
+    option.value = nombre;
+    option.textContent = nombre;
+    clientSelect.appendChild(option);
+  });
+}
+
+function guardarClienteSiEsNuevo() {
+  const nombre = clientInput.value.trim();
+  if (!nombre) return;
+
+  const clientes = obtenerClientesFrecuentes();
+  const yaExiste = clientes.some(c => c.toLowerCase() === nombre.toLowerCase());
+  if (yaExiste) return;
+
+  clientes.push(nombre);
+  guardarClientesFrecuentes(clientes);
+  cargarClientesFrecuentesEnSelect();
+}
+
+clientSelect.addEventListener("change", () => {
+  if (!clientSelect.value) return;
+  clientInput.value = clientSelect.value;
+});
+
+/* =========================
+   CARGAS FRECUENTES
+========================= */
+function obtenerCargasFrecuentes() {
+  const guardados = localStorage.getItem("cargasFrecuentes");
+  return guardados ? JSON.parse(guardados) : [];
+}
+
+function guardarCargasFrecuentes(lista) {
+  localStorage.setItem("cargasFrecuentes", JSON.stringify(lista));
+}
+
+function cargarCargasFrecuentesEnSelect() {
+  const cargas = obtenerCargasFrecuentes();
+  pickupSelect.innerHTML = '<option value="">Seleccionar lugar de carga frecuente</option>';
+
+  cargas.forEach(lugar => {
+    const option = document.createElement("option");
+    option.value = lugar;
+    option.textContent = lugar;
+    pickupSelect.appendChild(option);
+  });
+}
+
+function guardarCargaFrecuenteSiEsNueva() {
+  const lugar = pickupPlaceInput.value.trim();
+  if (!lugar) return;
+
+  const cargas = obtenerCargasFrecuentes();
+  const yaExiste = cargas.some(c => c.toLowerCase() === lugar.toLowerCase());
+  if (yaExiste) return;
+
+  cargas.push(lugar);
+  guardarCargasFrecuentes(cargas);
+  cargarCargasFrecuentesEnSelect();
+}
+
+pickupSelect.addEventListener("change", () => {
+  if (!pickupSelect.value) return;
+  pickupPlaceInput.value = pickupSelect.value;
+});
+
+/* =========================
+   DESCARGAS FRECUENTES
+========================= */
+function obtenerDireccionesFrecuentes() {
   const guardados = localStorage.getItem("direccionesFrecuentes");
-
-  if (guardados) {
-    return JSON.parse(guardados);
-  }
-
-  return [
-    "Madrid",
-    "Getafe",
-    "Leganés"
-  ];
+  return guardados ? JSON.parse(guardados) : [];
 }
 
 function guardarDireccionesFrecuentes(lista) {
@@ -203,7 +309,6 @@ function guardarDireccionesFrecuentes(lista) {
 
 function cargarDireccionesFrecuentesEnSelect() {
   const direcciones = obtenerDireccionesFrecuentes();
-
   dropoffSelect.innerHTML = '<option value="">Seleccionar dirección frecuente</option>';
 
   direcciones.forEach(direccion => {
@@ -216,15 +321,10 @@ function cargarDireccionesFrecuentesEnSelect() {
 
 function guardarDireccionFrecuenteSiEsNueva() {
   const direccion = dropoffPlaceInput.value.trim();
-
   if (!direccion) return;
 
   const direcciones = obtenerDireccionesFrecuentes();
-
-  const yaExiste = direcciones.some(
-    d => d.toLowerCase() === direccion.toLowerCase()
-  );
-
+  const yaExiste = direcciones.some(d => d.toLowerCase() === direccion.toLowerCase());
   if (yaExiste) return;
 
   direcciones.push(direccion);
@@ -237,24 +337,12 @@ dropoffSelect.addEventListener("change", () => {
   dropoffPlaceInput.value = dropoffSelect.value;
 });
 
-cargarDireccionesFrecuentesEnSelect();
-}
-
-clientSelect.addEventListener("change", () => {
-  const clientes = obtenerClientesFrecuentes();
-
-  const seleccionado = clientes.find(
-    c => c.nombre === clientSelect.value
-  );
-
-  if (!seleccionado) return;
-
-  clientInput.value = seleccionado.nombre;
-  addressInput.value = seleccionado.direccion;
-  postalInput.value = seleccionado.cp;
-});
-
+/* =========================
+   INICIO
+========================= */
 cargarClientesFrecuentesEnSelect();
+cargarCargasFrecuentesEnSelect();
+cargarDireccionesFrecuentesEnSelect();
 
 function getSelectedPhotoFile() {
   return cameraInput.files[0] || galleryInput.files[0] || null;
@@ -276,15 +364,6 @@ async function subirFoto(photoFile, prefix = "") {
   return "https://jpnritlcfumjmdpoaytr.supabase.co/storage/v1/object/public/pod/" + fileName;
 }
 
-// OCR DESACTIVADO DE MOMENTO POR SEGURIDAD
-async function leerAlbaranOCR(_imageUrl) {
-  return "";
-}
-
-function extraerDatos(_texto) {
-  // OCR desactivado temporalmente
-}
-
 async function leerFotoAutomatica() {
   try {
     const photoFile = getSelectedPhotoFile();
@@ -295,11 +374,10 @@ async function leerFotoAutomatica() {
     }
 
     statusEl.innerText = "He detectado la foto";
-    
-    let preview = document.getElementById("previewFoto");
-    preview.src = URL.createObjectURL(photoFile);
-    preview.style.display = "block";
-    
+
+    previewFoto.src = URL.createObjectURL(photoFile);
+    previewFoto.style.display = "block";
+
     await new Promise(r => setTimeout(r, 300));
 
     ultimaPhotoUrl = await subirFoto(photoFile, "preview-");
@@ -307,6 +385,7 @@ async function leerFotoAutomatica() {
     statusEl.innerText = "Foto subida correctamente";
   } catch (e) {
     statusEl.innerText = e.message;
+    alert("Fallo foto: " + e.message);
   }
 }
 
@@ -314,74 +393,87 @@ cameraInput.addEventListener("change", leerFotoAutomatica);
 galleryInput.addEventListener("change", leerFotoAutomatica);
 
 window.guardarEntrega = async function () {
-  alert("He entrado en guardar");
   try {
     statusEl.innerText = "Guardando...";
 
-
-  if (!vehicleInput.value || !clientInput.value || !pickupPlaceInput.value || !dropoffPlaceInput.value) {
-  statusEl.innerText = "Faltan matrícula, cliente, lugar de carga o lugar de descarga";
-  return;
-}
+    if (!vehicleInput.value.trim() || !clientInput.value.trim() || !pickupPlaceInput.value.trim() || !dropoffPlaceInput.value.trim()) {
+      statusEl.innerText = "Faltan matrícula, cliente, lugar de carga o lugar de descarga";
+      return;
+    }
 
     const photoFile = getSelectedPhotoFile();
-let photo_url = ultimaPhotoUrl;
+    let photo_url = ultimaPhotoUrl;
 
-if (photoFile && !photo_url) {
-  photo_url = await subirFoto(photoFile);
-}
+    if (photoFile && !photo_url) {
+      photo_url = await subirFoto(photoFile);
+    }
 
     const { error } = await supabase
       .from("deliveries")
       .insert({
         driver_name: sesion.username,
-vehicle_plate: vehicleInput.value.trim(),
-client_name: clientInput.value.trim(),
-pickup_place: pickupPlaceInput.value.trim(),
-dropoff_place: dropoffPlaceInput.value.trim(),
-bultos: bultosInput.value ? parseInt(bultosInput.value, 10) : null,
-kg: kgInput.value ? parseFloat(kgInput.value.replace(",", ".")) : null,
-m3: m3Input.value ? parseFloat(m3Input.value.replace(",", ".")) : null,
-observations: observationsInput.value.trim() || null,
-mozo: mozoInput.checked,
-trampilla: trampillaInput.checked,
-urgente: urgenteInput.checked,
-distance_km: 0,
-price_eur: 0,
-photo_url: photo_url
+        vehicle_plate: vehicleInput.value.trim(),
+        client_name: clientInput.value.trim(),
+        pickup_place: pickupPlaceInput.value.trim(),
+        dropoff_place: dropoffPlaceInput.value.trim(),
+        bultos: bultosInput.value ? parseInt(bultosInput.value, 10) : null,
+        kg: kgInput.value ? parseFloat(kgInput.value.replace(",", ".")) : null,
+        m3: m3Input.value ? parseFloat(m3Input.value.replace(",", ".")) : null,
+        observations: observationsInput.value.trim() || null,
+        mozo: mozoInput.checked,
+        trampilla: trampillaInput.checked,
+        urgente: urgenteInput.checked,
+        distance_km: 0,
+        price_eur: 0,
+        photo_url: photo_url || null
       });
 
-   if (error) {
-  statusEl.innerText = "Error: " + error.message;
-  alert("Error al guardar: " + error.message);
-  return;
-}
+    if (error) {
+      statusEl.innerText = "Error: " + error.message;
+      alert("Error al guardar: " + error.message);
+      return;
+    }
 
-   statusEl.innerText = "Entrega guardada correctamente";
-   guardarDireccionFrecuenteSiEsNueva();
+    statusEl.innerText = "Entrega guardada correctamente";
 
-    document.getElementById("previewFoto").style.display = "none";
+    guardarClienteSiEsNuevo();
+    guardarCargaFrecuenteSiEsNueva();
+    guardarDireccionFrecuenteSiEsNueva();
 
-vehicleInput.value = "";
-clientInput.value = "";
-pickupPlaceInput.value = "";
-dropoffPlaceInput.value = "";
-dropoffSelect.value = "";
-bultosInput.value = "";
-kgInput.value = "";
-m3Input.value = "";
-observationsInput.value = "";
-mozoInput.checked = false;
-trampillaInput.checked = false;
-urgenteInput.checked = false;
-cameraInput.value = "";
-galleryInput.value = "";
-ultimaPhotoUrl = null;;
+    previewFoto.style.display = "none";
+    previewFoto.src = "";
 
-} catch (e) {
-  statusEl.innerText = e.message;
-  alert("Fallo: " + e.message);
-}
+    vehicleInput.value = "";
+    clientInput.value = "";
+    clientSelect.value = "";
+
+    pickupPlaceInput.value = "";
+    pickupSelect.value = "";
+
+    dropoffPlaceInput.value = "";
+    dropoffSelect.value = "";
+
+    bultosInput.value = "";
+    kgInput.value = "";
+    m3Input.value = "";
+    observationsInput.value = "";
+
+    mozoInput.checked = false;
+    trampillaInput.checked = false;
+    urgenteInput.checked = false;
+
+    cameraInput.value = "";
+    galleryInput.value = "";
+    ultimaPhotoUrl = null;
+
+    cargarClientesFrecuentesEnSelect();
+    cargarCargasFrecuentesEnSelect();
+    cargarDireccionesFrecuentesEnSelect();
+
+  } catch (e) {
+    statusEl.innerText = e.message;
+    alert("Fallo al guardar: " + e.message);
+  }
 };
 </script>
 </body>
