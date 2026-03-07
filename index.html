@@ -36,6 +36,19 @@ border-radius:6px;
 border:none;
 }
 
+  select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:6px;
+border:none;
+}
+
+input[type="checkbox"]{
+width:auto;
+margin:0;
+}
+
 button{
 margin-top:20px;
 width:100%;
@@ -69,18 +82,18 @@ margin-top:15px;
 <input id="vehicle">
 
 <label>Cliente</label>
+<input id="client" placeholder="Nombre del cliente">
 
-<select id="clientSelect">
-<option value="">Seleccionar cliente frecuente</option>
+<label>Lugar de carga</label>
+<input id="pickupPlace" placeholder="Dirección o empresa de recogida">
+
+<label>Lugar de descarga</label>
+
+<select id="dropoffSelect">
+  <option value="">Seleccionar dirección frecuente</option>
 </select>
 
-<input id="client" placeholder="O escribir cliente nuevo">
-
-<label>Dirección</label>
-<input id="address">
-
-<label>Código Postal</label>
-<input id="postal">
+<input id="dropoffPlace" placeholder="O escribir dirección de descarga nueva">
 
 <label>Bultos</label>
 <input id="bultos" type="number">
@@ -90,8 +103,26 @@ margin-top:15px;
 
 <label>M3</label>
 <input id="m3" type="number">
-  
-<label>Foto albarán</label>
+
+<label>Observaciones</label>
+<input id="observations" placeholder="Tiempo de espera, averías, nº bultos, etc.">
+
+<div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="mozo" type="checkbox" style="width:auto;">
+    Mozo
+  </label>
+
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="trampilla" type="checkbox" style="width:auto;">
+    Trampilla
+  </label>
+
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="urgente" type="checkbox" style="width:auto;">
+    Urgente
+  </label>
+</div>
 
 <button type="button" onclick="document.getElementById('cameraInput').click()">
 📷 Hacer foto
@@ -125,13 +156,16 @@ const cameraInput = document.getElementById("cameraInput");
 const galleryInput = document.getElementById("galleryInput");
 const vehicleInput = document.getElementById("vehicle");
 const clientInput = document.getElementById("client");
-const addressInput = document.getElementById("address");
-const postalInput = document.getElementById("postal");
+const pickupPlaceInput = document.getElementById("pickupPlace");
+const dropoffPlaceInput = document.getElementById("dropoffPlace");
+const dropoffSelect = document.getElementById("dropoffSelect");
 const bultosInput = document.getElementById("bultos");
 const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
-const clientSelect = document.getElementById("clientSelect");
-
+const observationsInput = document.getElementById("observations");
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
 const currentUserEl = document.getElementById("currentUser");
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
@@ -295,8 +329,8 @@ window.guardarEntrega = async function () {
     statusEl.innerText = "Guardando...";
 
 
-  if (!vehicleInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
-  statusEl.innerText = "Faltan matrícula, cliente, dirección o código postal";
+  if (!vehicleInput.value || !clientInput.value || !pickupPlaceInput.value || !dropoffPlaceInput.value) {
+  statusEl.innerText = "Faltan matrícula, cliente, lugar de carga o lugar de descarga";
   return;
 }
 
@@ -311,16 +345,20 @@ if (photoFile && !photo_url) {
       .from("deliveries")
       .insert({
         driver_name: sesion.username,
-vehicle_plate: vehicleInput.value,
-        client_name: clientInput.value,
-        address: addressInput.value,
-        postal_code: postalInput.value,
-        bultos: bultosInput.value ? parseInt(bultosInput.value, 10) : null,
-        kg: kgInput.value ? parseFloat(kgInput.value.replace(",", ".")) : null,
-        m3: m3Input.value ? parseFloat(m3Input.value.replace(",", ".")) : null,
-        distance_km: 0,
-        price_eur: 0,
-        photo_url: photo_url
+vehicle_plate: vehicleInput.value.trim(),
+client_name: clientInput.value.trim(),
+pickup_place: pickupPlaceInput.value.trim(),
+dropoff_place: dropoffPlaceInput.value.trim(),
+bultos: bultosInput.value ? parseInt(bultosInput.value, 10) : null,
+kg: kgInput.value ? parseFloat(kgInput.value.replace(",", ".")) : null,
+m3: m3Input.value ? parseFloat(m3Input.value.replace(",", ".")) : null,
+observations: observationsInput.value.trim() || null,
+mozo: mozoInput.checked,
+trampilla: trampillaInput.checked,
+urgente: urgenteInput.checked,
+distance_km: 0,
+price_eur: 0,
+photo_url: photo_url
       });
 
     if (error) {
@@ -329,20 +367,25 @@ vehicle_plate: vehicleInput.value,
     }
 
    statusEl.innerText = "Entrega guardada correctamente";
-    guardarClienteSiEsNuevo();
+   guardarDireccionFrecuenteSiEsNueva();
 
     document.getElementById("previewFoto").style.display = "none";
 
 vehicleInput.value = "";
 clientInput.value = "";
-addressInput.value = "";
-postalInput.value = "";
+pickupPlaceInput.value = "";
+dropoffPlaceInput.value = "";
+dropoffSelect.value = "";
 bultosInput.value = "";
 kgInput.value = "";
 m3Input.value = "";
+observationsInput.value = "";
+mozoInput.checked = false;
+trampillaInput.checked = false;
+urgenteInput.checked = false;
 cameraInput.value = "";
 galleryInput.value = "";
-ultimaPhotoUrl = null;
+ultimaPhotoUrl = null;;
 
 } catch (e) {
     statusEl.innerText = e.message;
