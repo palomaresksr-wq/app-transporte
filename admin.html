@@ -36,7 +36,7 @@ h1{
   font-size:28px;
 }
 
-button{
+button, .btn{
   padding:10px 14px;
   border:none;
   border-radius:8px;
@@ -44,9 +44,11 @@ button{
   color:#1b0c02;
   font-weight:bold;
   cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
 }
 
-button.sec{
+button.sec, .btn.sec{
   background:#24314f;
   color:white;
 }
@@ -207,6 +209,7 @@ input, select{
     </div>
 
     <div class="actions">
+      <a class="btn sec" href="factura.html">Facturación</a>
       <button class="sec" onclick="cargarEntregas()">Actualizar</button>
       <button onclick="cerrarSesion()">Salir</button>
     </div>
@@ -267,12 +270,13 @@ input, select{
             <th>Observaciones</th>
             <th>Extras</th>
             <th>Foto</th>
+            <th>Precio</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tbodyEntregas">
           <tr>
-            <td colspan="13" class="empty">Cargando entregas...</td>
+            <td colspan="14" class="empty">Cargando entregas...</td>
           </tr>
         </tbody>
       </table>
@@ -366,7 +370,7 @@ function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="13" class="empty">No hay entregas que coincidan con el filtro.</td>
+        <td colspan="14" class="empty">No hay entregas que coincidan con el filtro.</td>
       </tr>
     `;
     return;
@@ -401,6 +405,7 @@ function renderEntregas(lista) {
         <td>${textoSeguro(entrega.observations)}</td>
         <td>${extras}</td>
         <td>${fotoHtml}</td>
+        <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
         <td>
           <div class="actions">
             <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
@@ -468,7 +473,7 @@ async function cargarEntregas() {
       statusEl.innerText = "Error cargando entregas: " + error.message;
       tbodyEntregas.innerHTML = `
         <tr>
-          <td colspan="13" class="empty">No se pudieron cargar las entregas.</td>
+          <td colspan="14" class="empty">No se pudieron cargar las entregas.</td>
         </tr>
       `;
       return;
@@ -481,7 +486,7 @@ async function cargarEntregas() {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="13" class="empty">Error inesperado al cargar entregas.</td>
+        <td colspan="14" class="empty">Error inesperado al cargar entregas.</td>
       </tr>
     `;
   }
