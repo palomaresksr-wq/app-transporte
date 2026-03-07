@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login App Transporte</title>
+<style>
+body{
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:30px;
+}
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
+  margin:auto;
+}
+label{
+  display:block;
+  margin-top:10px;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:none;
+}
+button{
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  background:#ff7a18;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+#status{
+  margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Entrada App Transporte</h2>
+
+  <label>Usuario</label>
+  <input id="username">
+
+  <label>Contraseña</label>
+  <input id="password" type="password">
+
+  <button onclick="entrar()">Entrar</button>
+
+  <div id="status"></div>
+</div>
+
+<script>
+const usuarios = [
+  { username: "alberto", password: "1234", role: "driver" },
+  { username: "conductor2", password: "1234", role: "driver" },
+  { username: "conductor3", password: "1234", role: "driver" },
+  { username: "conductor4", password: "1234", role: "driver" },
+  { username: "oficina", password: "1234", role: "admin" }
+];
+
+const sesionGuardada = localStorage.getItem("sesionAppTransporte");
+if (sesionGuardada) {
+  const sesion = JSON.parse(sesionGuardada);
+  if (sesion.role === "admin") {
+    window.location.href = "admin.html";
+  } else {
+    window.location.href = "index.html";
+  }
+}
+
+window.entrar = function(){
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const status = document.getElementById("status");
+
+  const usuario = usuarios.find(
+    u => u.username === username && u.password === password
+  );
+
+  if (!usuario) {
+    status.innerText = "Usuario o contraseña incorrectos";
+    return;
+  }
+
+  localStorage.setItem("sesionAppTransporte", JSON.stringify(usuario));
+
+  if (usuario.role === "admin") {
+    window.location.href = "admin.html";
+  } else {
+    window.location.href = "index.html";
+  }
+};
+</script>
+
+</body>
+</html>
