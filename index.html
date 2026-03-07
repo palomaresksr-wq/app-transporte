@@ -60,8 +60,8 @@ margin-top:15px;
 
 <h2>Nueva entrega</h2>
 
-<label>Conductor</label>
-<input id="driver">
+<label>Matrícula vehículo</label>
+<input id="vehicle">
 
 <label>Cliente</label>
 
@@ -118,7 +118,7 @@ const supabase = createClient(
 const statusEl = document.getElementById("status");
 const cameraInput = document.getElementById("cameraInput");
 const galleryInput = document.getElementById("galleryInput");
-const driverInput = document.getElementById("driver");
+const vehicleInput = document.getElementById("vehicle");
 const clientInput = document.getElementById("client");
 const addressInput = document.getElementById("address");
 const postalInput = document.getElementById("postal");
@@ -276,8 +276,8 @@ window.guardarEntrega = async function () {
     statusEl.innerText = "Guardando...";
 
 
-    if (!driverInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
-  statusEl.innerText = "Faltan conductor, cliente, dirección o código postal";
+  if (!vehicleInput.value || !clientInput.value || !addressInput.value || !postalInput.value) {
+  statusEl.innerText = "Faltan matrícula, cliente, dirección o código postal";
   return;
 }
 
@@ -291,7 +291,7 @@ if (photoFile && !photo_url) {
     const { error } = await supabase
       .from("deliveries")
       .insert({
-        driver_name: driverInput.value,
+        driver_name: vehicleInput.value,
         client_name: clientInput.value,
         address: addressInput.value,
         postal_code: postalInput.value,
@@ -313,7 +313,7 @@ if (photoFile && !photo_url) {
 
     document.getElementById("previewFoto").style.display = "none";
 
-driverInput.value = "";
+vehicleInput.value = "";
 clientInput.value = "";
 addressInput.value = "";
 postalInput.value = "";
