@@ -161,6 +161,7 @@ th{
 .invoicePreview td{
   border:1px solid #ddd;
   color:#111;
+  font-size:12px;
 }
 
 .invoicePreview th{
@@ -173,24 +174,54 @@ th{
   justify-content:space-between;
   gap:20px;
   flex-wrap:wrap;
-  margin-bottom:20px;
+  margin-bottom:25px;
+  align-items:flex-start;
 }
 
 .invoiceBox{
-  min-width:280px;
+  min-width:260px;
+  flex:1;
 }
 
 .invoiceTitle{
-  font-size:28px;
+  font-size:30px;
   font-weight:bold;
   margin-bottom:10px;
+  color:#111;
 }
 
-.invoiceTotal{
-  text-align:right;
-  font-size:22px;
-  font-weight:bold;
+.invoiceLogo{
+  width:180px;
+  max-width:100%;
+  display:block;
+  margin-bottom:15px;
+}
+
+.invoiceCompany{
+  line-height:1.6;
+}
+
+.invoiceClientBlock,
+.invoiceMetaBlock{
+  background:#f7f7f7;
+  padding:14px;
+  border-radius:10px;
+}
+
+.invoiceTotals{
+  max-width:360px;
+  margin-left:auto;
   margin-top:20px;
+}
+
+.invoiceNotes{
+  margin-top:24px;
+  padding-top:12px;
+  border-top:1px solid #ddd;
+}
+
+.printOnly{
+  display:none;
 }
 
 @media (max-width:700px){
@@ -201,13 +232,48 @@ th{
     font-size:22px;
   }
 }
+
+@media print{
+  body{
+    background:#fff !important;
+    color:#111 !important;
+    padding:0;
+  }
+
+  .no-print{
+    display:none !important;
+  }
+
+  .printOnly{
+    display:block;
+  }
+
+  .wrap{
+    max-width:none;
+    margin:0;
+  }
+
+  .card{
+    background:#fff !important;
+    color:#111 !important;
+    padding:0;
+    margin:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+
+  #invoicePreview{
+    border-radius:0;
+    padding:0;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="wrap">
 
-  <div class="topbar">
+  <div class="topbar no-print">
     <div>
       <h1>Facturación</h1>
       <div class="muted">Cálculo por entrega y total</div>
@@ -220,7 +286,7 @@ th{
     </div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <h3>Filtros</h3>
     <div class="grid">
       <div>
@@ -249,7 +315,7 @@ th{
     </div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <h3>Tarifa de cálculo</h3>
     <div class="grid">
       <div>
@@ -296,7 +362,7 @@ th{
     <div id="status"></div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <h3>Datos de la factura</h3>
     <div class="grid2">
       <div>
@@ -307,26 +373,6 @@ th{
       <div>
         <label>Fecha de factura</label>
         <input id="invoiceDate" type="date">
-      </div>
-
-      <div>
-        <label>Empresa emisora</label>
-        <input id="issuerName" placeholder="Nombre de tu empresa">
-      </div>
-
-      <div>
-        <label>NIF emisor</label>
-        <input id="issuerNif" placeholder="NIF/CIF">
-      </div>
-
-      <div>
-        <label>Dirección emisor</label>
-        <input id="issuerAddress" placeholder="Dirección de tu empresa">
-      </div>
-
-      <div>
-        <label>Teléfono / email emisor</label>
-        <input id="issuerContact" placeholder="Teléfono o email">
       </div>
 
       <div>
@@ -367,7 +413,7 @@ th{
     </div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <div class="totalBox">
       <div class="kpi">
         <div class="label">Entregas calculadas</div>
@@ -391,7 +437,7 @@ th{
     </div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <div class="tableWrap">
       <table>
         <thead>
@@ -421,7 +467,7 @@ th{
   </div>
 
   <div class="card">
-    <h3>Vista previa de factura</h3>
+    <h3 class="no-print">Vista previa de factura</h3>
     <div id="invoicePreview" class="invoicePreview">
       Genera la factura para ver aquí el documento listo para imprimir o guardar en PDF.
     </div>
@@ -436,6 +482,15 @@ const supabase = createClient(
   "https://jpnritlcfumjmdpoaytr.supabase.co",
   "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
 );
+
+const EMPRESA = {
+  nombre: "Dutti Trans, S.L",
+  nif: "B83282897",
+  direccion: "C. de Tierra de Barros, 2, 28823 Coslada, Madrid",
+  telefono: "637 78 78 30",
+  email: "info@duttitrans.com",
+  logo: "logo-dutti-trans.jpg"
+};
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
@@ -465,10 +520,6 @@ const tarifaUrgente = document.getElementById("tarifaUrgente");
 
 const invoiceNumber = document.getElementById("invoiceNumber");
 const invoiceDate = document.getElementById("invoiceDate");
-const issuerName = document.getElementById("issuerName");
-const issuerNif = document.getElementById("issuerNif");
-const issuerAddress = document.getElementById("issuerAddress");
-const issuerContact = document.getElementById("issuerContact");
 const invoiceClientName = document.getElementById("invoiceClientName");
 const invoiceClientNif = document.getElementById("invoiceClientNif");
 const invoiceClientAddress = document.getElementById("invoiceClientAddress");
@@ -563,10 +614,6 @@ function cargarDatosFacturaGuardados() {
 
   invoiceNumber.value = guardados.invoiceNumber ?? "";
   invoiceDate.value = guardados.invoiceDate ?? hoyISO();
-  issuerName.value = guardados.issuerName ?? "";
-  issuerNif.value = guardados.issuerNif ?? "";
-  issuerAddress.value = guardados.issuerAddress ?? "";
-  issuerContact.value = guardados.issuerContact ?? "";
   invoiceClientName.value = guardados.invoiceClientName ?? "";
   invoiceClientNif.value = guardados.invoiceClientNif ?? "";
   invoiceClientAddress.value = guardados.invoiceClientAddress ?? "";
@@ -579,10 +626,6 @@ window.guardarDatosFactura = function() {
   const datos = {
     invoiceNumber: invoiceNumber.value.trim(),
     invoiceDate: invoiceDate.value,
-    issuerName: issuerName.value.trim(),
-    issuerNif: issuerNif.value.trim(),
-    issuerAddress: issuerAddress.value.trim(),
-    issuerContact: issuerContact.value.trim(),
     invoiceClientName: invoiceClientName.value.trim(),
     invoiceClientNif: invoiceClientNif.value.trim(),
     invoiceClientAddress: invoiceClientAddress.value.trim(),
@@ -723,7 +766,6 @@ function construirHtmlFactura() {
 
   const clienteAutomatico = clientFilter.value || "";
   const nombreClienteFinal = invoiceClientName.value.trim() || clienteAutomatico;
-
   const rangoFechas = `${dateFrom.value || "sin inicio"} - ${dateTo.value || "sin fin"}`;
 
   const filas = entregasCalculadas.map((entrega, index) => `
@@ -746,6 +788,17 @@ function construirHtmlFactura() {
   return `
     <div class="invoiceHeader">
       <div class="invoiceBox">
+        <img src="${escaparHtml(EMPRESA.logo)}" alt="Logo empresa" class="invoiceLogo">
+        <div class="invoiceCompany">
+          <strong>${escaparHtml(EMPRESA.nombre)}</strong><br>
+          CIF: ${escaparHtml(EMPRESA.nif)}<br>
+          ${escaparHtml(EMPRESA.direccion)}<br>
+          Tel: ${escaparHtml(EMPRESA.telefono)}<br>
+          Email: ${escaparHtml(EMPRESA.email)}
+        </div>
+      </div>
+
+      <div class="invoiceBox invoiceMetaBlock">
         <div class="invoiceTitle">FACTURA</div>
         <div><strong>Nº factura:</strong> ${escaparHtml(invoiceNumber.value || "")}</div>
         <div><strong>Fecha:</strong> ${escaparHtml(invoiceDate.value || "")}</div>
@@ -753,19 +806,13 @@ function construirHtmlFactura() {
         <div><strong>Periodo:</strong> ${escaparHtml(rangoFechas)}</div>
       </div>
 
-      <div class="invoiceBox">
-        <div><strong>Emisor</strong></div>
-        <div>${escaparHtml(issuerName.value || "")}</div>
-        <div>${escaparHtml(issuerNif.value || "")}</div>
-        <div>${escaparHtml(issuerAddress.value || "")}</div>
-        <div>${escaparHtml(issuerContact.value || "")}</div>
-      </div>
-
-      <div class="invoiceBox">
-        <div><strong>Cliente</strong></div>
-        <div>${escaparHtml(nombreClienteFinal)}</div>
-        <div>${escaparHtml(invoiceClientNif.value || "")}</div>
-        <div>${escaparHtml(invoiceClientAddress.value || "")}</div>
+      <div class="invoiceBox invoiceClientBlock">
+        <div><strong>Facturar a:</strong></div>
+        <div style="margin-top:8px;">
+          ${escaparHtml(nombreClienteFinal)}<br>
+          ${escaparHtml(invoiceClientNif.value || "")}<br>
+          ${escaparHtml(invoiceClientAddress.value || "")}
+        </div>
       </div>
     </div>
 
@@ -791,7 +838,7 @@ function construirHtmlFactura() {
       </tbody>
     </table>
 
-    <div style="margin-top:20px; max-width:380px; margin-left:auto;">
+    <div class="invoiceTotals">
       <table>
         <tr>
           <th>Base imponible</th>
@@ -802,13 +849,13 @@ function construirHtmlFactura() {
           <td>${formatearEuros(ivaImporte)}</td>
         </tr>
         <tr>
-          <th>Total</th>
+          <th>Total factura</th>
           <td><strong>${formatearEuros(total)}</strong></td>
         </tr>
       </table>
     </div>
 
-    <div style="margin-top:20px;">
+    <div class="invoiceNotes">
       <strong>Observaciones:</strong><br>
       ${escaparHtml(invoiceNotes.value || "")}
     </div>
@@ -856,9 +903,6 @@ window.imprimirFactura = function() {
           color:#111;
           padding:30px;
         }
-        h1,h2,h3{
-          margin:0 0 10px 0;
-        }
         table{
           width:100%;
           border-collapse:collapse;
@@ -879,17 +923,41 @@ window.imprimirFactura = function() {
           justify-content:space-between;
           gap:20px;
           flex-wrap:wrap;
-          margin-bottom:20px;
+          margin-bottom:25px;
+          align-items:flex-start;
         }
         .invoiceBox{
           min-width:240px;
+          flex:1;
         }
         .invoiceTitle{
-          font-size:28px;
+          font-size:30px;
           font-weight:bold;
           margin-bottom:10px;
         }
-        @media print {
+        .invoiceLogo{
+          width:180px;
+          max-width:100%;
+          display:block;
+          margin-bottom:15px;
+        }
+        .invoiceClientBlock,
+        .invoiceMetaBlock{
+          background:#f7f7f7;
+          padding:14px;
+          border-radius:10px;
+        }
+        .invoiceTotals{
+          max-width:360px;
+          margin-left:auto;
+          margin-top:20px;
+        }
+        .invoiceNotes{
+          margin-top:24px;
+          padding-top:12px;
+          border-top:1px solid #ddd;
+        }
+        @media print{
           body{
             padding:0;
           }
@@ -989,9 +1057,6 @@ window.guardarPreciosCalculados = guardarPreciosCalculados;
 
 driverFilter.addEventListener("change", () => {
   aplicarFiltrosYCalculo();
-  if (clientFilter.value && !invoiceClientName.value.trim()) {
-    invoiceClientName.value = clientFilter.value;
-  }
 });
 
 clientFilter.addEventListener("change", () => {
