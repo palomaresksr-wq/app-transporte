@@ -183,72 +183,61 @@ window.cerrarSesion = function(){
   
 let ultimaPhotoUrl = null;
 
- function obtenerClientesFrecuentes() {
-  const guardados = localStorage.getItem("clientesFrecuentes");
+ function obtenerDireccionesFrecuentes() {
+  const guardados = localStorage.getItem("direccionesFrecuentes");
 
   if (guardados) {
     return JSON.parse(guardados);
   }
 
   return [
-    {
-      nombre: "OPERINTER",
-      direccion: "Calle ejemplo 1",
-      cp: "28022"
-    },
-    {
-      nombre: "cotransa",
-      direccion: "calle foxtrot",
-      cp: "28823"
-    },
-    {
-      nombre: "Albepet",
-      direccion: "calle morse",
-      cp: "28906"
-    }
+    "Madrid",
+    "Getafe",
+    "Leganés"
   ];
 }
 
-function guardarClientesFrecuentes(lista) {
-  localStorage.setItem("clientesFrecuentes", JSON.stringify(lista));
+function guardarDireccionesFrecuentes(lista) {
+  localStorage.setItem("direccionesFrecuentes", JSON.stringify(lista));
 }
 
-function cargarClientesFrecuentesEnSelect() {
-  const clientes = obtenerClientesFrecuentes();
+function cargarDireccionesFrecuentesEnSelect() {
+  const direcciones = obtenerDireccionesFrecuentes();
 
-  clientSelect.innerHTML = '<option value="">Seleccionar cliente frecuente</option>';
+  dropoffSelect.innerHTML = '<option value="">Seleccionar dirección frecuente</option>';
 
-  clientes.forEach(cliente => {
+  direcciones.forEach(direccion => {
     const option = document.createElement("option");
-    option.value = cliente.nombre;
-    option.textContent = cliente.nombre;
-    clientSelect.appendChild(option);
+    option.value = direccion;
+    option.textContent = direccion;
+    dropoffSelect.appendChild(option);
   });
 }
 
-function guardarClienteSiEsNuevo() {
-  const nombre = clientInput.value.trim();
-  const direccion = addressInput.value.trim();
-  const cp = postalInput.value.trim();
+function guardarDireccionFrecuenteSiEsNueva() {
+  const direccion = dropoffPlaceInput.value.trim();
 
-  if (!nombre || !direccion || !cp) return;
+  if (!direccion) return;
 
-  const clientes = obtenerClientesFrecuentes();
+  const direcciones = obtenerDireccionesFrecuentes();
 
-  const yaExiste = clientes.some(
-    c => c.nombre.toLowerCase() === nombre.toLowerCase()
+  const yaExiste = direcciones.some(
+    d => d.toLowerCase() === direccion.toLowerCase()
   );
 
   if (yaExiste) return;
 
-  clientes.push({
-    nombre: nombre,
-    direccion: direccion,
-    cp: cp
-  });
+  direcciones.push(direccion);
+  guardarDireccionesFrecuentes(direcciones);
+  cargarDireccionesFrecuentesEnSelect();
+}
 
-  guardarClientesFrecuentes(clientes);
-  cargarClientesFrecuentesEnSelect();
+dropoffSelect.addEventListener("change", () => {
+  if (!dropoffSelect.value) return;
+  dropoffPlaceInput.value = dropoffSelect.value;
+});
+
+cargarDireccionesFrecuentesEnSelect();
 }
 
 clientSelect.addEventListener("change", () => {
