@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Facturación - App Transporte</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1500px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1400px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.totalBox{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#18233b;
+  border-radius:12px;
+  padding:15px;
+}
+
+.kpi .label{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:28px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+  h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Facturación</h1>
+      <div class="muted">Cálculo por entrega y total</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="btn sec" href="admin.html">Volver al panel</a>
+      <button class="sec" onclick="cargarDatos()">Actualizar</button>
+      <button onclick="guardarPreciosCalculados()">Guardar precios en entregas</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Filtros</h3>
+    <div class="grid">
+      <div>
+        <label>Conductor</label>
+        <select id="driverFilter">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <select id="clientFilter">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fecha desde</label>
+        <input id="dateFrom" type="date">
+      </div>
+
+      <div>
+        <label>Fecha hasta</label>
+        <input id="dateTo" type="date">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Tarifa de cálculo</h3>
+    <div class="grid">
+      <div>
+        <label>Precio base (€)</label>
+        <input id="tarifaBase" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por bulto (€)</label>
+        <input id="tarifaBulto" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por kg (€)</label>
+        <input id="tarifaKg" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por m3 (€)</label>
+        <input id="tarifaM3" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra mozo (€)</label>
+        <input id="tarifaMozo" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra trampilla (€)</label>
+        <input id="tarifaTrampilla" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra urgente (€)</label>
+        <input id="tarifaUrgente" type="number" step="0.01" value="0">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="aplicarFiltrosYCalculo()">Recalcular</button>
+      <button class="sec" onclick="guardarTarifas()">Guardar tarifa</button>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="totalBox">
+      <div class="kpi">
+        <div class="label">Entregas calculadas</div>
+        <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Total factura</div>
+        <div class="value" id="kpiTotal">0.00 €</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Cliente</th>
+            <th>Matrícula</th>
+            <th>Carga</th>
+            <th>Descarga</th>
+            <th>Bultos</th>
+            <th>Kg</th>
+            <th>M3</th>
+            <th>Mozo</th>
+            <th>Trampilla</th>
+            <th>Urgente</th>
+            <th>Importe</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyFactura">
+          <tr>
+            <td colspan="13">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "admin") {
+  window.location.href = "login.html";
+}
+
+const statusEl = document.getElementById("status");
+const tbodyFactura = document.getElementById("tbodyFactura");
+const driverFilter = document.getElementById("driverFilter");
+const clientFilter = document.getElementById("clientFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const kpiEntregas = document.getElementById("kpiEntregas");
+const kpiTotal = document.getElementById("kpiTotal");
+
+const tarifaBase = document.getElementById("tarifaBase");
+const tarifaBulto = document.getElementById("tarifaBulto");
+const tarifaKg = document.getElementById("tarifaKg");
+const tarifaM3 = document.getElementById("tarifaM3");
+const tarifaMozo = document.getElementById("tarifaMozo");
+const tarifaTrampilla = document.getElementById("tarifaTrampilla");
+const tarifaUrgente = document.getElementById("tarifaUrgente");
+
+let entregasGlobal = [];
+let entregasCalculadas = [];
+
+function numero(valor) {
+  const n = parseFloat(valor);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatearEuros(valor) {
+  return numero(valor).toFixed(2) + " €";
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function cargarTarifas() {
+  const guardadas = JSON.parse(localStorage.getItem("tarifasFacturaAppTransporte") || "{}");
+
+  tarifaBase.value = guardadas.base ?? 0;
+  tarifaBulto.value = guardadas.bulto ?? 0;
+  tarifaKg.value = guardadas.kg ?? 0;
+  tarifaM3.value = guardadas.m3 ?? 0;
+  tarifaMozo.value = guardadas.mozo ?? 0;
+  tarifaTrampilla.value = guardadas.trampilla ?? 0;
+  tarifaUrgente.value = guardadas.urgente ?? 0;
+}
+
+window.guardarTarifas = function() {
+  const tarifas = {
+    base: numero(tarifaBase.value),
+    bulto: numero(tarifaBulto.value),
+    kg: numero(tarifaKg.value),
+    m3: numero(tarifaM3.value),
+    mozo: numero(tarifaMozo.value),
+    trampilla: numero(tarifaTrampilla.value),
+    urgente: numero(tarifaUrgente.value)
+  };
+
+  localStorage.setItem("tarifasFacturaAppTransporte", JSON.stringify(tarifas));
+  statusEl.innerText = "Tarifa guardada correctamente";
+};
+
+function obtenerTarifas() {
+  return {
+    base: numero(tarifaBase.value),
+    bulto: numero(tarifaBulto.value),
+    kg: numero(tarifaKg.value),
+    m3: numero(tarifaM3.value),
+    mozo: numero(tarifaMozo.value),
+    trampilla: numero(tarifaTrampilla.value),
+    urgente: numero(tarifaUrgente.value)
+  };
+}
+
+function calcularImporte(entrega) {
+  const tarifas = obtenerTarifas();
+
+  let total = 0;
+  total += tarifas.base;
+  total += numero(entrega.bultos) * tarifas.bulto;
+  total += numero(entrega.kg) * tarifas.kg;
+  total += numero(entrega.m3) * tarifas.m3;
+  if (entrega.mozo) total += tarifas.mozo;
+  if (entrega.trampilla) total += tarifas.trampilla;
+  if (entrega.urgente) total += tarifas.urgente;
+
+  return Number(total.toFixed(2));
+}
+
+function rellenarFiltros(lista) {
+  const drivers = [...new Set(lista.map(x => x.driver_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const clients = [...new Set(lista.map(x => x.client_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+
+  const driverActual = driverFilter.value;
+  const clientActual = clientFilter.value;
+
+  driverFilter.innerHTML = '<option value="">Todos</option>';
+  clientFilter.innerHTML = '<option value="">Todos</option>';
+
+  drivers.forEach(driver => {
+    const option = document.createElement("option");
+    option.value = driver;
+    option.textContent = driver;
+    driverFilter.appendChild(option);
+  });
+
+  clients.forEach(client => {
+    const option = document.createElement("option");
+    option.value = client;
+    option.textContent = client;
+    clientFilter.appendChild(option);
+  });
+
+  driverFilter.value = drivers.includes(driverActual) ? driverActual : "";
+  clientFilter.value = clients.includes(clientActual) ? clientActual : "";
+}
+
+function aplicarFiltrosYCalculo() {
+  const driver = driverFilter.value;
+  const client = clientFilter.value;
+  const desde = dateFrom.value;
+  const hasta = dateTo.value;
+
+  let lista = entregasGlobal.filter(entrega => {
+    const fecha = entrega.created_at ? entrega.created_at.slice(0,10) : "";
+
+    if (driver && entrega.driver_name !== driver) return false;
+    if (client && entrega.client_name !== client) return false;
+    if (desde && fecha < desde) return false;
+    if (hasta && fecha > hasta) return false;
+
+    return true;
+  });
+
+  entregasCalculadas = lista.map(entrega => ({
+    ...entrega,
+    importe_calculado: calcularImporte(entrega)
+  }));
+
+  renderFactura(entregasCalculadas);
+}
+
+window.aplicarFiltrosYCalculo = aplicarFiltrosYCalculo;
+
+function renderFactura(lista) {
+  if (!lista.length) {
+    tbodyFactura.innerHTML = `
+      <tr>
+        <td colspan="13">No hay entregas para esos filtros.</td>
+      </tr>
+    `;
+    kpiEntregas.innerText = "0";
+    kpiTotal.innerText = "0.00 €";
+    return;
+  }
+
+  tbodyFactura.innerHTML = lista.map(entrega => `
+    <tr>
+      <td>${formatearFecha(entrega.created_at)}</td>
+      <td>${entrega.driver_name || ""}</td>
+      <td>${entrega.client_name || ""}</td>
+      <td>${entrega.vehicle_plate || ""}</td>
+      <td>${entrega.pickup_place || ""}</td>
+      <td>${entrega.dropoff_place || ""}</td>
+      <td>${entrega.bultos ?? ""}</td>
+      <td>${entrega.kg ?? ""}</td>
+      <td>${entrega.m3 ?? ""}</td>
+      <td>${entrega.mozo ? "Sí" : "No"}</td>
+      <td>${entrega.trampilla ? "Sí" : "No"}</td>
+      <td>${entrega.urgente ? "Sí" : "No"}</td>
+      <td><strong>${formatearEuros(entrega.importe_calculado)}</strong></td>
+    </tr>
+  `).join("");
+
+  const total = lista.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  kpiEntregas.innerText = String(lista.length);
+  kpiTotal.innerText = formatearEuros(total);
+}
+
+async function cargarDatos() {
+  try {
+    statusEl.innerText = "Cargando entregas...";
+
+    const { data, error } = await supabase
+      .from("deliveries")
+      .select(`
+        id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        price_eur
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      statusEl.innerText = "Error cargando datos: " + error.message;
+      tbodyFactura.innerHTML = `
+        <tr>
+          <td colspan="13">No se pudieron cargar las entregas.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    entregasGlobal = data || [];
+    rellenarFiltros(entregasGlobal);
+    aplicarFiltrosYCalculo();
+    statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando datos: " + e.message;
+  }
+}
+
+window.cargarDatos = cargarDatos;
+
+async function guardarPreciosCalculados() {
+  try {
+    if (!entregasCalculadas.length) {
+      alert("No hay entregas calculadas para guardar.");
+      return;
+    }
+
+    statusEl.innerText = "Guardando precios calculados...";
+
+    for (const entrega of entregasCalculadas) {
+      const { error } = await supabase
+        .from("deliveries")
+        .update({ price_eur: entrega.importe_calculado })
+        .eq("id", entrega.id);
+
+      if (error) {
+        alert("Error guardando en una entrega: " + error.message);
+        statusEl.innerText = "Error guardando precios";
+        return;
+      }
+    }
+
+    statusEl.innerText = "Precios guardados correctamente en las entregas";
+    await cargarDatos();
+  } catch (e) {
+    alert("Fallo guardando precios: " + e.message);
+    statusEl.innerText = "Fallo guardando precios: " + e.message;
+  }
+}
+
+window.guardarPreciosCalculados = guardarPreciosCalculados;
+
+driverFilter.addEventListener("change", aplicarFiltrosYCalculo);
+clientFilter.addEventListener("change", aplicarFiltrosYCalculo);
+dateFrom.addEventListener("change", aplicarFiltrosYCalculo);
+dateTo.addEventListener("change", aplicarFiltrosYCalculo);
+
+cargarTarifas();
+cargarDatos();
+</script>
+</body>
+</html>
