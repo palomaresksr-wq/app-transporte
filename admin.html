@@ -3,198 +3,526 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Panel Jefe — Entregas</title>
+<title>Panel Admin - App Transporte</title>
+
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#0b1220;color:#eaf0ff}
-  .wrap{max-width:1100px;margin:0 auto;padding:18px}
-  .card{background:#121b2f;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;margin:12px 0}
-  h1{margin:8px 0 14px}
-  input,button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#0b1220;color:#eaf0ff}
-  button{cursor:pointer;font-weight:900}
-  .btn{background:linear-gradient(135deg,#ff7a18,#ffb074);border:none;color:#1b0c02}
-  .btn2{background:rgba(255,255,255,.08)}
-  table{width:100%;border-collapse:collapse;margin-top:10px}
-  th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;font-size:13px;vertical-align:top}
-  th{color:rgba(255,255,255,.7);font-size:12px}
-  tr:hover td{background: rgba(255,255,255,.03)}
-  a{color:#ffb074}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-size:12px}
-  .ok{color:#7CFF8A}
-  .err{color:#ff7c7c}
-  small{color:rgba(255,255,255,.65)}
+body{
+  font-family: Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1400px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button.sec{
+  background:#24314f;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1300px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-bottom:4px;
+}
+
+.si{
+  background:#1f8b4c;
+  color:white;
+}
+
+.no{
+  background:#3a445f;
+  color:#cfd8f0;
+}
+
+a{
+  color:#7db4ff;
+}
+
+img.thumb{
+  width:90px;
+  max-width:90px;
+  border-radius:8px;
+  display:block;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.smallBtn{
+  padding:8px 10px;
+  font-size:12px;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modalContent{
+  background:#121b2f;
+  border-radius:12px;
+  padding:20px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.modalContent img{
+  width:100%;
+  border-radius:10px;
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+@media (max-width: 700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:22px;
+  }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>📑 Panel Jefe — Entregas</h1>
 
-  <div id="sessionBarAdmin" style="margin-bottom:15px;padding:10px;background:#0f1a2e;border-radius:8px;">
-  Usuario: <span id="currentUserAdmin"></span>
-  <button type="button" onclick="cerrarSesion()" style="margin-top:10px;">Salir</button>
-</div>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Panel Admin</h1>
+      <div class="muted">Entregas de conductores</div>
+    </div>
+
+    <div class="actions">
+      <button class="sec" onclick="cargarEntregas()">Actualizar</button>
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
 
   <div class="card">
-    <div class="row">
-    <input id="q" placeholder="Buscar (usuario, cliente, CP, dirección…)" style="flex:1;min-width:260px" />
-      <button id="search" class="btn2">Buscar</button>
-      <button id="clear" class="btn2">Limpiar</button>
-      <button id="refresh" class="btn">Actualizar</button>
-      <button id="csv" class="btn2">Descargar CSV</button>
-    </div>
-    <small id="status"></small>
+    <div class="filters">
+      <div>
+        <label>Buscar</label>
+        <input id="searchInput" placeholder="Conductor, cliente, matrícula, carga, descarga...">
+      </div>
 
-    <div style="overflow:auto">
+      <div>
+        <label>Urgente</label>
+        <select id="urgenteFilter">
+          <option value="">Todos</option>
+          <option value="si">Solo urgentes</option>
+          <option value="no">No urgentes</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Mozo</label>
+        <select id="mozoFilter">
+          <option value="">Todos</option>
+          <option value="si">Con mozo</option>
+          <option value="no">Sin mozo</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Trampilla</label>
+        <select id="trampillaFilter">
+          <option value="">Todos</option>
+          <option value="si">Con trampilla</option>
+          <option value="no">Sin trampilla</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="tableWrap">
       <table>
         <thead>
           <tr>
             <th>Fecha</th>
             <th>Conductor</th>
+            <th>Matrícula</th>
             <th>Cliente</th>
-            <th>Dirección</th>
-            <th>CP</th>
+            <th>Lugar de carga</th>
+            <th>Lugar de descarga</th>
             <th>Bultos</th>
             <th>Kg</th>
-            <th>m³</th>
+            <th>M3</th>
+            <th>Observaciones</th>
+            <th>Extras</th>
             <th>Foto</th>
+            <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="tbody"></tbody>
+        <tbody id="tbodyEntregas">
+          <tr>
+            <td colspan="13" class="empty">Cargando entregas...</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
 
-  <small>
-    Enlace directo del panel: <span class="pill">/admin.html</span><br/>
-    Ejemplo: <span class="pill">https://palomaresksr-wq.github.io/app-transporte/admin.html</span>
-  </small>
+</div>
+
+<div id="photoModal" class="modal" onclick="cerrarModalSiFondo(event)">
+  <div class="modalContent">
+    <div class="actions" style="justify-content:space-between;margin-bottom:12px;">
+      <strong>Foto de albarán</strong>
+      <button class="sec smallBtn" onclick="cerrarModal()">Cerrar</button>
+    </div>
+    <img id="modalImg" src="" alt="Foto de entrega">
+  </div>
 </div>
 
 <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const supabase = createClient(
-    "https://jpnritlcfumjmdpoaytr.supabase.co",
-    "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
-  );
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
 
-  const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+const statusEl = document.getElementById("status");
+const tbodyEntregas = document.getElementById("tbodyEntregas");
+const searchInput = document.getElementById("searchInput");
+const urgenteFilter = document.getElementById("urgenteFilter");
+const mozoFilter = document.getElementById("mozoFilter");
+const trampillaFilter = document.getElementById("trampillaFilter");
+const photoModal = document.getElementById("photoModal");
+const modalImg = document.getElementById("modalImg");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "admin") {
   window.location.href = "login.html";
 }
-
-document.getElementById("currentUserAdmin").innerText = sesion.username;
 
 window.cerrarSesion = function(){
   localStorage.removeItem("sesionAppTransporte");
   window.location.href = "login.html";
 };
 
-  const $ = (id) => document.getElementById(id);
-  const statusEl = $("status");
-  const tbody = $("tbody");
-  let rows = [];
+let entregasGlobal = [];
 
-  function fmt(d){
-    try { return new Date(d).toLocaleString("es-ES"); }
-    catch { return d || ""; }
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function textoSeguro(valor) {
+  if (valor === null || valor === undefined) return "";
+  return String(valor);
+}
+
+function badgeBooleano(activo, texto) {
+  return `<span class="badge ${activo ? "si" : "no"}">${texto}: ${activo ? "Sí" : "No"}</span>`;
+}
+
+function cumpleFiltroBooleano(valorReal, filtro) {
+  if (!filtro) return true;
+  if (filtro === "si") return !!valorReal === true;
+  if (filtro === "no") return !!valorReal === false;
+  return true;
+}
+
+function abrirModal(url) {
+  modalImg.src = url;
+  photoModal.classList.add("open");
+}
+
+window.abrirModal = abrirModal;
+
+window.cerrarModal = function() {
+  photoModal.classList.remove("open");
+  modalImg.src = "";
+};
+
+window.cerrarModalSiFondo = function(event) {
+  if (event.target === photoModal) {
+    cerrarModal();
+  }
+};
+
+function renderEntregas(lista) {
+  if (!lista.length) {
+    tbodyEntregas.innerHTML = `
+      <tr>
+        <td colspan="13" class="empty">No hay entregas que coincidan con el filtro.</td>
+      </tr>
+    `;
+    return;
   }
 
-  function setStatus(txt, cls){
-    statusEl.textContent = txt || "";
-    statusEl.className = cls || "";
-  }
+  tbodyEntregas.innerHTML = lista.map(entrega => {
+    const extras = `
+      ${badgeBooleano(entrega.mozo, "Mozo")}
+      ${badgeBooleano(entrega.trampilla, "Trampilla")}
+      ${badgeBooleano(entrega.urgente, "Urgente")}
+    `;
 
-  async function load(){
-    setStatus("Cargando entregas…");
+    const fotoHtml = entrega.photo_url
+      ? `
+        <a href="${entrega.photo_url}" target="_blank" rel="noopener noreferrer">Ver</a>
+        <br><br>
+        <img class="thumb" src="${entrega.photo_url}" alt="Foto entrega" onclick="abrirModal('${entrega.photo_url}')">
+      `
+      : "Sin foto";
+
+    return `
+      <tr>
+        <td>${formatearFecha(entrega.created_at)}</td>
+        <td>${textoSeguro(entrega.driver_name)}</td>
+        <td>${textoSeguro(entrega.vehicle_plate)}</td>
+        <td>${textoSeguro(entrega.client_name)}</td>
+        <td>${textoSeguro(entrega.pickup_place)}</td>
+        <td>${textoSeguro(entrega.dropoff_place)}</td>
+        <td>${textoSeguro(entrega.bultos)}</td>
+        <td>${textoSeguro(entrega.kg)}</td>
+        <td>${textoSeguro(entrega.m3)}</td>
+        <td>${textoSeguro(entrega.observations)}</td>
+        <td>${extras}</td>
+        <td>${fotoHtml}</td>
+        <td>
+          <div class="actions">
+            <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function aplicarFiltros() {
+  const texto = searchInput.value.trim().toLowerCase();
+
+  const filtradas = entregasGlobal.filter(entrega => {
+    const bloqueTexto = [
+      entrega.driver_name,
+      entrega.vehicle_plate,
+      entrega.client_name,
+      entrega.pickup_place,
+      entrega.dropoff_place,
+      entrega.observations
+    ]
+    .map(v => (v || "").toString().toLowerCase())
+    .join(" ");
+
+    const pasaTexto = !texto || bloqueTexto.includes(texto);
+    const pasaUrgente = cumpleFiltroBooleano(entrega.urgente, urgenteFilter.value);
+    const pasaMozo = cumpleFiltroBooleano(entrega.mozo, mozoFilter.value);
+    const pasaTrampilla = cumpleFiltroBooleano(entrega.trampilla, trampillaFilter.value);
+
+    return pasaTexto && pasaUrgente && pasaMozo && pasaTrampilla;
+  });
+
+  renderEntregas(filtradas);
+}
+
+async function cargarEntregas() {
+  try {
+    statusEl.innerText = "Cargando entregas...";
+
     const { data, error } = await supabase
       .from("deliveries")
-      .select("created_at,driver_name,client_name,address,postal_code,bultos,kg,m3,photo_url")
-      .order("created_at", { ascending: false })
-      .limit(300);
+      .select(`
+        id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        distance_km,
+        price_eur,
+        photo_url
+      `)
+      .order("created_at", { ascending: false });
 
-    if (error){
-      setStatus("❌ Error: " + error.message, "err");
-      return;
-    }
-
-    rows = data || [];
-    render(rows);
-    setStatus("✅ " + rows.length + " entregas", "ok");
-  }
-
-  function render(list){
-    tbody.innerHTML = "";
-    if (!list.length){
-      tbody.innerHTML = `<tr><td colspan="9">No hay entregas.</td></tr>`;
-      return;
-    }
-
-    for (const r of list){
-      const tr = document.createElement("tr");
-      const photo = r.photo_url ? `<a href="${r.photo_url}" target="_blank" rel="noopener">Ver</a>` : "—";
-      tr.innerHTML = `
-        <td>${fmt(r.created_at)}</td>
-        <td>${r.driver_name || ""}</td>
-        <td>${r.client_name || ""}</td>
-        <td>${r.address || ""}</td>
-        <td>${r.postal_code || ""}</td>
-        <td>${r.bultos ?? ""}</td>
-        <td>${r.kg ?? ""}</td>
-        <td>${r.m3 ?? ""}</td>
-        <td>${photo}</td>
+    if (error) {
+      statusEl.innerText = "Error cargando entregas: " + error.message;
+      tbodyEntregas.innerHTML = `
+        <tr>
+          <td colspan="13" class="empty">No se pudieron cargar las entregas.</td>
+        </tr>
       `;
-      tbody.appendChild(tr);
+      return;
     }
+
+    entregasGlobal = data || [];
+    aplicarFiltros();
+    statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando entregas: " + e.message;
+    tbodyEntregas.innerHTML = `
+      <tr>
+        <td colspan="13" class="empty">Error inesperado al cargar entregas.</td>
+      </tr>
+    `;
   }
+}
 
-  $("refresh").onclick = load;
+window.cargarEntregas = cargarEntregas;
 
-  $("search").onclick = () => {
-    const q = $("q").value.trim().toLowerCase();
-    if (!q) return render(rows);
-    const filtered = rows.filter(r =>
-      String(r.driver_name||"").toLowerCase().includes(q) ||
-      String(r.client_name||"").toLowerCase().includes(q) ||
-      String(r.postal_code||"").toLowerCase().includes(q) ||
-      String(r.address||"").toLowerCase().includes(q)
-    );
-    render(filtered);
-    setStatus("🔎 " + filtered.length + " resultados", "");
-  };
+async function borrarEntrega(id) {
+  const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
+  if (!confirmar) return;
 
-  $("clear").onclick = () => {
-    $("q").value = "";
-    render(rows);
-    setStatus("✅ " + rows.length + " entregas", "ok");
-  };
+  try {
+    statusEl.innerText = "Borrando entrega...";
 
-  $("csv").onclick = () => {
-    const header = ["created_at","driver_name","client_name","address","postal_code","bultos","kg","m3","photo_url"];
-    const lines = [header.join(",")];
-    for (const r of rows){
-      const line = [
-        r.created_at,
-        `"${String(r.driver_name||"").replace(/"/g,'""')}"`,
-        `"${String(r.client_name||"").replace(/"/g,'""')}"`,
-        `"${String(r.address||"").replace(/"/g,'""')}"`,
-        `"${String(r.postal_code||"").replace(/"/g,'""')}"`,
-        r.bultos ?? "",
-        r.kg ?? "",
-        r.m3 ?? "",
-        `"${String(r.photo_url||"").replace(/"/g,'""')}"`
-      ].join(",");
-      lines.push(line);
+    const { error } = await supabase
+      .from("deliveries")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert("Error borrando: " + error.message);
+      statusEl.innerText = "Error borrando: " + error.message;
+      return;
     }
-    const blob = new Blob([lines.join("\n")], { type:"text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `entregas-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-  };
 
-  load();
+    statusEl.innerText = "Entrega borrada correctamente";
+    await cargarEntregas();
+  } catch (e) {
+    alert("Fallo borrando: " + e.message);
+    statusEl.innerText = "Fallo borrando: " + e.message;
+  }
+}
+
+window.borrarEntrega = borrarEntrega;
+
+searchInput.addEventListener("input", aplicarFiltros);
+urgenteFilter.addEventListener("change", aplicarFiltros);
+mozoFilter.addEventListener("change", aplicarFiltros);
+trampillaFilter.addEventListener("change", aplicarFiltros);
+
+cargarEntregas();
 </script>
 </body>
 </html>
