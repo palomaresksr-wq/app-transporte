@@ -98,11 +98,11 @@ if (sesionGuardada) {
 
 async function buscarConductorEnSupabase(username, password) {
   const { data, error } = await supabase
-    .from("conductores")
-    .select("id, nombre, usuario, password, empresa_id")
-    .eq("usuario", username)
-    .eq("password", password)
-    .limit(1);
+  .from("conductores")
+  .select("*")
+  .filter("usuario", "eq", username)
+  .filter("password", "eq", password)
+  .limit(1);
 
   console.log("LOGIN USER:", username);
   console.log("LOGIN PASS:", password);
