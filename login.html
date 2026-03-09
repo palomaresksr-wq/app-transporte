@@ -104,6 +104,11 @@ async function buscarConductorEnSupabase(username, password) {
     .eq("password", password)
     .limit(1);
 
+  console.log("LOGIN USER:", username);
+  console.log("LOGIN PASS:", password);
+  console.log("SUPABASE DATA:", data);
+  console.log("SUPABASE ERROR:", error);
+
   if (error) {
     throw new Error("Error consultando conductores: " + error.message);
   }
@@ -112,9 +117,9 @@ async function buscarConductorEnSupabase(username, password) {
     return null;
   }
 
+  console.log("CONDUCTOR ENCONTRADO:", data);
   return data[0];
 }
-
 window.entrar = async function () {
   try {
     const username = usernameEl.value.trim();
