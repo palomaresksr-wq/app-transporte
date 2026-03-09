@@ -246,6 +246,48 @@ async function leerFotoAutomatica() {
 
     ultimaPhotoUrl = await subirFoto(file, "preview-");
 
+    try {
+
+  const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      image: ultimaPhotoUrl
+    })
+  });
+
+  const data = await response.json();
+
+  if (data.result) {
+
+    const texto = data.result;
+
+    try {
+      const json = JSON.parse(texto);
+
+      if (json.cliente) clientInput.value = json.cliente;
+      if (json.matricula) vehicleInput.value = json.matricula;
+      if (json.lugar_carga) pickupInput.value = json.lugar_carga;
+      if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
+      if (json.bultos) bultosInput.value = json.bultos;
+      if (json.kg) kgInput.value = json.kg;
+      if (json.m3) m3Input.value = json.m3;
+      if (json.observaciones) observationsInput.value = json.observaciones;
+
+      statusEl.innerText = "Albarán leído con IA";
+
+    } catch (e) {
+      console.log("No se pudo parsear JSON", texto);
+    }
+
+  }
+
+} catch (err) {
+  console.log("Error leyendo albarán", err);
+}
+
     statusEl.innerText = "Foto subida correctamente";
   } catch (e) {
     statusEl.innerText = e.message;
