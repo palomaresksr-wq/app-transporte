@@ -29,6 +29,7 @@ input{
   margin-top:5px;
   border-radius:6px;
   border:none;
+  box-sizing:border-box;
 }
 button{
   margin-top:20px;
@@ -42,6 +43,7 @@ button{
 }
 #status{
   margin-top:15px;
+  white-space:pre-line;
 }
 </style>
 </head>
@@ -61,47 +63,124 @@ button{
   <div id="status"></div>
 </div>
 
-<script>
-const usuarios = [
-  { username: "alberto", password: "1234", role: "driver" },
-  { username: "conductor2", password: "1234", role: "driver" },
-  { username: "conductor3", password: "1234", role: "driver" },
-  { username: "conductor4", password: "1234", role: "driver" },
-  { username: "oficina", password: "1234", role: "admin" }
-];
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const statusEl = document.getElementById("status");
+const usernameEl = document.getElementById("username");
+const passwordEl = document.getElementById("password");
+
+// Admin fijo de oficina
+const ADMIN_FIJO = {
+  username: "oficina",
+  password: "1234",
+  role: "admin"
+};
 
 const sesionGuardada = localStorage.getItem("sesionAppTransporte");
 if (sesionGuardada) {
-  const sesion = JSON.parse(sesionGuardada);
-  if (sesion.role === "admin") {
-    window.location.href = "admin.html";
-  } else {
-    window.location.href = "index.html";
+  try {
+    const sesion = JSON.parse(sesionGuardada);
+    if (sesion.role === "admin") {
+      window.location.href = "admin.html";
+    } else {
+      window.location.href = "index.html";
+    }
+  } catch (e) {
+    localStorage.removeItem("sesionAppTransporte");
   }
 }
 
-window.entrar = function(){
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const status = document.getElementById("status");
+async function buscarConductorEnSupabase(username, password) {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("id, nombre, usuario, password, empresa_id")
+    .eq("usuario", username)
+    .eq("password", password)
+    .limit(1);
 
-  const usuario = usuarios.find(
-    u => u.username === username && u.password === password
-  );
-
-  if (!usuario) {
-    status.innerText = "Usuario o contraseña incorrectos";
-    return;
+  if (error) {
+    throw new Error("Error consultando conductores: " + error.message);
   }
 
-  localStorage.setItem("sesionAppTransporte", JSON.stringify(usuario));
+  if (!data || data.length === 0) {
+    return null;
+  }
 
-  if (usuario.role === "admin") {
-    window.location.href = "admin.html";
-  } else {
+  return data[0];
+}
+
+window.entrar = async function () {
+  try {
+    const username = usernameEl.value.trim();
+    const password = passwordEl.value.trim();
+
+    statusEl.innerText = "Comprobando acceso...";
+
+    if (!username || !password) {
+      statusEl.innerText = "Introduce usuario y contraseña";
+      return;
+    }
+
+    // ADMIN
+    if (
+      username === ADMIN_FIJO.username &&
+      password === ADMIN_FIJO.password
+    ) {
+      localStorage.setItem(
+        "sesionAppTransporte",
+        JSON.stringify({
+          username: ADMIN_FIJO.username,
+          role: "admin"
+        })
+      );
+
+      window.location.href = "admin.html";
+      return;
+    }
+
+    // CONDUCTOR DESDE SUPABASE
+    const conductor = await buscarConductorEnSupabase(username, password);
+
+    if (!conductor) {
+      statusEl.innerText = "Usuario o contraseña incorrectos";
+      return;
+    }
+
+    const sesion = {
+      username: conductor.usuario,
+      nombre: conductor.nombre,
+      role: "driver",
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id
+    };
+
+    localStorage.setItem("sesionAppTransporte", JSON.stringify(sesion));
+
+    statusEl.innerText = "Acceso correcto";
     window.location.href = "index.html";
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = "Error: " + e.message;
   }
 };
+
+passwordEl.addEventListener("keydown", function(e){
+  if (e.key === "Enter") {
+    entrar();
+  }
+});
+
+usernameEl.addEventListener("keydown", function(e){
+  if (e.key === "Enter") {
+    entrar();
+  }
+});
 </script>
 
 </body>
