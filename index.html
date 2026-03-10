@@ -57,6 +57,11 @@ button{
   font-weight:bold;
   white-space:pre-line;
 }
+
+.selectorSecundario{
+  background:#0f1a2e;
+  color:#fff;
+}
 </style>
 </head>
 
@@ -71,11 +76,16 @@ button{
 
   <h2>Nueva entrega</h2>
 
+  <label>Matrícula frecuente</label>
+  <select id="vehicleSelect" class="selectorSecundario">
+    <option value="">Seleccionar matrícula frecuente</option>
+  </select>
+
   <label>Matrícula vehículo</label>
-  <input id="vehicle">
+  <input id="vehicle" placeholder="Ej: 1234ABC">
 
   <label>Cliente frecuente</label>
-  <select id="clientSelect">
+  <select id="clientSelect" class="selectorSecundario">
     <option value="">Seleccionar cliente frecuente</option>
   </select>
 
@@ -83,7 +93,7 @@ button{
   <input id="client" placeholder="Nombre del cliente">
 
   <label>Lugar de carga frecuente</label>
-  <select id="pickupSelect">
+  <select id="pickupSelect" class="selectorSecundario">
     <option value="">Seleccionar lugar de carga frecuente</option>
   </select>
 
@@ -91,8 +101,8 @@ button{
   <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
 
   <label>Lugar de descarga frecuente</label>
-  <select id="dropoffSelect">
-    <option value="">Seleccionar dirección frecuente</option>
+  <select id="dropoffSelect" class="selectorSecundario">
+    <option value="">Seleccionar lugar de descarga frecuente</option>
   </select>
 
   <label>Lugar de descarga</label>
@@ -157,14 +167,13 @@ const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 console.log("Supabase conectado");
 
-// SI TU LOGIN NO COINCIDE CON EL CAMPO 'usuario' DE LA TABLA conductores,
-// PUEDES PONER AQUÍ LOS IDS MANUALMENTE Y LA APP USARÁ ESOS DATOS:
 const FALLBACK_EMPRESA_ID = "";
 const FALLBACK_CONDUCTOR_ID = "";
 
 const statusEl = document.getElementById("status");
 const currentUserEl = document.getElementById("currentUser");
 
+const vehicleSelect = document.getElementById("vehicleSelect");
 const vehicleInput = document.getElementById("vehicle");
 
 const clientSelect = document.getElementById("clientSelect");
@@ -338,56 +347,8 @@ async function obtenerConductorActual() {
   }
 
   throw new Error(
-    "No se ha encontrado el conductor en Supabase. " +
-    "Haz que el usuario de login coincida con la columna 'usuario' de la tabla conductores " +
-    "o rellena FALLBACK_EMPRESA_ID y FALLBACK_CONDUCTOR_ID en el código."
+    "No se ha encontrado el conductor en Supabase. Haz que el usuario de login coincida con la columna usuario de la tabla conductores o rellena FALLBACK_EMPRESA_ID y FALLBACK_CONDUCTOR_ID en el código."
   );
-}
-
-async function cargarClientesEmpresa() {
-  const conductor = await obtenerConductorActual();
-
-  const { data, error } = await supabase
-    .from("clientes")
-    .select("nombre")
-    .eq("empresa_id", conductor.empresa_id)
-    .order("nombre", { ascending: true });
-
-  if (error) {
-    console.warn("No se pudieron cargar clientes de empresa:", error.message);
-    return [];
-  }
-
-  return data || [];
-}
-
-async function cargarFrecuentesViejosPorSiExisten() {
-  const resultado = {
-    clients: [],
-    pickups: [],
-    dropoffs: []
-  };
-
-  const { data: clients } = await supabase
-    .from("frequent_clients")
-    .select("name")
-    .order("name", { ascending: true });
-
-  const { data: pickups } = await supabase
-    .from("frequent_pickups")
-    .select("name")
-    .order("name", { ascending: true });
-
-  const { data: dropoffs } = await supabase
-    .from("frequent_dropoffs")
-    .select("name")
-    .order("name", { ascending: true });
-
-  resultado.clients = clients || [];
-  resultado.pickups = pickups || [];
-  resultado.dropoffs = dropoffs || [];
-
-  return resultado;
 }
 
 function rellenarSelect(selectEl, primerTexto, valores) {
@@ -407,35 +368,112 @@ function rellenarSelect(selectEl, primerTexto, valores) {
   });
 }
 
+async function cargarClientesEmpresa() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("nombre")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar clientes:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarPickupsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_pickups")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de carga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarDropoffsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_dropoffs")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de descarga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarVehiculosFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_vehicles")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar matrículas:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
 async function cargarFrecuentes() {
   try {
-    const clientesEmpresa = await cargarClientesEmpresa();
-    const viejos = await cargarFrecuentesViejosPorSiExisten();
+    const clientes = await cargarClientesEmpresa();
+    const pickups = await cargarPickupsFrecuentes();
+    const dropoffs = await cargarDropoffsFrecuentes();
+    const vehicles = await cargarVehiculosFrecuentes();
 
     rellenarSelect(
       clientSelect,
       "Seleccionar cliente frecuente",
-      [
-        ...clientesEmpresa.map(c => c.nombre),
-        ...viejos.clients.map(c => c.name)
-      ]
+      clientes.map(c => c.nombre)
     );
 
     rellenarSelect(
       pickupSelect,
       "Seleccionar lugar de carga frecuente",
-      viejos.pickups.map(p => p.name)
+      pickups.map(p => p.name)
     );
 
     rellenarSelect(
       dropoffSelect,
-      "Seleccionar dirección frecuente",
-      viejos.dropoffs.map(d => d.name)
+      "Seleccionar lugar de descarga frecuente",
+      dropoffs.map(d => d.name)
+    );
+
+    rellenarSelect(
+      vehicleSelect,
+      "Seleccionar matrícula frecuente",
+      vehicles.map(v => v.name)
     );
   } catch (e) {
     console.warn("Error cargando frecuentes:", e.message);
   }
 }
+
+vehicleSelect.addEventListener("change", () => {
+  vehicleInput.value = vehicleSelect.value || "";
+});
 
 clientSelect.addEventListener("change", () => {
   clientInput.value = clientSelect.value || "";
@@ -455,37 +493,20 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  const { data: existente, error: errorBuscar } = await supabase
+  const { error } = await supabase
     .from("clientes")
-    .select("id")
-    .eq("empresa_id", conductor.empresa_id)
-    .eq("nombre", limpio)
-    .limit(1);
+    .upsert(
+      {
+        empresa_id: conductor.empresa_id,
+        nombre: limpio
+      },
+      {
+        onConflict: "empresa_id,nombre"
+      }
+    );
 
-  if (errorBuscar) {
-    console.warn("No se pudo comprobar cliente en tabla clientes:", errorBuscar.message);
-  }
-
-  if (!existente || existente.length === 0) {
-    const { error: errorInsertar } = await supabase
-      .from("clientes")
-      .insert({
-        nombre: limpio,
-        empresa_id: conductor.empresa_id
-      });
-
-    if (errorInsertar) {
-      console.warn("No se pudo guardar cliente en tabla clientes:", errorInsertar.message);
-    }
-  }
-
-  // Compatibilidad con tabla antigua
-  const { error: legacyError } = await supabase
-    .from("frequent_clients")
-    .upsert({ name: limpio }, { onConflict: "name" });
-
-  if (legacyError) {
-    console.warn("No se pudo guardar en frequent_clients:", legacyError.message);
+  if (error) {
+    console.warn("No se pudo guardar cliente:", error.message);
   }
 }
 
@@ -493,12 +514,22 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
 
+  const conductor = await obtenerConductorActual();
+
   const { error } = await supabase
     .from("frequent_pickups")
-    .upsert({ name: limpio }, { onConflict: "name" });
+    .upsert(
+      {
+        empresa_id: conductor.empresa_id,
+        name: limpio
+      },
+      {
+        onConflict: "empresa_id,name"
+      }
+    );
 
   if (error) {
-    console.warn("No se pudo guardar pickup frecuente:", error.message);
+    console.warn("No se pudo guardar lugar de carga frecuente:", error.message);
   }
 }
 
@@ -506,12 +537,45 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
 
+  const conductor = await obtenerConductorActual();
+
   const { error } = await supabase
     .from("frequent_dropoffs")
-    .upsert({ name: limpio }, { onConflict: "name" });
+    .upsert(
+      {
+        empresa_id: conductor.empresa_id,
+        name: limpio
+      },
+      {
+        onConflict: "empresa_id,name"
+      }
+    );
 
   if (error) {
-    console.warn("No se pudo guardar dropoff frecuente:", error.message);
+    console.warn("No se pudo guardar lugar de descarga frecuente:", error.message);
+  }
+}
+
+async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim().toUpperCase();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { error } = await supabase
+    .from("frequent_vehicles")
+    .upsert(
+      {
+        empresa_id: conductor.empresa_id,
+        name: limpio
+      },
+      {
+        onConflict: "empresa_id,name"
+      }
+    );
+
+  if (error) {
+    console.warn("No se pudo guardar matrícula frecuente:", error.message);
   }
 }
 
@@ -537,6 +601,7 @@ async function guardarEnTablaViejaSinRomper(datosLegacy) {
 
 function limpiarFormulario() {
   vehicleInput.value = "";
+  vehicleSelect.value = "";
   clientInput.value = "";
   clientSelect.value = "";
   pickupInput.value = "";
@@ -563,7 +628,7 @@ window.guardarEntrega = async function () {
 
     const conductor = await obtenerConductorActual();
 
-    const matricula = vehicleInput.value.trim();
+    const matricula = vehicleInput.value.trim().toUpperCase();
     const cliente = clientInput.value.trim();
     const lugarCarga = pickupInput.value.trim();
     const lugarDescarga = dropoffInput.value.trim();
@@ -587,10 +652,6 @@ window.guardarEntrega = async function () {
       photo_url = await subirFoto(photoFile, "entrega-");
     }
 
-    await guardarClienteFrecuenteSiNoExiste(cliente);
-    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
-    await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
-
     const datosNuevaTabla = {
       fecha: new Date().toISOString().split("T")[0],
       cliente: cliente,
@@ -612,6 +673,11 @@ window.guardarEntrega = async function () {
 
     await guardarEnTablaNueva(datosNuevaTabla);
 
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+
     const datosTablaVieja = {
       driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
       vehicle_plate: matricula,
@@ -632,9 +698,9 @@ window.guardarEntrega = async function () {
 
     await guardarEnTablaViejaSinRomper(datosTablaVieja);
 
+    await cargarFrecuentes();
     statusEl.innerText = "Entrega guardada correctamente";
     limpiarFormulario();
-    await cargarFrecuentes();
   } catch (e) {
     console.error(e);
     statusEl.innerText = e.message;
