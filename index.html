@@ -562,20 +562,40 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
+  console.log("Intentando guardar matrícula frecuente:", limpio);
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_vehicles")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  console.log("Resultado búsqueda:", existe, errorBuscar);
+
+  if (errorBuscar) {
+    alert("Error buscando matrícula: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) {
+    console.log("La matrícula ya existe");
+    return;
+  }
+
   const { error } = await supabase
     .from("frequent_vehicles")
-    .upsert(
-      {
-        empresa_id: conductor.empresa_id,
-        name: limpio
-      },
-      {
-        onConflict: "empresa_id,name"
-      }
-    );
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
 
   if (error) {
-    console.warn("No se pudo guardar matrícula frecuente:", error.message);
+    console.log("Error guardando matrícula:", error);
+    alert("Error guardando matrícula frecuente: " + error.message);
+  } else {
+    console.log("Matrícula guardada correctamente");
+    alert("Matrícula frecuente guardada correctamente");
   }
 }
 
