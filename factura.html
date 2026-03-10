@@ -1304,21 +1304,23 @@ window.guardarCambiosEntregaFactura = async function() {
   try {
     statusEl.innerText = "Guardando cambios...";
 
-    const datosActualizados = {
-      driver_name: editDriverName.value.trim() || null,
-      client_name: editClientName.value.trim() || null,
-      vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
-      pickup_place: editPickupPlace.value.trim() || null,
-      dropoff_place: editDropoffPlace.value.trim() || null,
-      num_entregas: normalizarNumero(editNumEntregas.value),
-      bultos: normalizarNumero(editBultos.value),
-      kg: normalizarNumero(editKg.value),
-      m3: normalizarNumero(editM3.value),
-      price_eur: normalizarNumero(editPriceEur.value),
-      mozo: editMozo.checked,
-      trampilla: editTrampilla.checked,
-      urgente: editUrgente.checked
-    };
+   const datosActualizados = {
+  driver_name: editDriverName.value.trim() || null,
+  client_name: editClientName.value.trim() || null,
+  vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
+  pickup_place: editPickupPlace.value.trim() || null,
+  dropoff_place: editDropoffPlace.value.trim() || null,
+  num_entregas: normalizarNumero(editNumEntregas.value),
+  bultos: normalizarNumero(editBultos.value),
+  kg: normalizarNumero(editKg.value),
+  m3: normalizarNumero(editM3.value),
+  price_eur: normalizarNumero(editPriceEur.value),
+  mozo: editMozo.checked,
+  trampilla: editTrampilla.checked,
+  urgente: editUrgente.checked
+};
+
+console.log("GUARDANDO ENTREGA:", entregaEditandoId, datosActualizados);
 
     let query = supabase
       .from("deliveries")
