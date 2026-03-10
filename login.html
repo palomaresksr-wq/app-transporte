@@ -6,7 +6,7 @@
 <title>Login App Transporte</title>
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#0b1220;
   color:white;
   margin:0;
@@ -58,7 +58,7 @@ button{
   <label>Contraseña</label>
   <input id="password" type="password" autocomplete="current-password">
 
-  <button onclick="entrar()">Entrar</button>
+  <button id="btnEntrar">Entrar</button>
 
   <div id="status"></div>
 </div>
@@ -68,42 +68,54 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const statusEl = document.getElementById("status");
 const usernameEl = document.getElementById("username");
 const passwordEl = document.getElementById("password");
+const btnEntrar = document.getElementById("btnEntrar");
 
-// SUPERADMIN fijo
 const SUPERADMIN_FIJO = {
   username: "superadmin",
   password: "1234",
   role: "superadmin"
 };
 
-// ADMIN fijo de oficina
 const ADMIN_FIJO = {
   username: "oficina",
   password: "1234",
   role: "admin"
 };
 
-// Revisar sesión guardada al entrar
+function redirigirSegunSesion(sesion){
+  if (!sesion || !sesion.role) {
+    localStorage.removeItem("sesionAppTransporte");
+    return;
+  }
+
+  if (sesion.role === "superadmin") {
+    window.location.href = "superadmin.html";
+    return;
+  }
+
+  if (sesion.role === "admin") {
+    window.location.href = "admin.html";
+    return;
+  }
+
+  if (sesion.role === "driver") {
+    window.location.href = "index.html";
+    return;
+  }
+
+  localStorage.removeItem("sesionAppTransporte");
+}
+
 const sesionGuardada = localStorage.getItem("sesionAppTransporte");
 if (sesionGuardada) {
   try {
     const sesion = JSON.parse(sesionGuardada);
-
-    if (sesion.role === "superadmin") {
-      window.location.href = "superadmin.html";
-    } else if (sesion.role === "admin") {
-      window.location.href = "admin.html";
-    } else if (sesion.role === "driver") {
-      window.location.href = "index.html";
-    } else {
-      localStorage.removeItem("sesionAppTransporte");
-    }
+    redirigirSegunSesion(sesion);
   } catch (e) {
     localStorage.removeItem("sesionAppTransporte");
   }
@@ -112,15 +124,10 @@ if (sesionGuardada) {
 async function buscarConductorEnSupabase(username, password) {
   const { data, error } = await supabase
     .from("conductores")
-    .select("*")
+    .select("id, nombre, usuario, password, empresa_id")
     .eq("usuario", username)
     .eq("password", password)
     .limit(1);
-
-  console.log("LOGIN USER:", username);
-  console.log("LOGIN PASS:", password);
-  console.log("SUPABASE DATA:", data);
-  console.log("SUPABASE ERROR:", error);
 
   if (error) {
     throw new Error("Error consultando conductores: " + error.message);
@@ -130,11 +137,10 @@ async function buscarConductorEnSupabase(username, password) {
     return null;
   }
 
-  console.log("CONDUCTOR ENCONTRADO:", data[0]);
   return data[0];
 }
 
-window.entrar = async function () {
+async function entrar() {
   try {
     const username = usernameEl.value.trim();
     const password = passwordEl.value.trim();
@@ -146,11 +152,7 @@ window.entrar = async function () {
       return;
     }
 
-    // SUPERADMIN
-    if (
-      username === SUPERADMIN_FIJO.username &&
-      password === SUPERADMIN_FIJO.password
-    ) {
+    if (username === SUPERADMIN_FIJO.username && password === SUPERADMIN_FIJO.password) {
       localStorage.setItem(
         "sesionAppTransporte",
         JSON.stringify({
@@ -158,17 +160,11 @@ window.entrar = async function () {
           role: "superadmin"
         })
       );
-
-      statusEl.innerText = "Acceso correcto";
       window.location.href = "superadmin.html";
       return;
     }
 
-    // ADMIN
-    if (
-      username === ADMIN_FIJO.username &&
-      password === ADMIN_FIJO.password
-    ) {
+    if (username === ADMIN_FIJO.username && password === ADMIN_FIJO.password) {
       localStorage.setItem(
         "sesionAppTransporte",
         JSON.stringify({
@@ -176,13 +172,10 @@ window.entrar = async function () {
           role: "admin"
         })
       );
-
-      statusEl.innerText = "Acceso correcto";
       window.location.href = "admin.html";
       return;
     }
 
-    // CONDUCTOR DESDE SUPABASE
     const conductor = await buscarConductorEnSupabase(username, password);
 
     if (!conductor) {
@@ -190,34 +183,32 @@ window.entrar = async function () {
       return;
     }
 
-    const sesion = {
-      username: conductor.usuario,
-      nombre: conductor.nombre || "",
-      role: "driver",
-      conductor_id: conductor.id,
-      empresa_id: conductor.empresa_id || null
-    };
+    localStorage.setItem(
+      "sesionAppTransporte",
+      JSON.stringify({
+        username: conductor.usuario,
+        nombre: conductor.nombre || "",
+        role: "driver",
+        conductor_id: conductor.id,
+        empresa_id: conductor.empresa_id || null
+      })
+    );
 
-    localStorage.setItem("sesionAppTransporte", JSON.stringify(sesion));
-
-    statusEl.innerText = "Acceso correcto";
     window.location.href = "index.html";
   } catch (e) {
     console.error(e);
     statusEl.innerText = "Error: " + e.message;
   }
-};
+}
+
+btnEntrar.addEventListener("click", entrar);
 
 passwordEl.addEventListener("keydown", function(e){
-  if (e.key === "Enter") {
-    entrar();
-  }
+  if (e.key === "Enter") entrar();
 });
 
 usernameEl.addEventListener("keydown", function(e){
-  if (e.key === "Enter") {
-    entrar();
-  }
+  if (e.key === "Enter") entrar();
 });
 </script>
 
