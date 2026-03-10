@@ -1,4 +1,4 @@
-<!doctype html>
+<<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -92,73 +92,75 @@ button{
   <label>Cliente</label>
   <input id="client" placeholder="Nombre del cliente">
 
- <div id="cargaBloque">
-  <label>Lugar de carga frecuente</label>
-  <select id="pickupSelect" class="selectorSecundario">
-    <option value="">Seleccionar lugar de carga frecuente</option>
-  </select>
+  <div id="cargaBloque">
+    <label>Lugar de carga frecuente</label>
+    <select id="pickupSelect" class="selectorSecundario">
+      <option value="">Seleccionar lugar de carga frecuente</option>
+    </select>
 
-  <label>Lugar de carga</label>
-  <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
-</div>
+    <label>Lugar de carga</label>
+    <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
+  </div>
 
-<div id="descargaBloque">
-  <label>Lugar de descarga frecuente</label>
-  <select id="dropoffSelect" class="selectorSecundario">
-    <option value="">Seleccionar lugar de descarga frecuente</option>
-  </select>
+  <div id="descargaBloque">
+    <label>Lugar de descarga frecuente</label>
+    <select id="dropoffSelect" class="selectorSecundario">
+      <option value="">Seleccionar lugar de descarga frecuente</option>
+    </select>
 
-  <label>Lugar de descarga</label>
-  <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
-</div>
+    <label>Lugar de descarga</label>
+    <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
+  </div>
 
-<div id="albepetBloque" style="display:none;">
-  <label>Número de entregas</label>
-  <input id="numEntregas" type="number" placeholder="Ej: 12">
-</div>
+  <div id="albepetBloque" style="display:none;">
+    <label>Número de entregas</label>
+    <input id="numEntregas" type="number" placeholder="Ej: 12">
+  </div>
 
-<label>Bultos</label>
-<input id="bultos" type="number">
+  <label>Bultos</label>
+  <input id="bultos" type="number">
 
-<label>Kg</label>
-<input id="kg" type="number">
+  <label>Kg</label>
+  <input id="kg" type="number">
 
-<label>M3</label>
-<input id="m3" type="number">
+  <label>M3</label>
+  <input id="m3" type="number">
 
-<label>Observaciones</label>
-<textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
+  <label>Observaciones</label>
+  <textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
 
-<div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="mozo" type="checkbox">
-    Mozo
-  </label>
+  <div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="mozo" type="checkbox">
+      Mozo
+    </label>
 
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="trampilla" type="checkbox">
-    Trampilla
-  </label>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="trampilla" type="checkbox">
+      Trampilla
+    </label>
 
-  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-    <input id="urgente" type="checkbox">
-    Urgente
-  </label>
-</div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="urgente" type="checkbox">
+      Urgente
+    </label>
+  </div>
 
-<label>Fotos albarán</label>
+  <label>Foto albarán</label>
 
-<button type="button" onclick="document.getElementById('cameraInput').click()">
-  📷 Hacer foto
-</button>
+  <button type="button" onclick="document.getElementById('cameraInput').click()">
+    📷 Hacer foto
+  </button>
 
-<button type="button" onclick="document.getElementById('galleryInput').click()">
-  🖼 Elegir de galería
-</button>
+  <button type="button" onclick="document.getElementById('galleryInput').click()">
+    🖼 Elegir de galería
+  </button>
 
-<input id="cameraInput" type="file" accept="image/*" capture="environment" multiple style="display:none">
-<input id="galleryInput" type="file" accept="image/*" multiple style="display:none">
-  <div id="previewFotos" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;"></div>
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+  <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+  <img id="previewFoto" style="max-width:100%;margin-top:10px;display:none;border-radius:8px;">
+
   <button onclick="guardarEntrega()">Guardar entrega</button>
 
   <div id="status"></div>
@@ -192,6 +194,8 @@ const pickupInput = document.getElementById("pickupPlace");
 const dropoffSelect = document.getElementById("dropoffSelect");
 const dropoffInput = document.getElementById("dropoffPlace");
 
+const numEntregasInput = document.getElementById("numEntregas");
+
 const bultosInput = document.getElementById("bultos");
 const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
@@ -220,6 +224,32 @@ window.cerrarSesion = function () {
 
 let ultimaPhotoUrl = null;
 let conductorActual = null;
+
+function esAlbepet(cliente) {
+  return String(cliente || "").trim().toLowerCase() === "albepet";
+}
+
+function actualizarCamposCliente() {
+  const cargaBloque = document.getElementById("cargaBloque");
+  const descargaBloque = document.getElementById("descargaBloque");
+  const albepetBloque = document.getElementById("albepetBloque");
+
+  if (esAlbepet(clientInput.value)) {
+    cargaBloque.style.display = "none";
+    descargaBloque.style.display = "none";
+    albepetBloque.style.display = "block";
+
+    pickupInput.value = "";
+    pickupSelect.value = "";
+    dropoffInput.value = "";
+    dropoffSelect.value = "";
+  } else {
+    cargaBloque.style.display = "block";
+    descargaBloque.style.display = "block";
+    albepetBloque.style.display = "none";
+    numEntregasInput.value = "";
+  }
+}
 
 function normalizarNumero(valor) {
   if (valor === null || valor === undefined || valor === "") return null;
@@ -308,6 +338,7 @@ async function leerFotoAutomatica() {
     if (json.m3) m3Input.value = json.m3;
     if (json.observaciones) observationsInput.value = json.observaciones;
 
+    actualizarCamposCliente();
     statusEl.innerText = "Albarán leído con IA";
 
   } catch (e) {
@@ -484,6 +515,7 @@ vehicleSelect.addEventListener("change", () => {
 
 clientSelect.addEventListener("change", () => {
   clientInput.value = clientSelect.value || "";
+  actualizarCamposCliente();
 });
 
 pickupSelect.addEventListener("change", () => {
@@ -493,6 +525,8 @@ pickupSelect.addEventListener("change", () => {
 dropoffSelect.addEventListener("change", () => {
   dropoffInput.value = dropoffSelect.value || "";
 });
+
+clientInput.addEventListener("input", actualizarCamposCliente);
 
 async function guardarClienteFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
@@ -525,6 +559,7 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
     alert("Error guardando cliente frecuente: " + error.message);
   }
 }
+
 async function guardarPickupFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
@@ -588,6 +623,7 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
     alert("Error guardando lugar de descarga frecuente: " + error.message);
   }
 }
+
 async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim().toUpperCase();
   if (!limpio) return;
@@ -660,6 +696,7 @@ function limpiarFormulario() {
   pickupSelect.value = "";
   dropoffInput.value = "";
   dropoffSelect.value = "";
+  numEntregasInput.value = "";
   bultosInput.value = "";
   kgInput.value = "";
   m3Input.value = "";
@@ -672,6 +709,7 @@ function limpiarFormulario() {
   preview.style.display = "none";
   preview.src = "";
   ultimaPhotoUrl = null;
+  actualizarCamposCliente();
 }
 
 window.guardarEntrega = async function () {
@@ -682,8 +720,10 @@ window.guardarEntrega = async function () {
 
     const matricula = vehicleInput.value.trim().toUpperCase();
     const cliente = clientInput.value.trim();
-    const lugarCarga = pickupInput.value.trim();
-    const lugarDescarga = dropoffInput.value.trim();
+    const albepet = esAlbepet(cliente);
+    const lugarCarga = albepet ? null : pickupInput.value.trim();
+    const lugarDescarga = albepet ? null : dropoffInput.value.trim();
+    const numEntregas = albepet ? (numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null) : null;
     const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
     const kg = normalizarNumero(kgInput.value);
     const m3 = normalizarNumero(m3Input.value);
@@ -692,8 +732,18 @@ window.guardarEntrega = async function () {
     const trampilla = trampillaInput.checked;
     const urgente = urgenteInput.checked;
 
-    if (!matricula || !cliente || !lugarCarga || !lugarDescarga) {
-      statusEl.innerText = "Faltan matrícula, cliente, lugar de carga o lugar de descarga";
+    if (!matricula || !cliente) {
+      statusEl.innerText = "Faltan matrícula o cliente";
+      return;
+    }
+
+    if (!albepet && (!lugarCarga || !lugarDescarga)) {
+      statusEl.innerText = "Faltan lugar de carga o lugar de descarga";
+      return;
+    }
+
+    if (albepet && !numEntregas) {
+      statusEl.innerText = "Falta número de entregas";
       return;
     }
 
@@ -709,6 +759,7 @@ window.guardarEntrega = async function () {
       cliente: cliente,
       lugar_carga: lugarCarga,
       lugar_descarga: lugarDescarga,
+      num_entregas: numEntregas,
       bultos: bultos,
       kg: kg,
       m3: m3,
@@ -726,8 +777,12 @@ window.guardarEntrega = async function () {
     await guardarEnTablaNueva(datosNuevaTabla);
 
     await guardarClienteFrecuenteSiNoExiste(cliente);
-    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
-    await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+
+    if (!albepet) {
+      await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+      await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    }
+
     await guardarVehiculoFrecuenteSiNoExiste(matricula);
 
     const datosTablaVieja = {
@@ -736,6 +791,7 @@ window.guardarEntrega = async function () {
       client_name: cliente,
       pickup_place: lugarCarga,
       dropoff_place: lugarDescarga,
+      num_entregas: numEntregas,
       bultos: bultos,
       kg: kg,
       m3: m3,
@@ -765,6 +821,7 @@ async function initApp() {
     statusEl.innerText = "Cargando datos...";
     await obtenerConductorActual();
     await cargarFrecuentes();
+    actualizarCamposCliente();
     statusEl.innerText = "";
   } catch (e) {
     console.error(e);
