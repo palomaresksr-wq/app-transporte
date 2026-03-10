@@ -73,7 +73,7 @@ button.sec, .btn.sec{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1300px;
+  min-width:1400px;
   background:#121b2f;
 }
 
@@ -297,6 +297,7 @@ input[type="checkbox"]{
             <th>Cliente</th>
             <th>Lugar de carga</th>
             <th>Lugar de descarga</th>
+            <th>Nº entregas</th>
             <th>Bultos</th>
             <th>Kg</th>
             <th>M3</th>
@@ -309,7 +310,7 @@ input[type="checkbox"]{
         </thead>
         <tbody id="tbodyEntregas">
           <tr>
-            <td colspan="14" class="empty">Cargando entregas...</td>
+            <td colspan="15" class="empty">Cargando entregas...</td>
           </tr>
         </tbody>
       </table>
@@ -359,6 +360,11 @@ input[type="checkbox"]{
       <div>
         <label>Lugar de descarga</label>
         <input id="edit_dropoff_place">
+      </div>
+
+      <div>
+        <label>Nº entregas</label>
+        <input id="edit_num_entregas" type="number">
       </div>
 
       <div>
@@ -439,6 +445,7 @@ const editVehiclePlate = document.getElementById("edit_vehicle_plate");
 const editClientName = document.getElementById("edit_client_name");
 const editPickupPlace = document.getElementById("edit_pickup_place");
 const editDropoffPlace = document.getElementById("edit_dropoff_place");
+const editNumEntregas = document.getElementById("edit_num_entregas");
 const editBultos = document.getElementById("edit_bultos");
 const editKg = document.getElementById("edit_kg");
 const editM3 = document.getElementById("edit_m3");
@@ -525,7 +532,7 @@ function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="14" class="empty">No hay entregas que coincidan con el filtro.</td>
+        <td colspan="15" class="empty">No hay entregas que coincidan con el filtro.</td>
       </tr>
     `;
     return;
@@ -554,6 +561,7 @@ function renderEntregas(lista) {
         <td>${textoSeguro(entrega.client_name)}</td>
         <td>${textoSeguro(entrega.pickup_place)}</td>
         <td>${textoSeguro(entrega.dropoff_place)}</td>
+        <td>${textoSeguro(entrega.num_entregas)}</td>
         <td>${textoSeguro(entrega.bultos)}</td>
         <td>${textoSeguro(entrega.kg)}</td>
         <td>${textoSeguro(entrega.m3)}</td>
@@ -582,6 +590,7 @@ function aplicarFiltros() {
       entrega.client_name,
       entrega.pickup_place,
       entrega.dropoff_place,
+      entrega.num_entregas,
       entrega.observations
     ]
     .map(v => (v || "").toString().toLowerCase())
@@ -612,6 +621,7 @@ async function cargarEntregas() {
         client_name,
         pickup_place,
         dropoff_place,
+        num_entregas,
         bultos,
         kg,
         m3,
@@ -629,7 +639,7 @@ async function cargarEntregas() {
       statusEl.innerText = "Error cargando entregas: " + error.message;
       tbodyEntregas.innerHTML = `
         <tr>
-          <td colspan="14" class="empty">No se pudieron cargar las entregas.</td>
+          <td colspan="15" class="empty">No se pudieron cargar las entregas.</td>
         </tr>
       `;
       return;
@@ -642,7 +652,7 @@ async function cargarEntregas() {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="14" class="empty">Error inesperado al cargar entregas.</td>
+        <td colspan="15" class="empty">Error inesperado al cargar entregas.</td>
       </tr>
     `;
   }
@@ -664,6 +674,7 @@ window.editarEntrega = function(id) {
   editClientName.value = entrega.client_name || "";
   editPickupPlace.value = entrega.pickup_place || "";
   editDropoffPlace.value = entrega.dropoff_place || "";
+  editNumEntregas.value = entrega.num_entregas ?? "";
   editBultos.value = entrega.bultos ?? "";
   editKg.value = entrega.kg ?? "";
   editM3.value = entrega.m3 ?? "";
@@ -692,6 +703,7 @@ window.guardarCambiosEntrega = async function() {
       client_name: editClientName.value.trim() || null,
       pickup_place: editPickupPlace.value.trim() || null,
       dropoff_place: editDropoffPlace.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
       bultos: normalizarNumero(editBultos.value),
       kg: normalizarNumero(editKg.value),
       m3: normalizarNumero(editM3.value),
