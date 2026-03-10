@@ -92,6 +92,7 @@ button{
   <label>Cliente</label>
   <input id="client" placeholder="Nombre del cliente">
 
+ <div id="cargaBloque">
   <label>Lugar de carga frecuente</label>
   <select id="pickupSelect" class="selectorSecundario">
     <option value="">Seleccionar lugar de carga frecuente</option>
@@ -99,7 +100,9 @@ button{
 
   <label>Lugar de carga</label>
   <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
+</div>
 
+<div id="descargaBloque">
   <label>Lugar de descarga frecuente</label>
   <select id="dropoffSelect" class="selectorSecundario">
     <option value="">Seleccionar lugar de descarga frecuente</option>
@@ -107,49 +110,54 @@ button{
 
   <label>Lugar de descarga</label>
   <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
+</div>
 
-  <label>Bultos</label>
-  <input id="bultos" type="number">
+<div id="albepetBloque" style="display:none;">
+  <label>Número de entregas</label>
+  <input id="numEntregas" type="number" placeholder="Ej: 12">
+</div>
 
-  <label>Kg</label>
-  <input id="kg" type="number">
+<label>Bultos</label>
+<input id="bultos" type="number">
 
-  <label>M3</label>
-  <input id="m3" type="number">
+<label>Kg</label>
+<input id="kg" type="number">
 
-  <label>Observaciones</label>
-  <textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
+<label>M3</label>
+<input id="m3" type="number">
 
-  <div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
-    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-      <input id="mozo" type="checkbox">
-      Mozo
-    </label>
+<label>Observaciones</label>
+<textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
 
-    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-      <input id="trampilla" type="checkbox">
-      Trampilla
-    </label>
+<div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="mozo" type="checkbox">
+    Mozo
+  </label>
 
-    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
-      <input id="urgente" type="checkbox">
-      Urgente
-    </label>
-  </div>
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="trampilla" type="checkbox">
+    Trampilla
+  </label>
 
-  <label>Foto albarán</label>
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="urgente" type="checkbox">
+    Urgente
+  </label>
+</div>
 
-  <button type="button" onclick="document.getElementById('cameraInput').click()">
-    📷 Hacer foto
-  </button>
+<label>Fotos albarán</label>
 
-  <button type="button" onclick="document.getElementById('galleryInput').click()">
-    🖼 Elegir de galería
-  </button>
+<button type="button" onclick="document.getElementById('cameraInput').click()">
+  📷 Hacer foto
+</button>
 
-  <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
-  <input id="galleryInput" type="file" accept="image/*" style="display:none">
+<button type="button" onclick="document.getElementById('galleryInput').click()">
+  🖼 Elegir de galería
+</button>
 
+<input id="cameraInput" type="file" accept="image/*" capture="environment" multiple style="display:none">
+<input id="galleryInput" type="file" accept="image/*" multiple style="display:none">
   <img id="previewFoto" style="max-width:100%;margin-top:10px;display:none;border-radius:8px;">
 
   <button onclick="guardarEntrega()">Guardar entrega</button>
