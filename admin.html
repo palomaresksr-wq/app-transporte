@@ -237,8 +237,8 @@ input[type="checkbox"]{
 
   <div class="topbar">
     <div>
-      <h1>Panel Admin</h1>
-      <div class="muted">Entregas de conductores</div>
+      <h1 id="panelTitle">Panel Admin</h1>
+      <div class="muted" id="panelSubtitle">Entregas de conductores</div>
     </div>
 
     <div class="actions">
@@ -438,6 +438,8 @@ const mozoFilter = document.getElementById("mozoFilter");
 const trampillaFilter = document.getElementById("trampillaFilter");
 const photoModal = document.getElementById("photoModal");
 const modalImg = document.getElementById("modalImg");
+const panelTitle = document.getElementById("panelTitle");
+const panelSubtitle = document.getElementById("panelSubtitle");
 
 const editModal = document.getElementById("editModal");
 const editDriverName = document.getElementById("edit_driver_name");
@@ -458,7 +460,10 @@ const editUrgente = document.getElementById("edit_urgente");
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
-if (!sesion || sesion.role !== "admin") {
+if (
+  !sesion ||
+  (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
+) {
   window.location.href = "login.html";
 }
 
@@ -469,6 +474,49 @@ window.cerrarSesion = function(){
 
 let entregasGlobal = [];
 let entregaEditandoId = null;
+let empresaActual = null;
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      panelTitle.innerText = "Panel Admin General";
+      panelSubtitle.innerText = "Viendo todas las entregas de todas las empresas";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      panelTitle.innerText = "Panel Admin";
+      panelSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre,email,telefono")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      panelTitle.innerText = "Panel Admin Empresa";
+      panelSubtitle.innerText = "No se pudo cargar la empresa";
+      return;
+    }
+
+    const empresa = data && data.length ? data[0] : null;
+    empresaActual = empresa;
+
+    panelTitle.innerText = "Panel Admin Empresa";
+    panelSubtitle.innerText = empresa
+      ? "Empresa: " + (empresa.nombre || "Sin nombre")
+      : "Empresa no encontrada";
+  } catch (e) {
+    console.error(e);
+    panelTitle.innerText = "Panel Admin Empresa";
+    panelSubtitle.innerText = "Error cargando empresa";
+  }
+}
 
 function formatearFecha(fechaIso) {
   if (!fechaIso) return "";
@@ -477,9 +525,13 @@ function formatearFecha(fechaIso) {
   return fecha.toLocaleString("es-ES");
 }
 
-function textoSeguro(valor) {
-  if (valor === null || valor === undefined) return "";
-  return String(valor);
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function badgeBooleano(activo, texto) {
@@ -528,6 +580,14 @@ function normalizarNumero(valor) {
   return Number.isNaN(n) ? null : n;
 }
 
+function puedeEditarEntrega(entrega) {
+  if (sesion.role === "admin_global") return true;
+  if (sesion.role === "admin_empresa") {
+    return String(entrega.empresa_id || "") === String(sesion.empresa_id || "");
+  }
+  return false;
+}
+
 function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
@@ -547,34 +607,38 @@ function renderEntregas(lista) {
 
     const fotoHtml = entrega.photo_url
       ? `
-        <a href="${entrega.photo_url}" target="_blank" rel="noopener noreferrer">Ver</a>
+        <a href="${escapeHtml(entrega.photo_url)}" target="_blank" rel="noopener noreferrer">Ver</a>
         <br><br>
-        <img class="thumb" src="${entrega.photo_url}" alt="Foto entrega" onclick="abrirModal('${entrega.photo_url}')">
+        <img class="thumb" src="${escapeHtml(entrega.photo_url)}" alt="Foto entrega" onclick="abrirModal('${escapeHtml(entrega.photo_url)}')">
       `
       : "Sin foto";
+
+    const acciones = puedeEditarEntrega(entrega)
+      ? `
+        <div class="actions">
+          <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}')">Editar</button>
+          <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
+        </div>
+      `
+      : `<span class="muted">Sin permiso</span>`;
 
     return `
       <tr>
         <td>${formatearFecha(entrega.created_at)}</td>
-        <td>${textoSeguro(entrega.driver_name)}</td>
-        <td>${textoSeguro(entrega.vehicle_plate)}</td>
-        <td>${textoSeguro(entrega.client_name)}</td>
-        <td>${textoSeguro(entrega.pickup_place)}</td>
-        <td>${textoSeguro(entrega.dropoff_place)}</td>
-        <td>${textoSeguro(entrega.num_entregas)}</td>
-        <td>${textoSeguro(entrega.bultos)}</td>
-        <td>${textoSeguro(entrega.kg)}</td>
-        <td>${textoSeguro(entrega.m3)}</td>
-        <td>${textoSeguro(entrega.observations)}</td>
+        <td>${escapeHtml(entrega.driver_name)}</td>
+        <td>${escapeHtml(entrega.vehicle_plate)}</td>
+        <td>${escapeHtml(entrega.client_name)}</td>
+        <td>${escapeHtml(entrega.pickup_place)}</td>
+        <td>${escapeHtml(entrega.dropoff_place)}</td>
+        <td>${escapeHtml(entrega.num_entregas)}</td>
+        <td>${escapeHtml(entrega.bultos)}</td>
+        <td>${escapeHtml(entrega.kg)}</td>
+        <td>${escapeHtml(entrega.m3)}</td>
+        <td>${escapeHtml(entrega.observations)}</td>
         <td>${extras}</td>
         <td>${fotoHtml}</td>
         <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
-        <td>
-          <div class="actions">
-            <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}')">Editar</button>
-            <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
-          </div>
-        </td>
+        <td>${acciones}</td>
       </tr>
     `;
   }).join("");
@@ -611,10 +675,11 @@ async function cargarEntregas() {
   try {
     statusEl.innerText = "Cargando entregas...";
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("deliveries")
       .select(`
         id,
+        empresa_id,
         created_at,
         driver_name,
         vehicle_plate,
@@ -635,6 +700,12 @@ async function cargarEntregas() {
       `)
       .order("created_at", { ascending: false });
 
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       statusEl.innerText = "Error cargando entregas: " + error.message;
       tbodyEntregas.innerHTML = `
@@ -647,7 +718,12 @@ async function cargarEntregas() {
 
     entregasGlobal = data || [];
     aplicarFiltros();
-    statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
+
+    if (sesion.role === "admin_empresa") {
+      statusEl.innerText = "Entregas de tu empresa: " + entregasGlobal.length;
+    } else {
+      statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
+    }
   } catch (e) {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
@@ -662,8 +738,14 @@ window.cargarEntregas = cargarEntregas;
 
 window.editarEntrega = function(id) {
   const entrega = entregasGlobal.find(e => e.id === id);
+
   if (!entrega) {
     alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entrega)) {
+    alert("No tienes permiso para editar esta entrega");
     return;
   }
 
@@ -694,6 +776,18 @@ window.guardarCambiosEntrega = async function() {
     return;
   }
 
+  const entregaOriginal = entregasGlobal.find(e => e.id === entregaEditandoId);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega original");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para editar esta entrega");
+    return;
+  }
+
   try {
     statusEl.innerText = "Guardando cambios...";
 
@@ -715,10 +809,16 @@ window.guardarCambiosEntrega = async function() {
       urgente: editUrgente.checked
     };
 
-    const { error } = await supabase
+    let query = supabase
       .from("deliveries")
       .update(datosActualizados)
       .eq("id", entregaEditandoId);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
 
     if (error) {
       alert("Error guardando cambios: " + error.message);
@@ -736,16 +836,34 @@ window.guardarCambiosEntrega = async function() {
 };
 
 async function borrarEntrega(id) {
+  const entregaOriginal = entregasGlobal.find(e => e.id === id);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para borrar esta entrega");
+    return;
+  }
+
   const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
   if (!confirmar) return;
 
   try {
     statusEl.innerText = "Borrando entrega...";
 
-    const { error } = await supabase
+    let query = supabase
       .from("deliveries")
       .delete()
       .eq("id", id);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
 
     if (error) {
       alert("Error borrando: " + error.message);
@@ -768,6 +886,7 @@ urgenteFilter.addEventListener("change", aplicarFiltros);
 mozoFilter.addEventListener("change", aplicarFiltros);
 trampillaFilter.addEventListener("change", aplicarFiltros);
 
+await cargarInfoEmpresaActual();
 cargarEntregas();
 </script>
 </body>
