@@ -53,10 +53,10 @@ button{
   <h2>Entrada App Transporte</h2>
 
   <label>Usuario</label>
-  <input id="username">
+  <input id="username" autocomplete="username">
 
   <label>Contraseña</label>
-  <input id="password" type="password">
+  <input id="password" type="password" autocomplete="current-password">
 
   <button onclick="entrar()">Entrar</button>
 
@@ -75,21 +75,34 @@ const statusEl = document.getElementById("status");
 const usernameEl = document.getElementById("username");
 const passwordEl = document.getElementById("password");
 
-// Admin fijo de oficina
+// SUPERADMIN fijo
+const SUPERADMIN_FIJO = {
+  username: "superadmin",
+  password: "1234",
+  role: "superadmin"
+};
+
+// ADMIN fijo de oficina
 const ADMIN_FIJO = {
   username: "oficina",
   password: "1234",
   role: "admin"
 };
 
+// Revisar sesión guardada al entrar
 const sesionGuardada = localStorage.getItem("sesionAppTransporte");
 if (sesionGuardada) {
   try {
     const sesion = JSON.parse(sesionGuardada);
-    if (sesion.role === "admin") {
+
+    if (sesion.role === "superadmin") {
+      window.location.href = "superadmin.html";
+    } else if (sesion.role === "admin") {
       window.location.href = "admin.html";
-    } else {
+    } else if (sesion.role === "driver") {
       window.location.href = "index.html";
+    } else {
+      localStorage.removeItem("sesionAppTransporte");
     }
   } catch (e) {
     localStorage.removeItem("sesionAppTransporte");
@@ -98,11 +111,11 @@ if (sesionGuardada) {
 
 async function buscarConductorEnSupabase(username, password) {
   const { data, error } = await supabase
-  .from("conductores")
-  .select("*")
-  .filter("usuario", "eq", username)
-  .filter("password", "eq", password)
-  .limit(1);
+    .from("conductores")
+    .select("*")
+    .eq("usuario", username)
+    .eq("password", password)
+    .limit(1);
 
   console.log("LOGIN USER:", username);
   console.log("LOGIN PASS:", password);
@@ -117,9 +130,10 @@ async function buscarConductorEnSupabase(username, password) {
     return null;
   }
 
-  console.log("CONDUCTOR ENCONTRADO:", data);
+  console.log("CONDUCTOR ENCONTRADO:", data[0]);
   return data[0];
 }
+
 window.entrar = async function () {
   try {
     const username = usernameEl.value.trim();
@@ -129,6 +143,24 @@ window.entrar = async function () {
 
     if (!username || !password) {
       statusEl.innerText = "Introduce usuario y contraseña";
+      return;
+    }
+
+    // SUPERADMIN
+    if (
+      username === SUPERADMIN_FIJO.username &&
+      password === SUPERADMIN_FIJO.password
+    ) {
+      localStorage.setItem(
+        "sesionAppTransporte",
+        JSON.stringify({
+          username: SUPERADMIN_FIJO.username,
+          role: "superadmin"
+        })
+      );
+
+      statusEl.innerText = "Acceso correcto";
+      window.location.href = "superadmin.html";
       return;
     }
 
@@ -145,6 +177,7 @@ window.entrar = async function () {
         })
       );
 
+      statusEl.innerText = "Acceso correcto";
       window.location.href = "admin.html";
       return;
     }
@@ -159,10 +192,10 @@ window.entrar = async function () {
 
     const sesion = {
       username: conductor.usuario,
-      nombre: conductor.nombre,
+      nombre: conductor.nombre || "",
       role: "driver",
       conductor_id: conductor.id,
-      empresa_id: conductor.empresa_id
+      empresa_id: conductor.empresa_id || null
     };
 
     localStorage.setItem("sesionAppTransporte", JSON.stringify(sesion));
