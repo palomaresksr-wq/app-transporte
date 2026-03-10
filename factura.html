@@ -873,6 +873,10 @@ window.guardarDatosFactura = function() {
 };
 
 function calcularImporte(entrega) {
+  if (entrega.price_eur !== null && entrega.price_eur !== undefined && entrega.price_eur !== "") {
+    return Number(numero(entrega.price_eur).toFixed(2));
+  }
+
   const tarifas = obtenerTarifas();
   const esAlbepet = String(entrega.client_name || "").trim().toLowerCase() === "albepet";
 
