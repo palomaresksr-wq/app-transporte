@@ -84,7 +84,7 @@ const SUPERADMIN_FIJO = {
 const ADMIN_FIJO = {
   username: "oficina",
   password: "1234",
-  role: "admin"
+  role: "admin_global"
 };
 
 function redirigirSegunSesion(sesion){
@@ -98,7 +98,7 @@ function redirigirSegunSesion(sesion){
     return;
   }
 
-  if (sesion.role === "admin") {
+  if (sesion.role === "admin_global" || sesion.role === "admin_empresa") {
     window.location.href = "admin.html";
     return;
   }
@@ -119,6 +119,25 @@ if (sesionGuardada) {
   } catch (e) {
     localStorage.removeItem("sesionAppTransporte");
   }
+}
+
+async function buscarAdminEmpresa(username, password) {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("id, empresa_id, nombre, usuario, password")
+    .eq("usuario", username)
+    .eq("password", password)
+    .limit(1);
+
+  if (error) {
+    throw new Error("Error consultando admins de empresa: " + error.message);
+  }
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return data[0];
 }
 
 async function buscarConductorEnSupabase(username, password) {
@@ -169,7 +188,26 @@ async function entrar() {
         "sesionAppTransporte",
         JSON.stringify({
           username: ADMIN_FIJO.username,
-          role: "admin"
+          role: "admin_global",
+          nombre: "Oficina",
+          empresa_id: null
+        })
+      );
+      window.location.href = "admin.html";
+      return;
+    }
+
+    const adminEmpresa = await buscarAdminEmpresa(username, password);
+
+    if (adminEmpresa) {
+      localStorage.setItem(
+        "sesionAppTransporte",
+        JSON.stringify({
+          username: adminEmpresa.usuario,
+          nombre: adminEmpresa.nombre || "",
+          role: "admin_empresa",
+          admin_empresa_id: adminEmpresa.id,
+          empresa_id: adminEmpresa.empresa_id || null
         })
       );
       window.location.href = "admin.html";
