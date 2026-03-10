@@ -121,6 +121,7 @@ img.thumb{
   max-width:90px;
   border-radius:8px;
   display:block;
+  cursor:pointer;
 }
 
 .actions{
@@ -145,12 +146,16 @@ img.thumb{
   gap:10px;
 }
 
-input, select{
+input, select, textarea{
   width:100%;
   padding:10px;
   border:none;
   border-radius:8px;
   box-sizing:border-box;
+}
+
+input[type="checkbox"]{
+  width:auto;
 }
 
 .modal{
@@ -161,6 +166,7 @@ input, select{
   align-items:center;
   justify-content:center;
   padding:20px;
+  z-index:1000;
 }
 
 .modal.open{
@@ -185,6 +191,33 @@ input, select{
 .muted{
   color:#b7c3dd;
   font-size:13px;
+}
+
+.formGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.checkboxRow{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.checkboxRow label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap:wrap;
 }
 
 @media (max-width: 700px){
@@ -295,6 +328,94 @@ input, select{
   </div>
 </div>
 
+<div id="editModal" class="modal" onclick="cerrarEditModalSiFondo(event)">
+  <div class="modalContent">
+    <div class="actions" style="justify-content:space-between;margin-bottom:12px;">
+      <strong>Editar entrega</strong>
+      <button class="sec smallBtn" onclick="cerrarEditModal()">Cerrar</button>
+    </div>
+
+    <div class="formGrid">
+      <div>
+        <label>Conductor</label>
+        <input id="edit_driver_name">
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="edit_vehicle_plate">
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <input id="edit_client_name">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="edit_pickup_place">
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="edit_dropoff_place">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input id="edit_bultos" type="number">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="edit_kg" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="edit_m3" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Km</label>
+        <input id="edit_distance_km" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Precio (€)</label>
+        <input id="edit_price_eur" type="number" step="0.01">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Observaciones</label>
+      <textarea id="edit_observations" rows="4"></textarea>
+    </div>
+
+    <div class="checkboxRow">
+      <label>
+        <input id="edit_mozo" type="checkbox">
+        Mozo
+      </label>
+
+      <label>
+        <input id="edit_trampilla" type="checkbox">
+        Trampilla
+      </label>
+
+      <label>
+        <input id="edit_urgente" type="checkbox">
+        Urgente
+      </label>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" onclick="cerrarEditModal()">Cancelar</button>
+      <button onclick="guardarCambiosEntrega()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -312,6 +433,22 @@ const trampillaFilter = document.getElementById("trampillaFilter");
 const photoModal = document.getElementById("photoModal");
 const modalImg = document.getElementById("modalImg");
 
+const editModal = document.getElementById("editModal");
+const editDriverName = document.getElementById("edit_driver_name");
+const editVehiclePlate = document.getElementById("edit_vehicle_plate");
+const editClientName = document.getElementById("edit_client_name");
+const editPickupPlace = document.getElementById("edit_pickup_place");
+const editDropoffPlace = document.getElementById("edit_dropoff_place");
+const editBultos = document.getElementById("edit_bultos");
+const editKg = document.getElementById("edit_kg");
+const editM3 = document.getElementById("edit_m3");
+const editDistanceKm = document.getElementById("edit_distance_km");
+const editPriceEur = document.getElementById("edit_price_eur");
+const editObservations = document.getElementById("edit_observations");
+const editMozo = document.getElementById("edit_mozo");
+const editTrampilla = document.getElementById("edit_trampilla");
+const editUrgente = document.getElementById("edit_urgente");
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "admin") {
@@ -324,6 +461,7 @@ window.cerrarSesion = function(){
 };
 
 let entregasGlobal = [];
+let entregaEditandoId = null;
 
 function formatearFecha(fechaIso) {
   if (!fechaIso) return "";
@@ -365,6 +503,23 @@ window.cerrarModalSiFondo = function(event) {
     cerrarModal();
   }
 };
+
+window.cerrarEditModal = function() {
+  editModal.classList.remove("open");
+  entregaEditandoId = null;
+};
+
+window.cerrarEditModalSiFondo = function(event) {
+  if (event.target === editModal) {
+    cerrarEditModal();
+  }
+};
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = Number(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
 
 function renderEntregas(lista) {
   if (!lista.length) {
@@ -408,6 +563,7 @@ function renderEntregas(lista) {
         <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
         <td>
           <div class="actions">
+            <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}')">Editar</button>
             <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
           </div>
         </td>
@@ -493,6 +649,79 @@ async function cargarEntregas() {
 }
 
 window.cargarEntregas = cargarEntregas;
+
+window.editarEntrega = function(id) {
+  const entrega = entregasGlobal.find(e => e.id === id);
+  if (!entrega) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  entregaEditandoId = id;
+
+  editDriverName.value = entrega.driver_name || "";
+  editVehiclePlate.value = entrega.vehicle_plate || "";
+  editClientName.value = entrega.client_name || "";
+  editPickupPlace.value = entrega.pickup_place || "";
+  editDropoffPlace.value = entrega.dropoff_place || "";
+  editBultos.value = entrega.bultos ?? "";
+  editKg.value = entrega.kg ?? "";
+  editM3.value = entrega.m3 ?? "";
+  editDistanceKm.value = entrega.distance_km ?? "";
+  editPriceEur.value = entrega.price_eur ?? "";
+  editObservations.value = entrega.observations || "";
+  editMozo.checked = !!entrega.mozo;
+  editTrampilla.checked = !!entrega.trampilla;
+  editUrgente.checked = !!entrega.urgente;
+
+  editModal.classList.add("open");
+};
+
+window.guardarCambiosEntrega = async function() {
+  if (!entregaEditandoId) {
+    alert("No hay ninguna entrega seleccionada");
+    return;
+  }
+
+  try {
+    statusEl.innerText = "Guardando cambios...";
+
+    const datosActualizados = {
+      driver_name: editDriverName.value.trim() || null,
+      vehicle_plate: editVehiclePlate.value.trim() || null,
+      client_name: editClientName.value.trim() || null,
+      pickup_place: editPickupPlace.value.trim() || null,
+      dropoff_place: editDropoffPlace.value.trim() || null,
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      distance_km: normalizarNumero(editDistanceKm.value),
+      price_eur: normalizarNumero(editPriceEur.value),
+      observations: editObservations.value.trim() || null,
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
+
+    const { error } = await supabase
+      .from("deliveries")
+      .update(datosActualizados)
+      .eq("id", entregaEditandoId);
+
+    if (error) {
+      alert("Error guardando cambios: " + error.message);
+      statusEl.innerText = "Error guardando cambios: " + error.message;
+      return;
+    }
+
+    cerrarEditModal();
+    statusEl.innerText = "Entrega actualizada correctamente";
+    await cargarEntregas();
+  } catch (e) {
+    alert("Fallo guardando cambios: " + e.message);
+    statusEl.innerText = "Fallo guardando cambios: " + e.message;
+  }
+};
 
 async function borrarEntrega(id) {
   const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
