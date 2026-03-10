@@ -500,8 +500,11 @@ const EMPRESA = {
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
-if (!sesion || sesion.role !== "admin") {
-  window.location.href = "login.html";
+if (
+  !sesion ||
+  (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
+) {
+  window.location.href = "login.html?logout=1";
 }
 
 const statusEl = document.getElementById("status");
