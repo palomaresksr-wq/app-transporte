@@ -468,8 +468,16 @@ if (
 }
 
 window.cerrarSesion = function(){
-  localStorage.removeItem("sesionAppTransporte");
-  window.location.href = "login.html";
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error limpiando sesión:", e);
+  }
+
+  const destino = "login.html?logout=1&t=" + Date.now();
+  window.location.href = destino;
 };
 
 let entregasGlobal = [];
