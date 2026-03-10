@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Superadmin - Gestión de empresas</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+.wrap{
+  max-width:1400px;
+  margin:0 auto;
+}
+.topbar{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+h1,h2,h3{
+  margin:0 0 12px 0;
+}
+.card{
+  background:#121b2f;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:14px;
+  color:#cdd6f4;
+}
+input, select{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#0b1220;
+  color:white;
+}
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+.table-wrap{
+  overflow:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+}
+th, td{
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+}
+.small{
+  font-size:13px;
+  color:#aab4d6;
+}
+.empresa-box{
+  background:#0b1220;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+}
+.conductor-item{
+  background:#18233b;
+  padding:10px;
+  border-radius:8px;
+  margin-top:8px;
+}
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Superadmin</h1>
+      <div class="small">Gestión de empresas y conductores</div>
+    </div>
+    <div class="actions">
+      <button class="sec" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Crear empresa</h2>
+    <div class="grid">
+      <div>
+        <label>Nombre de la empresa</label>
+        <input id="empresaNombre" placeholder="Ej: Dutti Trans" />
+      </div>
+      <div>
+        <label>CIF</label>
+        <input id="empresaCif" placeholder="Ej: B12345678" />
+      </div>
+      <div>
+        <label>Email</label>
+        <input id="empresaEmail" placeholder="Ej: info@empresa.com" />
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="empresaTelefono" placeholder="Ej: 600000000" />
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <button onclick="crearEmpresa()">Guardar empresa</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Crear conductor</h2>
+    <div class="grid">
+      <div>
+        <label>Empresa</label>
+        <select id="conductorEmpresa"></select>
+      </div>
+      <div>
+        <label>Nombre del conductor</label>
+        <input id="conductorNombre" placeholder="Ej: Juan Pérez" />
+      </div>
+      <div>
+        <label>Usuario</label>
+        <input id="conductorUsuario" placeholder="Ej: juan1" />
+      </div>
+      <div>
+        <label>Contraseña</label>
+        <input id="conductorPassword" placeholder="Ej: 1234" />
+      </div>
+      <div>
+        <label>Matrícula vehículo</label>
+        <input id="conductorMatricula" placeholder="Ej: 1234ABC" />
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="conductorTelefono" placeholder="Ej: 611111111" />
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <button onclick="crearConductor()">Guardar conductor</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Empresas registradas</h2>
+    <div id="listaEmpresas"></div>
+  </div>
+
+</div>
+
+<script>
+function getEmpresas(){
+  return JSON.parse(localStorage.getItem("empresas")) || [];
+}
+
+function saveEmpresas(empresas){
+  localStorage.setItem("empresas", JSON.stringify(empresas));
+}
+
+function getConductores(){
+  return JSON.parse(localStorage.getItem("conductores")) || [];
+}
+
+function saveConductores(conductores){
+  localStorage.setItem("conductores", JSON.stringify(conductores));
+}
+
+function cerrarSesion(){
+  window.location.href = "index.html";
+}
+
+function crearEmpresa(){
+  const nombre = document.getElementById("empresaNombre").value.trim();
+  const cif = document.getElementById("empresaCif").value.trim();
+  const email = document.getElementById("empresaEmail").value.trim();
+  const telefono = document.getElementById("empresaTelefono").value.trim();
+
+  if(!nombre){
+    alert("Pon el nombre de la empresa");
+    return;
+  }
+
+  const empresas = getEmpresas();
+
+  const yaExiste = empresas.some(e => e.nombre.toLowerCase() === nombre.toLowerCase());
+  if(yaExiste){
+    alert("Esa empresa ya existe");
+    return;
+  }
+
+  const nuevaEmpresa = {
+    id: Date.now(),
+    nombre,
+    cif,
+    email,
+    telefono,
+    fechaAlta: new Date().toLocaleString("es-ES")
+  };
+
+  empresas.push(nuevaEmpresa);
+  saveEmpresas(empresas);
+
+  document.getElementById("empresaNombre").value = "";
+  document.getElementById("empresaCif").value = "";
+  document.getElementById("empresaEmail").value = "";
+  document.getElementById("empresaTelefono").value = "";
+
+  cargarSelectEmpresas();
+  pintarEmpresas();
+
+  alert("Empresa creada correctamente");
+}
+
+function crearConductor(){
+  const empresaId = document.getElementById("conductorEmpresa").value;
+  const nombre = document.getElementById("conductorNombre").value.trim();
+  const usuario = document.getElementById("conductorUsuario").value.trim();
+  const password = document.getElementById("conductorPassword").value.trim();
+  const matricula = document.getElementById("conductorMatricula").value.trim();
+  const telefono = document.getElementById("conductorTelefono").value.trim();
+
+  if(!empresaId){
+    alert("Selecciona una empresa");
+    return;
+  }
+
+  if(!nombre || !usuario || !password){
+    alert("Completa nombre, usuario y contraseña");
+    return;
+  }
+
+  const conductores = getConductores();
+
+  const usuarioRepetido = conductores.some(c => c.usuario.toLowerCase() === usuario.toLowerCase());
+  if(usuarioRepetido){
+    alert("Ese usuario ya existe");
+    return;
+  }
+
+  const nuevoConductor = {
+    id: Date.now(),
+    empresaId: Number(empresaId),
+    nombre,
+    usuario,
+    password,
+    matricula,
+    telefono,
+    fechaAlta: new Date().toLocaleString("es-ES")
+  };
+
+  conductores.push(nuevoConductor);
+  saveConductores(conductores);
+
+  document.getElementById("conductorNombre").value = "";
+  document.getElementById("conductorUsuario").value = "";
+  document.getElementById("conductorPassword").value = "";
+  document.getElementById("conductorMatricula").value = "";
+  document.getElementById("conductorTelefono").value = "";
+
+  pintarEmpresas();
+
+  alert("Conductor creado correctamente");
+}
+
+function cargarSelectEmpresas(){
+  const select = document.getElementById("conductorEmpresa");
+  const empresas = getEmpresas();
+
+  select.innerHTML = '<option value="">Selecciona empresa</option>';
+
+  empresas.forEach(empresa => {
+    const option = document.createElement("option");
+    option.value = empresa.id;
+    option.textContent = empresa.nombre;
+    select.appendChild(option);
+  });
+}
+
+function pintarEmpresas(){
+  const cont = document.getElementById("listaEmpresas");
+  const empresas = getEmpresas();
+  const conductores = getConductores();
+
+  if(empresas.length === 0){
+    cont.innerHTML = "<p class='small'>No hay empresas registradas todavía.</p>";
+    return;
+  }
+
+  cont.innerHTML = "";
+
+  empresas.forEach(empresa => {
+    const conductoresEmpresa = conductores.filter(c => c.empresaId === empresa.id);
+
+    const box = document.createElement("div");
+    box.className = "empresa-box";
+
+    box.innerHTML = `
+      <h3>${empresa.nombre}</h3>
+      <div class="small">CIF: ${empresa.cif || "-"}</div>
+      <div class="small">Email: ${empresa.email || "-"}</div>
+      <div class="small">Teléfono: ${empresa.telefono || "-"}</div>
+      <div class="small">Alta: ${empresa.fechaAlta || "-"}</div>
+      <div style="margin-top:10px;"><strong>Conductores (${conductoresEmpresa.length})</strong></div>
+      <div class="conductores-lista"></div>
+    `;
+
+    const lista = box.querySelector(".conductores-lista");
+
+    if(conductoresEmpresa.length === 0){
+      lista.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa todavía no tiene conductores.</div>";
+    } else {
+      conductoresEmpresa.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "conductor-item";
+        item.innerHTML = `
+          <div><strong>${c.nombre}</strong></div>
+          <div class="small">Usuario: ${c.usuario}</div>
+          <div class="small">Contraseña: ${c.password}</div>
+          <div class="small">Matrícula: ${c.matricula || "-"}</div>
+          <div class="small">Teléfono: ${c.telefono || "-"}</div>
+          <div class="small">Alta: ${c.fechaAlta || "-"}</div>
+        `;
+        lista.appendChild(item);
+      });
+    }
+
+    cont.appendChild(box);
+  });
+}
+
+cargarSelectEmpresas();
+pintarEmpresas();
+</script>
+</body>
+</html>
