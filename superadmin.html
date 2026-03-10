@@ -2,9 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Superadmin - Gestión de empresas</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superadmin - Gestión App Transporte</title>
 <style>
 body{
   font-family: Arial, sans-serif;
@@ -57,7 +56,7 @@ input, select{
   background:#0b1220;
   color:white;
 }
-button, .btn{
+button{
   padding:10px 14px;
   border:none;
   border-radius:8px;
@@ -66,23 +65,13 @@ button, .btn{
   font-weight:bold;
   cursor:pointer;
 }
-button.sec, .btn.sec{
+button.sec{
   background:#24314f;
   color:white;
 }
-.table-wrap{
-  overflow:auto;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:12px;
-}
-th, td{
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  padding:10px;
-  text-align:left;
-  vertical-align:top;
+button.danger{
+  background:#ff4d4f;
+  color:white;
 }
 .small{
   font-size:13px;
@@ -91,19 +80,40 @@ th, td{
 .empresa-box{
   background:#0b1220;
   border-radius:10px;
-  padding:12px;
-  margin-top:12px;
+  padding:14px;
+  margin-top:14px;
+}
+.empresa-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
 }
 .conductor-item{
   background:#18233b;
   padding:10px;
   border-radius:8px;
   margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
 }
 .actions{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
+}
+hr{
+  border:none;
+  border-top:1px solid rgba(255,255,255,0.08);
+  margin:16px 0;
+}
+#estado{
+  margin-top:12px;
+  white-space:pre-line;
 }
 </style>
 </head>
@@ -113,10 +123,11 @@ th, td{
   <div class="topbar">
     <div>
       <h1>Superadmin</h1>
-      <div class="small">Gestión de empresas y conductores</div>
+      <div class="small">Empresas y conductores con memoria en Supabase</div>
     </div>
     <div class="actions">
-      <button class="sec" onclick="cerrarSesion()">Cerrar sesión</button>
+      <button class="sec" id="btnRecargar">Recargar</button>
+      <button class="sec" id="btnCerrarSesion">Cerrar sesión</button>
     </div>
   </div>
 
@@ -125,23 +136,23 @@ th, td{
     <div class="grid">
       <div>
         <label>Nombre de la empresa</label>
-        <input id="empresaNombre" placeholder="Ej: Dutti Trans" />
+        <input id="empresaNombre" placeholder="Ej: Dutti Trans">
       </div>
       <div>
         <label>CIF</label>
-        <input id="empresaCif" placeholder="Ej: B12345678" />
+        <input id="empresaCif" placeholder="Ej: B12345678">
       </div>
       <div>
         <label>Email</label>
-        <input id="empresaEmail" placeholder="Ej: info@empresa.com" />
+        <input id="empresaEmail" placeholder="Ej: info@empresa.com">
       </div>
       <div>
         <label>Teléfono</label>
-        <input id="empresaTelefono" placeholder="Ej: 600000000" />
+        <input id="empresaTelefono" placeholder="Ej: 600000000">
       </div>
     </div>
     <div style="margin-top:14px;">
-      <button onclick="crearEmpresa()">Guardar empresa</button>
+      <button id="btnCrearEmpresa">Guardar empresa</button>
     </div>
   </div>
 
@@ -154,219 +165,441 @@ th, td{
       </div>
       <div>
         <label>Nombre del conductor</label>
-        <input id="conductorNombre" placeholder="Ej: Juan Pérez" />
+        <input id="conductorNombre" placeholder="Ej: Juan Pérez">
       </div>
       <div>
         <label>Usuario</label>
-        <input id="conductorUsuario" placeholder="Ej: juan1" />
+        <input id="conductorUsuario" placeholder="Ej: juan1">
       </div>
       <div>
         <label>Contraseña</label>
-        <input id="conductorPassword" placeholder="Ej: 1234" />
+        <input id="conductorPassword" placeholder="Ej: 1234">
       </div>
       <div>
         <label>Matrícula vehículo</label>
-        <input id="conductorMatricula" placeholder="Ej: 1234ABC" />
+        <input id="conductorMatricula" placeholder="Ej: 1234ABC">
       </div>
       <div>
         <label>Teléfono</label>
-        <input id="conductorTelefono" placeholder="Ej: 611111111" />
+        <input id="conductorTelefono" placeholder="Ej: 611111111">
       </div>
     </div>
     <div style="margin-top:14px;">
-      <button onclick="crearConductor()">Guardar conductor</button>
+      <button id="btnCrearConductor">Guardar conductor</button>
     </div>
   </div>
 
   <div class="card">
     <h2>Empresas registradas</h2>
+    <div id="estado"></div>
     <div id="listaEmpresas"></div>
   </div>
 
 </div>
 
-<script>
-function getEmpresas(){
-  return JSON.parse(localStorage.getItem("empresas")) || [];
-}
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-function saveEmpresas(empresas){
-  localStorage.setItem("empresas", JSON.stringify(empresas));
-}
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getConductores(){
-  return JSON.parse(localStorage.getItem("conductores")) || [];
-}
+const estadoEl = document.getElementById("estado");
+const listaEmpresasEl = document.getElementById("listaEmpresas");
 
-function saveConductores(conductores){
-  localStorage.setItem("conductores", JSON.stringify(conductores));
-}
+const empresaNombreEl = document.getElementById("empresaNombre");
+const empresaCifEl = document.getElementById("empresaCif");
+const empresaEmailEl = document.getElementById("empresaEmail");
+const empresaTelefonoEl = document.getElementById("empresaTelefono");
 
-function cerrarSesion(){
-  window.location.href = "index.html";
-}
+const conductorEmpresaEl = document.getElementById("conductorEmpresa");
+const conductorNombreEl = document.getElementById("conductorNombre");
+const conductorUsuarioEl = document.getElementById("conductorUsuario");
+const conductorPasswordEl = document.getElementById("conductorPassword");
+const conductorMatriculaEl = document.getElementById("conductorMatricula");
+const conductorTelefonoEl = document.getElementById("conductorTelefono");
 
-function crearEmpresa(){
-  const nombre = document.getElementById("empresaNombre").value.trim();
-  const cif = document.getElementById("empresaCif").value.trim();
-  const email = document.getElementById("empresaEmail").value.trim();
-  const telefono = document.getElementById("empresaTelefono").value.trim();
+const btnCrearEmpresa = document.getElementById("btnCrearEmpresa");
+const btnCrearConductor = document.getElementById("btnCrearConductor");
+const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const btnRecargar = document.getElementById("btnRecargar");
 
-  if(!nombre){
-    alert("Pon el nombre de la empresa");
-    return;
+function comprobarAcceso() {
+  const sesionRaw = localStorage.getItem("sesionAppTransporte");
+  if (!sesionRaw) {
+    window.location.href = "login.html?logout=1";
+    return false;
   }
 
-  const empresas = getEmpresas();
-
-  const yaExiste = empresas.some(e => e.nombre.toLowerCase() === nombre.toLowerCase());
-  if(yaExiste){
-    alert("Esa empresa ya existe");
-    return;
+  try {
+    const sesion = JSON.parse(sesionRaw);
+    if (sesion.role !== "superadmin") {
+      window.location.href = "login.html?logout=1";
+      return false;
+    }
+    return true;
+  } catch (e) {
+    localStorage.removeItem("sesionAppTransporte");
+    window.location.href = "login.html?logout=1";
+    return false;
   }
-
-  const nuevaEmpresa = {
-    id: Date.now(),
-    nombre,
-    cif,
-    email,
-    telefono,
-    fechaAlta: new Date().toLocaleString("es-ES")
-  };
-
-  empresas.push(nuevaEmpresa);
-  saveEmpresas(empresas);
-
-  document.getElementById("empresaNombre").value = "";
-  document.getElementById("empresaCif").value = "";
-  document.getElementById("empresaEmail").value = "";
-  document.getElementById("empresaTelefono").value = "";
-
-  cargarSelectEmpresas();
-  pintarEmpresas();
-
-  alert("Empresa creada correctamente");
 }
 
-function crearConductor(){
-  const empresaId = document.getElementById("conductorEmpresa").value;
-  const nombre = document.getElementById("conductorNombre").value.trim();
-  const usuario = document.getElementById("conductorUsuario").value.trim();
-  const password = document.getElementById("conductorPassword").value.trim();
-  const matricula = document.getElementById("conductorMatricula").value.trim();
-  const telefono = document.getElementById("conductorTelefono").value.trim();
-
-  if(!empresaId){
-    alert("Selecciona una empresa");
-    return;
-  }
-
-  if(!nombre || !usuario || !password){
-    alert("Completa nombre, usuario y contraseña");
-    return;
-  }
-
-  const conductores = getConductores();
-
-  const usuarioRepetido = conductores.some(c => c.usuario.toLowerCase() === usuario.toLowerCase());
-  if(usuarioRepetido){
-    alert("Ese usuario ya existe");
-    return;
-  }
-
-  const nuevoConductor = {
-    id: Date.now(),
-    empresaId: Number(empresaId),
-    nombre,
-    usuario,
-    password,
-    matricula,
-    telefono,
-    fechaAlta: new Date().toLocaleString("es-ES")
-  };
-
-  conductores.push(nuevoConductor);
-  saveConductores(conductores);
-
-  document.getElementById("conductorNombre").value = "";
-  document.getElementById("conductorUsuario").value = "";
-  document.getElementById("conductorPassword").value = "";
-  document.getElementById("conductorMatricula").value = "";
-  document.getElementById("conductorTelefono").value = "";
-
-  pintarEmpresas();
-
-  alert("Conductor creado correctamente");
+if (!comprobarAcceso()) {
+  throw new Error("Acceso no autorizado");
 }
 
-function cargarSelectEmpresas(){
-  const select = document.getElementById("conductorEmpresa");
-  const empresas = getEmpresas();
+async function cargarEmpresas() {
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("*")
+    .order("nombre", { ascending: true });
 
-  select.innerHTML = '<option value="">Selecciona empresa</option>';
+  if (error) {
+    throw new Error("Error cargando empresas: " + error.message);
+  }
 
-  empresas.forEach(empresa => {
+  return data || [];
+}
+
+async function cargarConductores() {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("*")
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    throw new Error("Error cargando conductores: " + error.message);
+  }
+
+  return data || [];
+}
+
+async function recargarTodo() {
+  try {
+    estadoEl.innerText = "Cargando datos...";
+    listaEmpresasEl.innerHTML = "";
+
+    const empresas = await cargarEmpresas();
+    const conductores = await cargarConductores();
+
+    pintarSelectEmpresas(empresas);
+    pintarEmpresas(empresas, conductores);
+
+    estadoEl.innerText = "Datos cargados correctamente";
+  } catch (e) {
+    console.error(e);
+    estadoEl.innerText = "Error: " + e.message;
+  }
+}
+
+function pintarSelectEmpresas(empresas) {
+  conductorEmpresaEl.innerHTML = '<option value="">Selecciona empresa</option>';
+
+  for (const empresa of empresas) {
     const option = document.createElement("option");
     option.value = empresa.id;
     option.textContent = empresa.nombre;
-    select.appendChild(option);
-  });
+    conductorEmpresaEl.appendChild(option);
+  }
 }
 
-function pintarEmpresas(){
-  const cont = document.getElementById("listaEmpresas");
-  const empresas = getEmpresas();
-  const conductores = getConductores();
+function pintarEmpresas(empresas, conductores) {
+  listaEmpresasEl.innerHTML = "";
 
-  if(empresas.length === 0){
-    cont.innerHTML = "<p class='small'>No hay empresas registradas todavía.</p>";
+  if (!empresas.length) {
+    listaEmpresasEl.innerHTML = "<div class='small'>No hay empresas creadas todavía.</div>";
     return;
   }
 
-  cont.innerHTML = "";
-
-  empresas.forEach(empresa => {
-    const conductoresEmpresa = conductores.filter(c => c.empresaId === empresa.id);
+  for (const empresa of empresas) {
+    const conductoresEmpresa = conductores.filter(c => String(c.empresa_id) === String(empresa.id));
 
     const box = document.createElement("div");
     box.className = "empresa-box";
 
+    const createdAt = empresa.created_at
+      ? new Date(empresa.created_at).toLocaleString("es-ES")
+      : "-";
+
     box.innerHTML = `
-      <h3>${empresa.nombre}</h3>
-      <div class="small">CIF: ${empresa.cif || "-"}</div>
-      <div class="small">Email: ${empresa.email || "-"}</div>
-      <div class="small">Teléfono: ${empresa.telefono || "-"}</div>
-      <div class="small">Alta: ${empresa.fechaAlta || "-"}</div>
-      <div style="margin-top:10px;"><strong>Conductores (${conductoresEmpresa.length})</strong></div>
+      <div class="empresa-head">
+        <div>
+          <h3>${escapeHtml(empresa.nombre || "")}</h3>
+          <div class="small">ID: ${escapeHtml(empresa.id || "")}</div>
+          <div class="small">CIF: ${escapeHtml(empresa.cif || "-")}</div>
+          <div class="small">Email: ${escapeHtml(empresa.email || "-")}</div>
+          <div class="small">Teléfono: ${escapeHtml(empresa.telefono || "-")}</div>
+          <div class="small">Alta: ${escapeHtml(createdAt)}</div>
+        </div>
+        <div class="actions">
+          <button class="danger" data-empresa-id="${empresa.id}" data-action="borrar-empresa">Borrar empresa</button>
+        </div>
+      </div>
+
+      <hr>
+
+      <div><strong>Conductores (${conductoresEmpresa.length})</strong></div>
       <div class="conductores-lista"></div>
     `;
 
     const lista = box.querySelector(".conductores-lista");
 
-    if(conductoresEmpresa.length === 0){
+    if (!conductoresEmpresa.length) {
       lista.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa todavía no tiene conductores.</div>";
     } else {
-      conductoresEmpresa.forEach(c => {
+      for (const c of conductoresEmpresa) {
         const item = document.createElement("div");
         item.className = "conductor-item";
+
+        const alta = c.created_at
+          ? new Date(c.created_at).toLocaleString("es-ES")
+          : "-";
+
         item.innerHTML = `
-          <div><strong>${c.nombre}</strong></div>
-          <div class="small">Usuario: ${c.usuario}</div>
-          <div class="small">Contraseña: ${c.password}</div>
-          <div class="small">Matrícula: ${c.matricula || "-"}</div>
-          <div class="small">Teléfono: ${c.telefono || "-"}</div>
-          <div class="small">Alta: ${c.fechaAlta || "-"}</div>
+          <div>
+            <div><strong>${escapeHtml(c.nombre || "")}</strong></div>
+            <div class="small">Usuario: ${escapeHtml(c.usuario || "-")}</div>
+            <div class="small">Contraseña: ${escapeHtml(c.password || "-")}</div>
+            <div class="small">Matrícula: ${escapeHtml(c.matricula || "-")}</div>
+            <div class="small">Teléfono: ${escapeHtml(c.telefono || "-")}</div>
+            <div class="small">Alta: ${escapeHtml(alta)}</div>
+          </div>
+          <div class="actions">
+            <button class="danger" data-conductor-id="${c.id}" data-action="borrar-conductor">Borrar conductor</button>
+          </div>
         `;
+
         lista.appendChild(item);
-      });
+      }
     }
 
-    cont.appendChild(box);
-  });
+    listaEmpresasEl.appendChild(box);
+  }
 }
 
-cargarSelectEmpresas();
-pintarEmpresas();
+function limpiarFormularioEmpresa() {
+  empresaNombreEl.value = "";
+  empresaCifEl.value = "";
+  empresaEmailEl.value = "";
+  empresaTelefonoEl.value = "";
+}
+
+function limpiarFormularioConductor() {
+  conductorEmpresaEl.value = "";
+  conductorNombreEl.value = "";
+  conductorUsuarioEl.value = "";
+  conductorPasswordEl.value = "";
+  conductorMatriculaEl.value = "";
+  conductorTelefonoEl.value = "";
+}
+
+async function crearEmpresa() {
+  try {
+    const nombre = empresaNombreEl.value.trim();
+    const cif = empresaCifEl.value.trim();
+    const email = empresaEmailEl.value.trim();
+    const telefono = empresaTelefonoEl.value.trim();
+
+    if (!nombre) {
+      estadoEl.innerText = "Pon el nombre de la empresa";
+      return;
+    }
+
+    estadoEl.innerText = "Guardando empresa...";
+
+    const { data: yaExiste, error: errorExiste } = await supabase
+      .from("empresas")
+      .select("id,nombre")
+      .ilike("nombre", nombre)
+      .limit(1);
+
+    if (errorExiste) {
+      throw new Error("Error comprobando empresa: " + errorExiste.message);
+    }
+
+    if (yaExiste && yaExiste.length > 0) {
+      estadoEl.innerText = "Esa empresa ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("empresas")
+      .insert([{
+        nombre,
+        cif: cif || null,
+        email: email || null,
+        telefono: telefono || null
+      }]);
+
+    if (error) {
+      throw new Error("Error guardando empresa: " + error.message);
+    }
+
+    limpiarFormularioEmpresa();
+    await recargarTodo();
+    estadoEl.innerText = "Empresa creada correctamente";
+  } catch (e) {
+    console.error(e);
+    estadoEl.innerText = "Error: " + e.message;
+  }
+}
+
+async function crearConductor() {
+  try {
+    const empresa_id = conductorEmpresaEl.value;
+    const nombre = conductorNombreEl.value.trim();
+    const usuario = conductorUsuarioEl.value.trim();
+    const password = conductorPasswordEl.value.trim();
+    const matricula = conductorMatriculaEl.value.trim();
+    const telefono = conductorTelefonoEl.value.trim();
+
+    if (!empresa_id) {
+      estadoEl.innerText = "Selecciona una empresa";
+      return;
+    }
+
+    if (!nombre || !usuario || !password) {
+      estadoEl.innerText = "Completa nombre, usuario y contraseña";
+      return;
+    }
+
+    estadoEl.innerText = "Guardando conductor...";
+
+    const { data: repetido, error: errorRepetido } = await supabase
+      .from("conductores")
+      .select("id,usuario")
+      .eq("usuario", usuario)
+      .limit(1);
+
+    if (errorRepetido) {
+      throw new Error("Error comprobando usuario: " + errorRepetido.message);
+    }
+
+    if (repetido && repetido.length > 0) {
+      estadoEl.innerText = "Ese usuario ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("conductores")
+      .insert([{
+        empresa_id,
+        nombre,
+        usuario,
+        password,
+        matricula: matricula || null,
+        telefono: telefono || null
+      }]);
+
+    if (error) {
+      throw new Error("Error guardando conductor: " + error.message);
+    }
+
+    limpiarFormularioConductor();
+    await recargarTodo();
+    estadoEl.innerText = "Conductor creado correctamente";
+  } catch (e) {
+    console.error(e);
+    estadoEl.innerText = "Error: " + e.message;
+  }
+}
+
+async function borrarConductor(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar este conductor?");
+    if (!ok) return;
+
+    estadoEl.innerText = "Borrando conductor...";
+
+    const { error } = await supabase
+      .from("conductores")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw new Error("Error borrando conductor: " + error.message);
+    }
+
+    await recargarTodo();
+    estadoEl.innerText = "Conductor borrado correctamente";
+  } catch (e) {
+    console.error(e);
+    estadoEl.innerText = "Error: " + e.message;
+  }
+}
+
+async function borrarEmpresa(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar esta empresa? Antes se borrarán sus conductores.");
+    if (!ok) return;
+
+    estadoEl.innerText = "Borrando conductores de la empresa...";
+
+    const { error: errorConductores } = await supabase
+      .from("conductores")
+      .delete()
+      .eq("empresa_id", id);
+
+    if (errorConductores) {
+      throw new Error("Error borrando conductores: " + errorConductores.message);
+    }
+
+    estadoEl.innerText = "Borrando empresa...";
+
+    const { error: errorEmpresa } = await supabase
+      .from("empresas")
+      .delete()
+      .eq("id", id);
+
+    if (errorEmpresa) {
+      throw new Error("Error borrando empresa: " + errorEmpresa.message);
+    }
+
+    await recargarTodo();
+    estadoEl.innerText = "Empresa borrada correctamente";
+  } catch (e) {
+    console.error(e);
+    estadoEl.innerText = "Error: " + e.message;
+  }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("sesionAppTransporte");
+  sessionStorage.clear();
+  window.location.replace("login.html?logout=1");
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+btnCrearEmpresa.addEventListener("click", crearEmpresa);
+btnCrearConductor.addEventListener("click", crearConductor);
+btnCerrarSesion.addEventListener("click", cerrarSesion);
+btnRecargar.addEventListener("click", recargarTodo);
+
+listaEmpresasEl.addEventListener("click", async function(e) {
+  const action = e.target.getAttribute("data-action");
+
+  if (action === "borrar-conductor") {
+    const id = e.target.getAttribute("data-conductor-id");
+    if (id) await borrarConductor(id);
+    return;
+  }
+
+  if (action === "borrar-empresa") {
+    const id = e.target.getAttribute("data-empresa-id");
+    if (id) await borrarEmpresa(id);
+  }
+});
+
+recargarTodo();
 </script>
 </body>
 </html>
