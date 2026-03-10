@@ -1,4 +1,4 @@
-<<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -212,14 +212,21 @@ const galleryInput = document.getElementById("galleryInput");
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "driver") {
-  window.location.href = "login.html";
+  window.location.href = "login.html?logout=1";
 }
 
 currentUserEl.innerText = sesion.username || "sin usuario";
 
 window.cerrarSesion = function () {
-  localStorage.removeItem("sesionAppTransporte");
-  window.location.href = "login.html";
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error cerrando sesión:", e);
+  }
+
+  window.location.href = "login.html?logout=1&t=" + Date.now();
 };
 
 let ultimaPhotoUrl = null;
@@ -253,7 +260,8 @@ function actualizarCamposCliente() {
 
 function normalizarNumero(valor) {
   if (valor === null || valor === undefined || valor === "") return null;
-  return parseFloat(String(valor).replace(",", "."));
+  const n = parseFloat(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
 }
 
 function getSelectedPhotoFile() {
@@ -591,7 +599,7 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
     alert("Error guardando lugar de carga frecuente: " + error.message);
   }
 }
-  
+
 async function guardarDropoffFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
@@ -732,6 +740,11 @@ window.guardarEntrega = async function () {
     const trampilla = trampillaInput.checked;
     const urgente = urgenteInput.checked;
 
+    if (!conductor?.id || !conductor?.empresa_id) {
+      statusEl.innerText = "No se ha encontrado la empresa del conductor";
+      return;
+    }
+
     if (!matricula || !cliente) {
       statusEl.innerText = "Faltan matrícula o cliente";
       return;
@@ -786,6 +799,7 @@ window.guardarEntrega = async function () {
     await guardarVehiculoFrecuenteSiNoExiste(matricula);
 
     const datosTablaVieja = {
+      empresa_id: conductor.empresa_id,
       driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
       vehicle_plate: matricula,
       client_name: cliente,
