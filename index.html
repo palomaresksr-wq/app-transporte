@@ -493,43 +493,60 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("nombre", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando cliente: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
   const { error } = await supabase
     .from("clientes")
-    .upsert(
-      {
-        empresa_id: conductor.empresa_id,
-        nombre: limpio
-      },
-      {
-        onConflict: "empresa_id,nombre"
-      }
-    );
+    .insert({
+      empresa_id: conductor.empresa_id,
+      nombre: limpio
+    });
 
   if (error) {
-    console.warn("No se pudo guardar cliente:", error.message);
+    alert("Error guardando cliente frecuente: " + error.message);
   }
 }
-
 async function guardarPickupFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
 
   const conductor = await obtenerConductorActual();
 
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_pickups")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando lugar de carga: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
   const { error } = await supabase
     .from("frequent_pickups")
-    .upsert(
-      {
-        empresa_id: conductor.empresa_id,
-        name: limpio
-      },
-      {
-        onConflict: "empresa_id,name"
-      }
-    );
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
 
   if (error) {
-    console.warn("No se pudo guardar lugar de carga frecuente:", error.message);
+    alert("Error guardando lugar de carga frecuente: " + error.message);
   }
 }
 
@@ -539,23 +556,31 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_dropoffs")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando lugar de descarga: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
   const { error } = await supabase
     .from("frequent_dropoffs")
-    .upsert(
-      {
-        empresa_id: conductor.empresa_id,
-        name: limpio
-      },
-      {
-        onConflict: "empresa_id,name"
-      }
-    );
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
 
   if (error) {
-    console.warn("No se pudo guardar lugar de descarga frecuente:", error.message);
+    alert("Error guardando lugar de descarga frecuente: " + error.message);
   }
 }
-
 async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim().toUpperCase();
   if (!limpio) return;
