@@ -549,7 +549,7 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
     alert("Error guardando lugar de carga frecuente: " + error.message);
   }
 }
-
+  
 async function guardarDropoffFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
