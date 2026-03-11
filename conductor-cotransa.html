@@ -348,10 +348,7 @@ async function mostrarPreviewFoto() {
   previewFoto.style.display = "block";
 }
 
-cameraInput.addEventListener("change", leerFotoAutomatica);
-galleryInput.addEventListener("change", leerFotoAutomatica);
-
-  async function subirFoto(photoFile, prefix = "") {
+async function subirFoto(photoFile, prefix = "") {
   const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
   const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
   const fileName = `${prefix}${Date.now()}.${safeExt}`;
@@ -380,7 +377,7 @@ async function leerFotoAutomatica() {
     await mostrarPreviewFoto();
     statusEl.innerText = "Subiendo foto...";
 
-    ultimaPhotoUrl = await subirFoto(file, "preview-general-");
+    ultimaPhotoUrl = await subirFoto(file, "preview-cotransa-");
 
     statusEl.innerText = "Leyendo albarán...";
 
@@ -395,7 +392,7 @@ async function leerFotoAutomatica() {
     });
 
     const data = await response.json();
-    console.log("RESPUESTA IA:", data);
+    console.log("RESPUESTA IA COTRANSA:", data);
 
     if (!response.ok) {
       statusEl.innerText = "Error leyendo albarán";
@@ -410,9 +407,9 @@ async function leerFotoAutomatica() {
     let texto = String(data.result).trim();
 
     texto = texto
-      .replace(/^```json\\s*/i, "")
-      .replace(/^```\\s*/i, "")
-      .replace(/\\s*```$/i, "")
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
       .trim();
 
     const json = JSON.parse(texto);
@@ -427,10 +424,13 @@ async function leerFotoAutomatica() {
 
     statusEl.innerText = "Albarán leído correctamente";
   } catch (e) {
-    console.error("ERROR LEYENDO ALBARÁN:", e);
+    console.error("ERROR LEYENDO ALBARÁN COTRANSA:", e);
     statusEl.innerText = "Error leyendo albarán con la foto";
   }
 }
+
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
 
 async function obtenerConductorActual() {
   if (conductorActual) return conductorActual;
@@ -667,23 +667,6 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
       empresa_id: conductor.empresa_id,
       name: limpio
     });
-}
-
-async function subirFoto(photoFile, prefix = "") {
-  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
-  const fileName = `${prefix}${Date.now()}.${safeExt}`;
-
-  const { error } = await supabase
-    .storage
-    .from("pod")
-    .upload(fileName, photoFile, { upsert: true });
-
-  if (error) {
-    throw new Error("Error subiendo foto: " + error.message);
-  }
-
-  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
 }
 
 async function guardarEnTablaNueva(datos) {
