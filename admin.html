@@ -470,7 +470,6 @@ if (
 window.cerrarSesion = function(){
   try {
     localStorage.removeItem("sesionAppTransporte");
-    localStorage.clear();
     sessionStorage.clear();
   } catch (e) {
     console.error("Error limpiando sesión:", e);
