@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrega Inditex</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --danger:#a83232;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:20px;
+}
+
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+}
+
+h1{
+  margin:0 0 8px 0;
+  font-size:28px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+
+h3{
+  margin:0 0 12px 0;
+}
+
+label{
+  display:block;
+  margin-top:10px;
+  font-weight:bold;
+  font-size:14px;
+}
+
+input, textarea{
+  width:100%;
+  margin-top:6px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  font-size:14px;
+}
+
+input[readonly]{
+  background:#e9edf5;
+  color:#333;
+  font-weight:bold;
+}
+
+textarea{
+  resize:vertical;
+  min-height:90px;
+}
+
+button, .btn{
+  border:none;
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+.btnPrimary{
+  background:var(--accent);
+  color:#1b0c02;
+}
+
+.btnSec{
+  background:#24314f;
+  color:white;
+}
+
+.btnDanger{
+  background:var(--danger);
+  color:white;
+}
+
+.topActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.linea{
+  background:var(--soft);
+  border-radius:12px;
+  padding:14px;
+  margin-top:12px;
+}
+
+.lineaTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.lineaTitulo{
+  font-weight:bold;
+}
+
+.lineaGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;
+}
+
+.rowChecks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:14px;
+}
+
+.rowChecks label{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:normal;
+}
+
+.rowChecks input{
+  width:auto;
+  margin:0;
+}
+
+.photoButtons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.preview{
+  width:100%;
+  max-width:340px;
+  margin-top:14px;
+  border-radius:12px;
+  display:none;
+}
+
+.totales{
+  margin-top:12px;
+  background:var(--soft);
+  border-radius:12px;
+  padding:14px;
+}
+
+.totales div{
+  margin-top:4px;
+}
+
+.status{
+  margin-top:12px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.footerActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="card">
+    <h1>Entrega Inditex</h1>
+    <div class="sub">Registro de entrega específico para Inditex</div>
+
+    <div class="topActions">
+      <a href="selector-cliente.html" class="btn btnSec">← Cambiar cliente</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos principales</h3>
+
+    <div class="grid">
+      <div>
+        <label>Cliente</label>
+        <input id="client" value="Inditex" readonly>
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="vehicle" placeholder="Ej: 1234ABC">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="pickupPlace" placeholder="Ej: Coslada">
+      </div>
+
+      <div>
+        <label>Fecha albarán</label>
+        <input id="fechaAlbaran" placeholder="Ej: 11.03.2026">
+      </div>
+    </div>
+
+    <label>Destinatario</label>
+    <input id="destinatario" placeholder="Ej: Pull & Bear">
+
+    <label>Dirección de descarga</label>
+    <input id="direccionDescarga" placeholder="Dirección completa de entrega">
+  </div>
+
+  <div class="card">
+    <h3>Mercancía</h3>
+
+    <div id="lineasContainer"></div>
+
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" onclick="agregarLinea()">+ Añadir línea</button>
+    </div>
+
+    <div class="totales">
+      <div><strong>Total bultos:</strong> <span id="totalBultos">0</span></div>
+      <div><strong>Total kilos:</strong> <span id="totalKg">0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Extras</h3>
+
+    <div class="rowChecks">
+      <label><input id="mozo" type="checkbox"> Mozo</label>
+      <label><input id="trampilla" type="checkbox"> Trampilla</label>
+      <label><input id="urgente" type="checkbox"> Urgente</label>
+    </div>
+
+    <label style="margin-top:18px;">Observaciones</label>
+    <textarea id="observations" placeholder="Tiempo de espera, incidencias, observaciones..."></textarea>
+  </div>
+
+  <div class="card">
+    <h3>Foto albarán</h3>
+
+    <div class="photoButtons">
+      <button type="button" class="btnPrimary" onclick="document.getElementById('cameraInput').click()">📷 Hacer foto</button>
+      <button type="button" class="btnSec" onclick="document.getElementById('galleryInput').click()">🖼 Elegir de galería</button>
+      <button type="button" class="btnSec" onclick="simularLecturaIA()">🤖 Probar rellenado IA</button>
+    </div>
+
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+    <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+    <img id="previewFoto" class="preview" alt="Vista previa del albarán">
+
+    <div id="status" class="status"></div>
+
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" onclick="guardarEntrega()">Guardar entrega</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const lineasContainer = document.getElementById("lineasContainer");
+const totalBultosEl = document.getElementById("totalBultos");
+const totalKgEl = document.getElementById("totalKg");
+const statusEl = document.getElementById("status");
+const previewFoto = document.getElementById("previewFoto");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+
+function crearLinea(data = {}) {
+  const linea = document.createElement("div");
+  linea.className = "linea";
+
+  linea.innerHTML = `
+    <div class="lineaTop">
+      <div class="lineaTitulo">Línea de mercancía</div>
+      <button type="button" class="btnDanger" onclick="eliminarLinea(this)">Eliminar</button>
+    </div>
+
+    <div class="lineaGrid">
+      <div>
+        <label>MAWB</label>
+        <input class="mawb" placeholder="Ej: 23544122912" value="${escapeHtml(data.mawb || "")}">
+      </div>
+
+      <div>
+        <label>Pedido</label>
+        <input class="pedido" placeholder="Ej: 45249-W/1" value="${escapeHtml(data.pedido || "")}">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input class="bultos" type="number" placeholder="0" value="${data.bultos ?? ""}">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input class="kg" type="number" step="0.01" placeholder="0" value="${data.kg ?? ""}">
+      </div>
+    </div>
+  `;
+
+  lineasContainer.appendChild(linea);
+
+  linea.querySelector(".bultos").addEventListener("input", recalcularTotales);
+  linea.querySelector(".kg").addEventListener("input", recalcularTotales);
+}
+
+function agregarLinea() {
+  crearLinea();
+}
+
+function eliminarLinea(btn) {
+  const linea = btn.closest(".linea");
+  if (linea) {
+    linea.remove();
+    recalcularTotales();
+  }
+}
+
+function numero(valor) {
+  const n = parseFloat(String(valor || "").replace(",", "."));
+  return isNaN(n) ? 0 : n;
+}
+
+function recalcularTotales() {
+  let totalBultos = 0;
+  let totalKg = 0;
+
+  document.querySelectorAll(".linea").forEach(linea => {
+    totalBultos += numero(linea.querySelector(".bultos")?.value);
+    totalKg += numero(linea.querySelector(".kg")?.value);
+  });
+
+  totalBultosEl.innerText = totalBultos;
+  totalKgEl.innerText = totalKg.toFixed(2);
+}
+
+function obtenerLineas() {
+  const lineas = [];
+
+  document.querySelectorAll(".linea").forEach(linea => {
+    const mawb = linea.querySelector(".mawb")?.value?.trim() || "";
+    const pedido = linea.querySelector(".pedido")?.value?.trim() || "";
+    const bultos = linea.querySelector(".bultos")?.value ? parseInt(linea.querySelector(".bultos").value, 10) : null;
+    const kg = linea.querySelector(".kg")?.value ? numero(linea.querySelector(".kg").value) : null;
+
+    if (mawb || pedido || bultos !== null || kg !== null) {
+      lineas.push({ mawb, pedido, bultos, kg });
+    }
+  });
+
+  return lineas;
+}
+
+function getSelectedPhotoFile() {
+  return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+cameraInput.addEventListener("change", mostrarPreviewFoto);
+galleryInput.addEventListener("change", mostrarPreviewFoto);
+
+function mostrarPreviewFoto() {
+  const file = getSelectedPhotoFile();
+  if (!file) return;
+
+  previewFoto.src = URL.createObjectURL(file);
+  previewFoto.style.display = "block";
+  statusEl.innerText = "Foto seleccionada correctamente";
+}
+
+function simularLecturaIA() {
+  document.getElementById("vehicle").value = "7851KDX";
+  document.getElementById("pickupPlace").value = "COSLADA";
+  document.getElementById("fechaAlbaran").value = "11.03.2026";
+  document.getElementById("destinatario").value = "PULL & BEAR";
+  document.getElementById("direccionDescarga").value = "Av. de la Veguilla 14, Cabanillas del Campo";
+
+  lineasContainer.innerHTML = "";
+
+  crearLinea({
+    mawb: "23544122912",
+    pedido: "45249-W/1",
+    bultos: 9,
+    kg: 152
+  });
+
+  crearLinea({
+    mawb: "23544122912",
+    pedido: "45254-W/1",
+    bultos: 22,
+    kg: 373
+  });
+
+  crearLinea({
+    mawb: "23544122912",
+    pedido: "45255-W/1",
+    bultos: 12,
+    kg: 205
+  });
+
+  crearLinea({
+    mawb: "15741815583",
+    pedido: "38892-W/1",
+    bultos: 18,
+    kg: 399
+  });
+
+  recalcularTotales();
+  statusEl.innerText = "Prueba de IA rellenada";
+}
+
+function guardarEntrega() {
+  const datos = {
+    cliente: "Inditex",
+    matricula: document.getElementById("vehicle").value.trim().toUpperCase(),
+    lugarCarga: document.getElementById("pickupPlace").value.trim(),
+    fechaAlbaran: document.getElementById("fechaAlbaran").value.trim(),
+    destinatario: document.getElementById("destinatario").value.trim(),
+    direccionDescarga: document.getElementById("direccionDescarga").value.trim(),
+    mozo: document.getElementById("mozo").checked,
+    trampilla: document.getElementById("trampilla").checked,
+    urgente: document.getElementById("urgente").checked,
+    observaciones: document.getElementById("observations").value.trim(),
+    lineasMercancia: obtenerLineas(),
+    totalBultos: numero(totalBultosEl.innerText),
+    totalKg: numero(totalKgEl.innerText)
+  };
+
+  if (!datos.matricula) {
+    statusEl.innerText = "Falta matrícula";
+    return;
+  }
+
+  if (!datos.lugarCarga) {
+    statusEl.innerText = "Falta lugar de carga";
+    return;
+  }
+
+  if (!datos.destinatario) {
+    statusEl.innerText = "Falta destinatario";
+    return;
+  }
+
+  if (!datos.direccionDescarga) {
+    statusEl.innerText = "Falta dirección de descarga";
+    return;
+  }
+
+  if (!datos.lineasMercancia.length) {
+    statusEl.innerText = "Añade al menos una línea de mercancía";
+    return;
+  }
+
+  console.log("ENTREGA INDITEX LISTA PARA GUARDAR:", datos);
+  statusEl.innerText = "Pantalla Inditex lista. El siguiente paso es conectarla con Supabase.";
+}
+
+crearLinea();
+recalcularTotales();
+</script>
+
+</body>
+</html>
