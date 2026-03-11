@@ -807,7 +807,7 @@ function storageKeyDatosFactura() {
   return "datosFacturaAppTransporte";
 }
 
-ffunction cargarTarifas() {
+function cargarTarifas() {
   const guardadas = JSON.parse(localStorage.getItem(storageKeyTarifas()) || "{}");
 
   tarifaBase.value = guardadas.base ?? 0;
