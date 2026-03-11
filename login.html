@@ -114,7 +114,7 @@ function redirigirSegunSesion(sesion){
   }
 
   if (sesion.role === "driver") {
-    window.location.replace("index.html");
+    window.location.replace("selector-cliente.html");
     return;
   }
 
@@ -224,7 +224,7 @@ async function entrar() {
       empresa_id: conductor.empresa_id || null
     }));
 
-    window.location.replace("index.html");
+    window.location.replace("selector-cliente.html");
   } catch (e) {
     console.error(e);
     statusEl.innerText = "Error: " + e.message;
