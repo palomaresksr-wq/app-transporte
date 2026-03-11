@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrega Oplog</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --danger:#a83232;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:20px}
+.wrap{max-width:760px;margin:0 auto}
+.card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:18px}
+h1{margin:0 0 8px 0;font-size:28px}
+.sub{color:var(--muted);font-size:14px}
+h3{margin:0 0 12px 0}
+label{display:block;margin-top:10px;font-weight:bold;font-size:14px}
+input,textarea{width:100%;margin-top:6px;padding:12px;border:none;border-radius:10px;background:#fff;color:#111;font-size:14px}
+input[readonly]{background:#e9edf5;color:#333;font-weight:bold}
+textarea{resize:vertical;min-height:90px}
+button,.btn{border:none;border-radius:10px;padding:12px 14px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block}
+.btnPrimary{background:var(--accent);color:#1b0c02}
+.btnSec{background:#24314f;color:white}
+.btnDanger{background:var(--danger);color:white}
+.topActions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.linea{background:var(--soft);border-radius:12px;padding:14px;margin-top:12px}
+.lineaTop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.lineaTitulo{font-weight:bold}
+.lineaGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.rowChecks{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px}
+.rowChecks label{margin:0;display:flex;align-items:center;gap:8px;font-weight:normal}
+.rowChecks input{width:auto;margin:0}
+.photoButtons{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.preview{width:100%;max-width:340px;margin-top:14px;border-radius:12px;display:none}
+.totales{margin-top:12px;background:var(--soft);border-radius:12px;padding:14px}
+.totales div{margin-top:4px}
+.status{margin-top:12px;font-weight:bold;white-space:pre-line}
+.footerActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+@media (max-width:700px){body{padding:12px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Entrega Oplog</h1>
+    <div class="sub">Registro específico para Oplog</div>
+    <div class="topActions">
+      <a href="selector-cliente.html" class="btn btnSec">← Cambiar cliente</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos principales</h3>
+    <div class="grid">
+      <div><label>Cliente</label><input id="client" value="Oplog" readonly></div>
+      <div><label>Matrícula</label><input id="vehicle" placeholder="Ej: 1234ABC"></div>
+      <div><label>Lugar de carga</label><input id="pickupPlace" placeholder="Ej: Coslada"></div>
+      <div><label>Fecha albarán</label><input id="fechaAlbaran" placeholder="Ej: 11.03.2026"></div>
+    </div>
+    <label>Destinatario</label>
+    <input id="destinatario" placeholder="Ej: Cliente final">
+    <label>Dirección de descarga</label>
+    <input id="direccionDescarga" placeholder="Dirección completa de entrega">
+  </div>
+
+  <div class="card">
+    <h3>Mercancía</h3>
+    <div id="lineasContainer"></div>
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" onclick="agregarLinea()">+ Añadir línea</button>
+    </div>
+    <div class="totales">
+      <div><strong>Total bultos:</strong> <span id="totalBultos">0</span></div>
+      <div><strong>Total kilos:</strong> <span id="totalKg">0.00</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Extras</h3>
+    <div class="rowChecks">
+      <label><input id="mozo" type="checkbox"> Mozo</label>
+      <label><input id="trampilla" type="checkbox"> Trampilla</label>
+      <label><input id="urgente" type="checkbox"> Urgente</label>
+    </div>
+    <label style="margin-top:18px;">Observaciones</label>
+    <textarea id="observations" placeholder="Tiempo de espera, incidencias, observaciones..."></textarea>
+  </div>
+
+  <div class="card">
+    <h3>Foto albarán</h3>
+    <div class="photoButtons">
+      <button type="button" class="btnPrimary" onclick="document.getElementById('cameraInput').click()">📷 Hacer foto</button>
+      <button type="button" class="btnSec" onclick="document.getElementById('galleryInput').click()">🖼 Elegir de galería</button>
+    </div>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+    <input id="galleryInput" type="file" accept="image/*" style="display:none">
+    <img id="previewFoto" class="preview" alt="Vista previa del albarán">
+    <div id="status" class="status"></div>
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" onclick="guardarEntrega()">Guardar entrega</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CLIENTE_FIJO = "Oplog";
+const MARCA_BLOQUE = "[OPLOG]";
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
+
+const lineasContainer = document.getElementById("lineasContainer");
+const totalBultosEl = document.getElementById("totalBultos");
+const totalKgEl = document.getElementById("totalKg");
+const statusEl = document.getElementById("status");
+const previewFoto = document.getElementById("previewFoto");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+const clientInput = document.getElementById("client");
+const vehicleInput = document.getElementById("vehicle");
+const pickupPlaceInput = document.getElementById("pickupPlace");
+const fechaAlbaranInput = document.getElementById("fechaAlbaran");
+const destinatarioInput = document.getElementById("destinatario");
+const direccionDescargaInput = document.getElementById("direccionDescarga");
+const observationsInput = document.getElementById("observations");
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+if (!sesion || sesion.role !== "driver") window.location.href = "login.html?logout=1";
+let ultimaPhotoUrl = null;
+let conductorActual = null;
+
+function escapeHtml(v){return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function crearLinea(data={}) {
+  const linea = document.createElement("div");
+  linea.className = "linea";
+  linea.innerHTML = `
+    <div class="lineaTop">
+      <div class="lineaTitulo">Línea de mercancía</div>
+      <button type="button" class="btnDanger">Eliminar</button>
+    </div>
+    <div class="lineaGrid">
+      <div><label>MAWB</label><input class="mawb" value="${escapeHtml(data.mawb||"")}" placeholder="Ej: 23544122912"></div>
+      <div><label>Pedido</label><input class="pedido" value="${escapeHtml(data.pedido||"")}" placeholder="Ej: 45249-W/1"></div>
+      <div><label>Bultos</label><input class="bultos" type="number" value="${data.bultos ?? ""}" placeholder="0"></div>
+      <div><label>Kg</label><input class="kg" type="number" step="0.01" value="${data.kg ?? ""}" placeholder="0"></div>
+    </div>
+  `;
+  linea.querySelector(".btnDanger").addEventListener("click",()=>{linea.remove();recalcularTotales()});
+  linea.querySelector(".bultos").addEventListener("input",recalcularTotales);
+  linea.querySelector(".kg").addEventListener("input",recalcularTotales);
+  lineasContainer.appendChild(linea);
+}
+window.agregarLinea = ()=>crearLinea();
+function limpiarLineas(){lineasContainer.innerHTML=""}
+function numero(v){const n=parseFloat(String(v||"").replace(",","."));return isNaN(n)?0:n}
+function numeroONull(v){if(v===null||v===undefined||v==="")return null;const n=parseFloat(String(v).replace(",","."));return isNaN(n)?null:n}
+function enteroONull(v){if(v===null||v===undefined||v==="")return null;const n=parseInt(String(v).replace(/[^\d-]/g,""),10);return isNaN(n)?null:n}
+function recalcularTotales(){
+  let tb=0,tkg=0;
+  document.querySelectorAll(".linea").forEach(linea=>{
+    tb += numero(linea.querySelector(".bultos")?.value);
+    tkg += numero(linea.querySelector(".kg")?.value);
+  });
+  totalBultosEl.innerText = String(tb);
+  totalKgEl.innerText = tkg.toFixed(2);
+}
+function obtenerLineas(){
+  const lineas=[];
+  document.querySelectorAll(".linea").forEach(linea=>{
+    const mawb=linea.querySelector(".mawb")?.value?.trim()||"";
+    const pedido=linea.querySelector(".pedido")?.value?.trim()||"";
+    const bultos=enteroONull(linea.querySelector(".bultos")?.value);
+    const kg=numeroONull(linea.querySelector(".kg")?.value);
+    if(mawb||pedido||bultos!==null||kg!==null) lineas.push({mawb,pedido,bultos,kg});
+  });
+  return lineas;
+}
+function cargarLineas(lineas){
+  limpiarLineas();
+  if(Array.isArray(lineas)&&lineas.length>0) lineas.forEach(l=>crearLinea(l));
+  else crearLinea();
+  recalcularTotales();
+}
+function getSelectedPhotoFile(){return cameraInput.files[0]||galleryInput.files[0]||null}
+cameraInput.addEventListener("change",leerFotoAutomatica);
+galleryInput.addEventListener("change",leerFotoAutomatica);
+async function mostrarPreviewFoto(){const file=getSelectedPhotoFile();if(!file)return;previewFoto.src=URL.createObjectURL(file);previewFoto.style.display="block"}
+async function subirFoto(photoFile,prefix=""){
+  const fileExt=(photoFile.name.split(".").pop()||"jpg").toLowerCase();
+  const safeExt=fileExt.replace(/[^a-z0-9]/gi,"")||"jpg";
+  const fileName=`${prefix}${Date.now()}.${safeExt}`;
+  const { error } = await supabase.storage.from("pod").upload(fileName,photoFile,{upsert:true});
+  if(error) throw new Error("Error subiendo foto: "+error.message);
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
+}
+function extraerLineasDesdeJson(json){
+  if(Array.isArray(json.lineas_mercancia)) return json.lineas_mercancia;
+  if(Array.isArray(json.lineasMercancia)) return json.lineasMercancia;
+  if(Array.isArray(json.lineas)) return json.lineas;
+  if(Array.isArray(json.mercancia)) return json.mercancia;
+  return [];
+}
+function normalizarMatricula(v){return String(v||"").replace(/\s+/g,"").toUpperCase().trim()}
+async function leerFotoAutomatica(){
+  try{
+    const file=getSelectedPhotoFile();
+    if(!file){statusEl.innerText="No se ha seleccionado ninguna foto";return;}
+    await mostrarPreviewFoto();
+    statusEl.innerText="Subiendo foto...";
+    ultimaPhotoUrl = await subirFoto(file,"preview-oplog-");
+    statusEl.innerText="Leyendo albarán...";
+    const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({image:ultimaPhotoUrl,tipo:"inditex"})
+    });
+    const data = await response.json();
+    if(!response.ok){statusEl.innerText="Error leyendo albarán";return;}
+    if(!data.result){statusEl.innerText="La IA no devolvió datos";return;}
+    let texto=String(data.result).trim().replace(/^```json\s*/i,"").replace(/^```\s*/i,"").replace(/\s*```$/i,"").trim();
+    const json=JSON.parse(texto);
+    clientInput.value=CLIENTE_FIJO;
+    if(json.matricula) vehicleInput.value=normalizarMatricula(json.matricula);
+    if(json.lugar_carga) pickupPlaceInput.value=json.lugar_carga;
+    if(json.fecha_albaran||json.fecha) fechaAlbaranInput.value=json.fecha_albaran||json.fecha||"";
+    if(json.destinatario) destinatarioInput.value=json.destinatario;
+    if(json.direccion_descarga||json.lugar_descarga||json.lugar_descarga_detallado){
+      direccionDescargaInput.value=json.direccion_descarga||json.lugar_descarga||json.lugar_descarga_detallado||"";
+    }
+    if(json.observaciones) observationsInput.value=json.observaciones;
+    cargarLineas(extraerLineasDesdeJson(json));
+    const totalLineas=obtenerLineas().length;
+    statusEl.innerText=totalLineas>0?`Albarán leído correctamente\nLíneas detectadas: ${totalLineas}`:"Albarán leído, pero no se detectaron líneas";
+  }catch(e){
+    console.log(e);
+    statusEl.innerText="Error leyendo albarán con la foto";
+  }
+}
+async function obtenerConductorActual(){
+  if(conductorActual) return conductorActual;
+  if(sesion?.conductor_id&&sesion?.empresa_id){
+    conductorActual={id:sesion.conductor_id,empresa_id:sesion.empresa_id,usuario:sesion.username||null};
+    return conductorActual;
+  }
+  if(sesion?.username){
+    const {data,error}=await supabase.from("conductores").select("id, empresa_id, nombre, usuario").eq("usuario",sesion.username).limit(1);
+    if(!error&&data&&data.length>0){conductorActual=data[0];return conductorActual;}
+  }
+  conductorActual={id:FALLBACK_CONDUCTOR_ID,empresa_id:FALLBACK_EMPRESA_ID,usuario:sesion?.username||null};
+  return conductorActual;
+}
+async function guardarClienteFrecuenteSiNoExiste(nombre){
+  const limpio=(nombre||"").trim(); if(!limpio) return;
+  const conductor=await obtenerConductorActual();
+  const {data:existe}=await supabase.from("clientes").select("id").eq("empresa_id",conductor.empresa_id).eq("nombre",limpio).limit(1);
+  if(existe&&existe.length>0) return;
+  await supabase.from("clientes").insert({empresa_id:conductor.empresa_id,nombre:limpio});
+}
+async function guardarPickupFrecuenteSiNoExiste(nombre){
+  const limpio=(nombre||"").trim(); if(!limpio) return;
+  const conductor=await obtenerConductorActual();
+  const {data:existe}=await supabase.from("frequent_pickups").select("id").eq("empresa_id",conductor.empresa_id).eq("name",limpio).limit(1);
+  if(existe&&existe.length>0) return;
+  await supabase.from("frequent_pickups").insert({empresa_id:conductor.empresa_id,name:limpio});
+}
+async function guardarDropoffFrecuenteSiNoExiste(nombre){
+  const limpio=(nombre||"").trim(); if(!limpio) return;
+  const conductor=await obtenerConductorActual();
+  const {data:existe}=await supabase.from("frequent_dropoffs").select("id").eq("empresa_id",conductor.empresa_id).eq("name",limpio).limit(1);
+  if(existe&&existe.length>0) return;
+  await supabase.from("frequent_dropoffs").insert({empresa_id:conductor.empresa_id,name:limpio});
+}
+async function guardarVehiculoFrecuenteSiNoExiste(nombre){
+  const limpio=normalizarMatricula(nombre); if(!limpio) return;
+  const conductor=await obtenerConductorActual();
+  const {data:existe}=await supabase.from("frequent_vehicles").select("id").eq("empresa_id",conductor.empresa_id).eq("name",limpio).limit(1);
+  if(existe&&existe.length>0) return;
+  await supabase.from("frequent_vehicles").insert({empresa_id:conductor.empresa_id,name:limpio});
+}
+function construirObservaciones(base,fechaAlbaran,destinatario,direccionDescarga,lineasMercancia){
+  const txt=String(base||"").trim();
+  const bloque=[MARCA_BLOQUE,`fecha_albaran=${fechaAlbaran||""}`,`destinatario=${destinatario||""}`,`direccion_descarga=${direccionDescarga||""}`,`lineas=${JSON.stringify(lineasMercancia||[])}`].join("\n");
+  return `${txt?txt+"\n":""}${bloque}`.trim();
+}
+async function guardarEnTablaNueva(datos){
+  const {error}=await supabase.from("entregas").insert(datos);
+  if(error) throw new Error("Error guardando en tabla entregas: "+error.message);
+}
+async function guardarEnTablaViejaSinRomper(datosLegacy){
+  const {error}=await supabase.from("deliveries").insert(datosLegacy);
+  if(error) console.warn(error.message);
+}
+function limpiarFormulario(){
+  clientInput.value=CLIENTE_FIJO;
+  vehicleInput.value="";
+  pickupPlaceInput.value="";
+  fechaAlbaranInput.value="";
+  destinatarioInput.value="";
+  direccionDescargaInput.value="";
+  observationsInput.value="";
+  mozoInput.checked=false;
+  trampillaInput.checked=false;
+  urgenteInput.checked=false;
+  cameraInput.value="";
+  galleryInput.value="";
+  previewFoto.src="";
+  previewFoto.style.display="none";
+  ultimaPhotoUrl=null;
+  statusEl.innerText="";
+  cargarLineas([]);
+}
+window.guardarEntrega = async function(){
+  try{
+    statusEl.innerText="Guardando...";
+    const conductor=await obtenerConductorActual();
+    const cliente=CLIENTE_FIJO;
+    const matricula=normalizarMatricula(vehicleInput.value);
+    const lugarCarga=pickupPlaceInput.value.trim()||null;
+    const fechaAlbaran=fechaAlbaranInput.value.trim()||null;
+    const destinatario=destinatarioInput.value.trim()||null;
+    const direccionDescarga=direccionDescargaInput.value.trim()||null;
+    const observacionesBase=observationsInput.value.trim()||null;
+    const mozo=mozoInput.checked;
+    const trampilla=trampillaInput.checked;
+    const urgente=urgenteInput.checked;
+    const lineasMercancia=obtenerLineas();
+    recalcularTotales();
+    const totalBultos=enteroONull(totalBultosEl.innerText);
+    const totalKg=numeroONull(totalKgEl.innerText);
+
+    if(!matricula){statusEl.innerText="Falta matrícula";return;}
+    if(!lugarCarga){statusEl.innerText="Falta lugar de carga";return;}
+    if(!destinatario){statusEl.innerText="Falta destinatario";return;}
+    if(!direccionDescarga){statusEl.innerText="Falta dirección de descarga";return;}
+    if(!lineasMercancia.length){statusEl.innerText="Añade al menos una línea de mercancía";return;}
+
+    const photoFile=getSelectedPhotoFile();
+    let photo_url=ultimaPhotoUrl;
+    if(photoFile&&!photo_url) photo_url=await subirFoto(photoFile,"entrega-oplog-");
+
+    const observaciones=construirObservaciones(observacionesBase,fechaAlbaran,destinatario,direccionDescarga,lineasMercancia);
+
+    await guardarEnTablaNueva({
+      fecha:new Date().toISOString().split("T")[0],
+      cliente,
+      lugar_carga:lugarCarga,
+      lugar_descarga:direccionDescarga,
+      num_entregas:null,
+      bultos:totalBultos,
+      kg:totalKg,
+      m3:null,
+      observaciones,
+      mozo,
+      trampilla,
+      urgente,
+      matricula,
+      estado:"pendiente",
+      foto_url:photo_url||null,
+      conductor_id:conductor.id,
+      empresa_id:conductor.empresa_id
+    });
+
+    await guardarEnTablaViejaSinRomper({
+      empresa_id:conductor.empresa_id,
+      driver_name:sesion.username||conductor.usuario||conductor.nombre||"sin_usuario",
+      vehicle_plate:matricula,
+      client_name:cliente,
+      pickup_place:lugarCarga,
+      dropoff_place:direccionDescarga,
+      num_entregas:null,
+      bultos:totalBultos,
+      kg:totalKg,
+      m3:null,
+      observations:observaciones,
+      mozo,
+      trampilla,
+      urgente,
+      distance_km:0,
+      price_eur:0,
+      photo_url:photo_url||null
+    });
+
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    await guardarDropoffFrecuenteSiNoExiste(direccionDescarga);
+    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+
+    statusEl.innerText="Entrega guardada correctamente";
+    limpiarFormulario();
+  }catch(e){
+    console.error(e);
+    statusEl.innerText=e.message;
+    alert("Fallo al guardar: "+e.message);
+  }
+};
+function init(){clientInput.value=CLIENTE_FIJO;cargarLineas([])}
+init();
+</script>
+</body>
+</html>
