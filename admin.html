@@ -73,7 +73,7 @@ button.sec, .btn.sec{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1400px;
+  min-width:1700px;
   background:#121b2f;
 }
 
@@ -110,6 +110,11 @@ th{
 .no{
   background:#3a445f;
   color:#cfd8f0;
+}
+
+.info{
+  background:#274d8a;
+  color:white;
 }
 
 a{
@@ -220,6 +225,73 @@ input[type="checkbox"]{
   flex-wrap:wrap;
 }
 
+.inditexBox{
+  margin-top:14px;
+  background:#0f1a2e;
+  border-radius:10px;
+  padding:14px;
+}
+
+.inditexTitle{
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.inditexGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.inditexField{
+  background:#0b1220;
+  border-radius:8px;
+  padding:10px;
+}
+
+.inditexField strong{
+  display:block;
+  margin-bottom:4px;
+  color:#cfd8f0;
+}
+
+.inditexTableWrap{
+  overflow:auto;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.inditexMiniTable{
+  width:100%;
+  min-width:600px;
+  border-collapse:collapse;
+  background:#0b1220;
+}
+
+.inditexMiniTable th,
+.inditexMiniTable td{
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:13px;
+}
+
+.inditexMiniTable th{
+  background:#162238;
+  position:static;
+}
+
+.inditexResumen{
+  margin-top:10px;
+  font-size:13px;
+  color:#d9e4ff;
+}
+
+.detalleCompacto{
+  font-size:13px;
+  line-height:1.45;
+}
+
 @media (max-width: 700px){
   body{
     padding:12px;
@@ -302,6 +374,7 @@ input[type="checkbox"]{
             <th>Kg</th>
             <th>M3</th>
             <th>Observaciones</th>
+            <th>Detalle Inditex</th>
             <th>Extras</th>
             <th>Foto</th>
             <th>Precio</th>
@@ -310,7 +383,7 @@ input[type="checkbox"]{
         </thead>
         <tbody id="tbodyEntregas">
           <tr>
-            <td colspan="15" class="empty">Cargando entregas...</td>
+            <td colspan="16" class="empty">Cargando entregas...</td>
           </tr>
         </tbody>
       </table>
@@ -398,6 +471,51 @@ input[type="checkbox"]{
       <textarea id="edit_observations" rows="4"></textarea>
     </div>
 
+    <div id="editInditexBox" class="inditexBox" style="display:none;">
+      <div class="inditexTitle">Datos Inditex detectados</div>
+
+      <div class="inditexGrid">
+        <div class="inditexField">
+          <strong>Fecha albarán</strong>
+          <div id="edit_inditex_fecha"></div>
+        </div>
+
+        <div class="inditexField">
+          <strong>Destinatario</strong>
+          <div id="edit_inditex_destinatario"></div>
+        </div>
+
+        <div class="inditexField">
+          <strong>Dirección descarga</strong>
+          <div id="edit_inditex_direccion"></div>
+        </div>
+      </div>
+
+      <div class="inditexTableWrap">
+        <table class="inditexMiniTable">
+          <thead>
+            <tr>
+              <th>MAWB</th>
+              <th>Pedido</th>
+              <th>Bultos</th>
+              <th>Kilos</th>
+            </tr>
+          </thead>
+          <tbody id="edit_inditex_lineas">
+            <tr>
+              <td colspan="4" class="muted">Sin líneas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inditexResumen">
+        <strong>Total bultos:</strong> <span id="edit_inditex_total_bultos">0</span>
+        &nbsp; | &nbsp;
+        <strong>Total kilos:</strong> <span id="edit_inditex_total_kilos">0</span>
+      </div>
+    </div>
+
     <div class="checkboxRow">
       <label>
         <input id="edit_mozo" type="checkbox">
@@ -458,6 +576,14 @@ const editMozo = document.getElementById("edit_mozo");
 const editTrampilla = document.getElementById("edit_trampilla");
 const editUrgente = document.getElementById("edit_urgente");
 
+const editInditexBox = document.getElementById("editInditexBox");
+const editInditexFecha = document.getElementById("edit_inditex_fecha");
+const editInditexDestinatario = document.getElementById("edit_inditex_destinatario");
+const editInditexDireccion = document.getElementById("edit_inditex_direccion");
+const editInditexLineas = document.getElementById("edit_inditex_lineas");
+const editInditexTotalBultos = document.getElementById("edit_inditex_total_bultos");
+const editInditexTotalKilos = document.getElementById("edit_inditex_total_kilos");
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (
@@ -482,6 +608,7 @@ window.cerrarSesion = function(){
 let entregasGlobal = [];
 let entregaEditandoId = null;
 let empresaActual = null;
+let datosInditexEditando = null;
 
 async function cargarInfoEmpresaActual() {
   try {
@@ -573,6 +700,7 @@ window.cerrarModalSiFondo = function(event) {
 window.cerrarEditModal = function() {
   editModal.classList.remove("open");
   entregaEditandoId = null;
+  datosInditexEditando = null;
 };
 
 window.cerrarEditModalSiFondo = function(event) {
@@ -595,11 +723,143 @@ function puedeEditarEntrega(entrega) {
   return false;
 }
 
+function parsearObservacionesInditex(observations) {
+  const texto = String(observations || "");
+  const marca = "[INDITEX]";
+
+  if (!texto.includes(marca)) {
+    return {
+      esInditex: false,
+      observacionesLimpias: texto.trim(),
+      fechaAlbaran: "",
+      destinatario: "",
+      direccionDescarga: "",
+      lineasMercancia: []
+    };
+  }
+
+  const partes = texto.split(marca);
+  const observacionesLimpias = (partes[0] || "").trim();
+  const bloque = (partes.slice(1).join(marca) || "").trim();
+
+  let fechaAlbaran = "";
+  let destinatario = "";
+  let direccionDescarga = "";
+  let lineasMercancia = [];
+
+  bloque.split("\n").forEach(linea => {
+    const l = linea.trim();
+    if (!l) return;
+
+    if (l.startsWith("fecha_albaran=")) {
+      fechaAlbaran = l.substring("fecha_albaran=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("destinatario=")) {
+      destinatario = l.substring("destinatario=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("direccion_descarga=")) {
+      direccionDescarga = l.substring("direccion_descarga=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("lineas=")) {
+      const jsonTxt = l.substring("lineas=".length).trim();
+      try {
+        const parsed = JSON.parse(jsonTxt);
+        if (Array.isArray(parsed)) {
+          lineasMercancia = parsed;
+        }
+      } catch (e) {
+        console.warn("No se pudieron parsear líneas Inditex:", e);
+      }
+    }
+  });
+
+  return {
+    esInditex: true,
+    observacionesLimpias,
+    fechaAlbaran,
+    destinatario,
+    direccionDescarga,
+    lineasMercancia
+  };
+}
+
+function totalizarLineasMercancia(lineas) {
+  const totalBultos = (lineas || []).reduce((acc, item) => {
+    const n = parseInt(item?.bultos ?? 0, 10);
+    return acc + (Number.isNaN(n) ? 0 : n);
+  }, 0);
+
+  const totalKilos = (lineas || []).reduce((acc, item) => {
+    const n = Number(String(item?.kilos ?? 0).replace(",", "."));
+    return acc + (Number.isNaN(n) ? 0 : n);
+  }, 0);
+
+  return { totalBultos, totalKilos };
+}
+
+function renderDetalleInditexCompacto(datos) {
+  if (!datos?.esInditex) return "";
+
+  const { totalBultos, totalKilos } = totalizarLineasMercancia(datos.lineasMercancia || []);
+  const totalLineas = Array.isArray(datos.lineasMercancia) ? datos.lineasMercancia.length : 0;
+
+  return `
+    <div class="detalleCompacto">
+      <span class="badge info">Inditex</span><br>
+      <strong>Fecha albarán:</strong> ${escapeHtml(datos.fechaAlbaran || "")}<br>
+      <strong>Destinatario:</strong> ${escapeHtml(datos.destinatario || "")}<br>
+      <strong>Descarga:</strong> ${escapeHtml(datos.direccionDescarga || "")}<br>
+      <strong>Líneas:</strong> ${escapeHtml(totalLineas)}<br>
+      <strong>Total bultos:</strong> ${escapeHtml(totalBultos)}<br>
+      <strong>Total kilos:</strong> ${escapeHtml(totalKilos)}
+    </div>
+  `;
+}
+
+function renderLineasInditexTabla(datos) {
+  if (!datos?.esInditex || !Array.isArray(datos.lineasMercancia) || !datos.lineasMercancia.length) {
+    return "";
+  }
+
+  const filas = datos.lineasMercancia.map(linea => `
+    <tr>
+      <td>${escapeHtml(linea.mawb || "")}</td>
+      <td>${escapeHtml(linea.pedido || "")}</td>
+      <td>${escapeHtml(linea.bultos ?? "")}</td>
+      <td>${escapeHtml(linea.kilos ?? "")}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div class="inditexTableWrap">
+      <table class="inditexMiniTable">
+        <thead>
+          <tr>
+            <th>MAWB</th>
+            <th>Pedido</th>
+            <th>Bultos</th>
+            <th>Kilos</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="15" class="empty">No hay entregas que coincidan con el filtro.</td>
+        <td colspan="16" class="empty">No hay entregas que coincidan con el filtro.</td>
       </tr>
     `;
     return;
@@ -611,6 +871,8 @@ function renderEntregas(lista) {
       ${badgeBooleano(entrega.trampilla, "Trampilla")}
       ${badgeBooleano(entrega.urgente, "Urgente")}
     `;
+
+    const datosInditex = parsearObservacionesInditex(entrega.observations);
 
     const fotoHtml = entrega.photo_url
       ? `
@@ -641,7 +903,11 @@ function renderEntregas(lista) {
         <td>${escapeHtml(entrega.bultos)}</td>
         <td>${escapeHtml(entrega.kg)}</td>
         <td>${escapeHtml(entrega.m3)}</td>
-        <td>${escapeHtml(entrega.observations)}</td>
+        <td>${escapeHtml(datosInditex.observacionesLimpias)}</td>
+        <td>
+          ${renderDetalleInditexCompacto(datosInditex)}
+          ${renderLineasInditexTabla(datosInditex)}
+        </td>
         <td>${extras}</td>
         <td>${fotoHtml}</td>
         <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
@@ -655,6 +921,17 @@ function aplicarFiltros() {
   const texto = searchInput.value.trim().toLowerCase();
 
   const filtradas = entregasGlobal.filter(entrega => {
+    const datosInditex = parsearObservacionesInditex(entrega.observations);
+
+    const bloqueLineas = (datosInditex.lineasMercancia || [])
+      .map(linea => [
+        linea.mawb,
+        linea.pedido,
+        linea.bultos,
+        linea.kilos
+      ].join(" "))
+      .join(" ");
+
     const bloqueTexto = [
       entrega.driver_name,
       entrega.vehicle_plate,
@@ -662,7 +939,11 @@ function aplicarFiltros() {
       entrega.pickup_place,
       entrega.dropoff_place,
       entrega.num_entregas,
-      entrega.observations
+      datosInditex.observacionesLimpias,
+      datosInditex.fechaAlbaran,
+      datosInditex.destinatario,
+      datosInditex.direccionDescarga,
+      bloqueLineas
     ]
     .map(v => (v || "").toString().toLowerCase())
     .join(" ");
@@ -717,7 +998,7 @@ async function cargarEntregas() {
       statusEl.innerText = "Error cargando entregas: " + error.message;
       tbodyEntregas.innerHTML = `
         <tr>
-          <td colspan="15" class="empty">No se pudieron cargar las entregas.</td>
+          <td colspan="16" class="empty">No se pudieron cargar las entregas.</td>
         </tr>
       `;
       return;
@@ -735,13 +1016,54 @@ async function cargarEntregas() {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="15" class="empty">Error inesperado al cargar entregas.</td>
+        <td colspan="16" class="empty">Error inesperado al cargar entregas.</td>
       </tr>
     `;
   }
 }
 
 window.cargarEntregas = cargarEntregas;
+
+function limpiarVistaInditexEdicion() {
+  editInditexBox.style.display = "none";
+  editInditexFecha.innerText = "";
+  editInditexDestinatario.innerText = "";
+  editInditexDireccion.innerText = "";
+  editInditexLineas.innerHTML = `<tr><td colspan="4" class="muted">Sin líneas</td></tr>`;
+  editInditexTotalBultos.innerText = "0";
+  editInditexTotalKilos.innerText = "0";
+}
+
+function pintarVistaInditexEdicion(datos) {
+  if (!datos?.esInditex) {
+    limpiarVistaInditexEdicion();
+    return;
+  }
+
+  editInditexBox.style.display = "block";
+  editInditexFecha.innerText = datos.fechaAlbaran || "";
+  editInditexDestinatario.innerText = datos.destinatario || "";
+  editInditexDireccion.innerText = datos.direccionDescarga || "";
+
+  const lineas = Array.isArray(datos.lineasMercancia) ? datos.lineasMercancia : [];
+  const { totalBultos, totalKilos } = totalizarLineasMercancia(lineas);
+
+  if (!lineas.length) {
+    editInditexLineas.innerHTML = `<tr><td colspan="4" class="muted">Sin líneas</td></tr>`;
+  } else {
+    editInditexLineas.innerHTML = lineas.map(linea => `
+      <tr>
+        <td>${escapeHtml(linea.mawb || "")}</td>
+        <td>${escapeHtml(linea.pedido || "")}</td>
+        <td>${escapeHtml(linea.bultos ?? "")}</td>
+        <td>${escapeHtml(linea.kilos ?? "")}</td>
+      </tr>
+    `).join("");
+  }
+
+  editInditexTotalBultos.innerText = totalBultos;
+  editInditexTotalKilos.innerText = totalKilos;
+}
 
 window.editarEntrega = function(id) {
   const entrega = entregasGlobal.find(e => e.id === id);
@@ -758,6 +1080,9 @@ window.editarEntrega = function(id) {
 
   entregaEditandoId = id;
 
+  const datosInditex = parsearObservacionesInditex(entrega.observations);
+  datosInditexEditando = datosInditex;
+
   editDriverName.value = entrega.driver_name || "";
   editVehiclePlate.value = entrega.vehicle_plate || "";
   editClientName.value = entrega.client_name || "";
@@ -769,13 +1094,33 @@ window.editarEntrega = function(id) {
   editM3.value = entrega.m3 ?? "";
   editDistanceKm.value = entrega.distance_km ?? "";
   editPriceEur.value = entrega.price_eur ?? "";
-  editObservations.value = entrega.observations || "";
+  editObservations.value = datosInditex.observacionesLimpias || "";
   editMozo.checked = !!entrega.mozo;
   editTrampilla.checked = !!entrega.trampilla;
   editUrgente.checked = !!entrega.urgente;
 
+  pintarVistaInditexEdicion(datosInditex);
+
   editModal.classList.add("open");
 };
+
+function reconstruirObservacionesConInditex(observacionesLimpias, datosInditex) {
+  const base = String(observacionesLimpias || "").trim();
+
+  if (!datosInditex?.esInditex) {
+    return base || null;
+  }
+
+  const bloque = [
+    "[INDITEX]",
+    `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
+    `destinatario=${datosInditex.destinatario || ""}`,
+    `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
+    `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
+  ].join("\n");
+
+  return `${base ? base + "\n" : ""}${bloque}`.trim();
+}
 
 window.guardarCambiosEntrega = async function() {
   if (!entregaEditandoId) {
@@ -798,6 +1143,11 @@ window.guardarCambiosEntrega = async function() {
   try {
     statusEl.innerText = "Guardando cambios...";
 
+    const observationsFinal = reconstruirObservacionesConInditex(
+      editObservations.value.trim() || null,
+      datosInditexEditando
+    );
+
     const datosActualizados = {
       driver_name: editDriverName.value.trim() || null,
       vehicle_plate: editVehiclePlate.value.trim() || null,
@@ -810,7 +1160,7 @@ window.guardarCambiosEntrega = async function() {
       m3: normalizarNumero(editM3.value),
       distance_km: normalizarNumero(editDistanceKm.value),
       price_eur: normalizarNumero(editPriceEur.value),
-      observations: editObservations.value.trim() || null,
+      observations: observationsFinal,
       mozo: editMozo.checked,
       trampilla: editTrampilla.checked,
       urgente: editUrgente.checked
