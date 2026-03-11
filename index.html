@@ -62,6 +62,57 @@ button{
   background:#0f1a2e;
   color:#fff;
 }
+
+.inditexBox{
+  margin-top:15px;
+  padding:14px;
+  background:#0f1a2e;
+  border-radius:8px;
+}
+
+.inditexTitulo{
+  margin:0 0 8px 0;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.lineaMercancia{
+  background:#0b1220;
+  border-radius:8px;
+  padding:10px;
+  margin-top:10px;
+}
+
+.lineaMercancia .filaGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.lineaMercancia .filaGridUna{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.btnMini{
+  width:auto;
+  padding:8px 12px;
+  margin-top:10px;
+}
+
+.btnEliminarLinea{
+  background:#a83232;
+  color:white;
+}
+
+.resumenTotales{
+  margin-top:10px;
+  padding:10px;
+  background:#0b1220;
+  border-radius:8px;
+  font-size:14px;
+}
 </style>
 </head>
 
@@ -117,6 +168,30 @@ button{
   <div id="albepetBloque" style="display:none;">
     <label>Número de entregas</label>
     <input id="numEntregas" type="number" placeholder="Ej: 12">
+  </div>
+
+  <div id="inditexBloque" class="inditexBox" style="display:none;">
+    <div class="inditexTitulo">Datos Inditex</div>
+
+    <label>Fecha albarán</label>
+    <input id="inditexFecha" type="text" placeholder="Ej: 11.03.2026">
+
+    <label>Destinatario</label>
+    <input id="inditexDestinatario" type="text" placeholder="Ej: Pull & Bear / Logifashion / WWF España">
+
+    <label>Dirección descarga detallada</label>
+    <input id="inditexDireccionDescarga" type="text" placeholder="Dirección completa del destinatario">
+
+    <div id="lineasMercanciaContainer"></div>
+
+    <button type="button" id="btnAgregarLinea" class="btnMini">
+      + Añadir línea de mercancía
+    </button>
+
+    <div class="resumenTotales">
+      <div><strong>Total bultos:</strong> <span id="inditexTotalBultos">0</span></div>
+      <div><strong>Total kilos:</strong> <span id="inditexTotalKilos">0</span></div>
+    </div>
   </div>
 
   <label>Bultos</label>
@@ -212,6 +287,15 @@ const preview = document.getElementById("previewFoto");
 const cameraInput = document.getElementById("cameraInput");
 const galleryInput = document.getElementById("galleryInput");
 
+const inditexBloque = document.getElementById("inditexBloque");
+const inditexFechaInput = document.getElementById("inditexFecha");
+const inditexDestinatarioInput = document.getElementById("inditexDestinatario");
+const inditexDireccionDescargaInput = document.getElementById("inditexDireccionDescarga");
+const lineasMercanciaContainer = document.getElementById("lineasMercanciaContainer");
+const btnAgregarLinea = document.getElementById("btnAgregarLinea");
+const inditexTotalBultosEl = document.getElementById("inditexTotalBultos");
+const inditexTotalKilosEl = document.getElementById("inditexTotalKilos");
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "driver") {
@@ -243,6 +327,22 @@ function esSotracom(cliente) {
   return String(cliente || "").trim().toLowerCase() === "sotracom";
 }
 
+function esInditex(cliente) {
+  const t = String(cliente || "").trim().toLowerCase();
+  return (
+    t === "inditex" ||
+    t.includes("inditex") ||
+    t === "flf" ||
+    t.includes("flf") ||
+    t.includes("fashion logistics")
+  );
+}
+
+function normalizarClienteIA(cliente) {
+  if (esInditex(cliente)) return "Inditex";
+  return String(cliente || "").trim();
+}
+
 function actualizarCamposCliente() {
   const cargaBloque = document.getElementById("cargaBloque");
   const descargaBloque = document.getElementById("descargaBloque");
@@ -253,6 +353,7 @@ function actualizarCamposCliente() {
     cargaBloque.style.display = "none";
     descargaBloque.style.display = "none";
     albepetBloque.style.display = "block";
+    inditexBloque.style.display = "none";
 
     pickupInput.value = "";
     pickupSelect.value = "";
@@ -263,6 +364,7 @@ function actualizarCamposCliente() {
     cargaBloque.style.display = "block";
     descargaBloque.style.display = "none";
     albepetBloque.style.display = "none";
+    inditexBloque.style.display = "none";
 
     vehicleInput.value = "";
     vehicleSelect.value = "";
@@ -274,6 +376,14 @@ function actualizarCamposCliente() {
     cargaBloque.style.display = "block";
     descargaBloque.style.display = "block";
     albepetBloque.style.display = "none";
+
+    if (esInditex(clientInput.value)) {
+      inditexBloque.style.display = "block";
+    } else {
+      inditexBloque.style.display = "none";
+      limpiarCamposInditex(false);
+    }
+
     numEntregasInput.value = "";
   }
 }
@@ -284,8 +394,159 @@ function normalizarNumero(valor) {
   return Number.isNaN(n) ? null : n;
 }
 
+function numeroEnteroSeguro(valor) {
+  if (valor === null || valor === undefined || valor === "") return 0;
+  const n = parseInt(String(valor).replace(/[^\d-]/g, ""), 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
 function getSelectedPhotoFile() {
   return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+function crearLineaMercancia(data = {}) {
+  const linea = document.createElement("div");
+  linea.className = "lineaMercancia";
+
+  linea.innerHTML = `
+    <div class="filaGrid">
+      <div>
+        <label>MAWB</label>
+        <input type="text" class="inditexMawb" placeholder="Ej: 23544122912" value="${escapeHtml(data.mawb || "")}">
+      </div>
+      <div>
+        <label>Pedido</label>
+        <input type="text" class="inditexPedido" placeholder="Ej: 45249-W/1" value="${escapeHtml(data.pedido || "")}">
+      </div>
+    </div>
+
+    <div class="filaGrid">
+      <div>
+        <label>Bultos</label>
+        <input type="number" class="inditexBultos" placeholder="0" value="${escapeHtml(data.bultos ?? "")}">
+      </div>
+      <div>
+        <label>Kilos</label>
+        <input type="number" class="inditexKilos" placeholder="0" value="${escapeHtml(data.kilos ?? "")}">
+      </div>
+    </div>
+
+    <button type="button" class="btnMini btnEliminarLinea">Eliminar línea</button>
+  `;
+
+  const btnEliminar = linea.querySelector(".btnEliminarLinea");
+  btnEliminar.addEventListener("click", () => {
+    linea.remove();
+    recalcularTotalesInditex();
+  });
+
+  linea.querySelector(".inditexBultos").addEventListener("input", recalcularTotalesInditex);
+  linea.querySelector(".inditexKilos").addEventListener("input", recalcularTotalesInditex);
+
+  lineasMercanciaContainer.appendChild(linea);
+}
+
+function limpiarLineasMercancia() {
+  lineasMercanciaContainer.innerHTML = "";
+}
+
+function obtenerLineasMercancia() {
+  const lineas = [];
+
+  document.querySelectorAll("#lineasMercanciaContainer .lineaMercancia").forEach(linea => {
+    const mawb = linea.querySelector(".inditexMawb")?.value?.trim() || "";
+    const pedido = linea.querySelector(".inditexPedido")?.value?.trim() || "";
+    const bultos = linea.querySelector(".inditexBultos")?.value ? parseInt(linea.querySelector(".inditexBultos").value, 10) : null;
+    const kilos = linea.querySelector(".inditexKilos")?.value ? normalizarNumero(linea.querySelector(".inditexKilos").value) : null;
+
+    if (mawb || pedido || bultos !== null || kilos !== null) {
+      lineas.push({
+        mawb,
+        pedido,
+        bultos,
+        kilos
+      });
+    }
+  });
+
+  return lineas;
+}
+
+function recalcularTotalesInditex() {
+  const lineas = obtenerLineasMercancia();
+
+  const totalBultos = lineas.reduce((acc, item) => acc + numeroEnteroSeguro(item.bultos), 0);
+  const totalKilos = lineas.reduce((acc, item) => acc + (normalizarNumero(item.kilos) || 0), 0);
+
+  inditexTotalBultosEl.innerText = totalBultos;
+  inditexTotalKilosEl.innerText = totalKilos;
+
+  if (esInditex(clientInput.value)) {
+    bultosInput.value = totalBultos || "";
+    kgInput.value = totalKilos || "";
+  }
+}
+
+function limpiarCamposInditex(crearLineaInicial = true) {
+  inditexFechaInput.value = "";
+  inditexDestinatarioInput.value = "";
+  inditexDireccionDescargaInput.value = "";
+  limpiarLineasMercancia();
+
+  if (crearLineaInicial) {
+    crearLineaMercancia();
+  }
+
+  inditexTotalBultosEl.innerText = "0";
+  inditexTotalKilosEl.innerText = "0";
+}
+
+function cargarLineasInditex(lineas) {
+  limpiarLineasMercancia();
+
+  if (Array.isArray(lineas) && lineas.length > 0) {
+    lineas.forEach(linea => crearLineaMercancia(linea));
+  } else {
+    crearLineaMercancia();
+  }
+
+  recalcularTotalesInditex();
+}
+
+function extraerLineasDesdeJson(json) {
+  if (Array.isArray(json.lineasMercancia)) return json.lineasMercancia;
+  if (Array.isArray(json.lineas_mercancia)) return json.lineas_mercancia;
+  if (Array.isArray(json.mercancia)) return json.mercancia;
+  if (Array.isArray(json.lineas)) return json.lineas;
+  return [];
+}
+
+function construirObservacionesFinales(observacionesBase, datosInditex) {
+  let resultado = (observacionesBase || "").trim();
+
+  if (datosInditex && datosInditex.esInditex) {
+    const bloque = [
+      "",
+      "[INDITEX]",
+      `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
+      `destinatario=${datosInditex.destinatario || ""}`,
+      `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
+      `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
+    ].join("\n");
+
+    resultado = `${resultado}${bloque}`.trim();
+  }
+
+  return resultado || null;
+}
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 async function subirFoto(photoFile, prefix = "") {
@@ -356,9 +617,10 @@ async function leerFotoAutomatica() {
       .trim();
 
     const json = JSON.parse(texto);
+    console.log("JSON LIMPIO IA:", json);
 
-    if (json.cliente) clientInput.value = json.cliente;
-    if (json.matricula) vehicleInput.value = json.matricula;
+    if (json.cliente) clientInput.value = normalizarClienteIA(json.cliente);
+    if (json.matricula) vehicleInput.value = String(json.matricula).replace(/\s+/g, "").toUpperCase();
     if (json.lugar_carga) pickupInput.value = json.lugar_carga;
     if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
     if (json.bultos) bultosInput.value = json.bultos;
@@ -367,6 +629,30 @@ async function leerFotoAutomatica() {
     if (json.observaciones) observationsInput.value = json.observaciones;
 
     actualizarCamposCliente();
+
+    if (esInditex(clientInput.value)) {
+      if (json.fecha || json.fecha_albaran) {
+        inditexFechaInput.value = json.fecha_albaran || json.fecha || "";
+      }
+
+      if (json.destinatario) {
+        inditexDestinatarioInput.value = json.destinatario;
+      }
+
+      if (json.direccion_descarga || json.lugar_descarga_detallado) {
+        inditexDireccionDescargaInput.value = json.direccion_descarga || json.lugar_descarga_detallado || "";
+      }
+
+      const lineas = extraerLineasDesdeJson(json);
+      cargarLineasInditex(lineas);
+
+      if (!dropoffInput.value) {
+        dropoffInput.value = inditexDireccionDescargaInput.value || inditexDestinatarioInput.value || "";
+      }
+
+      recalcularTotalesInditex();
+    }
+
     statusEl.innerText = "Albarán leído con IA";
 
   } catch (e) {
@@ -377,6 +663,10 @@ async function leerFotoAutomatica() {
 
 cameraInput.addEventListener("change", leerFotoAutomatica);
 galleryInput.addEventListener("change", leerFotoAutomatica);
+
+btnAgregarLinea.addEventListener("click", () => {
+  crearLineaMercancia();
+});
 
 async function obtenerConductorActual() {
   if (conductorActual) return conductorActual;
@@ -728,6 +1018,7 @@ function limpiarFormulario() {
   preview.style.display = "none";
   preview.src = "";
   ultimaPhotoUrl = null;
+  limpiarCamposInditex(true);
   actualizarCamposCliente();
 }
 
@@ -737,21 +1028,48 @@ window.guardarEntrega = async function () {
 
     const conductor = await obtenerConductorActual();
 
-    const cliente = clientInput.value.trim();
+    const clienteOriginal = clientInput.value.trim();
+    const cliente = normalizarClienteIA(clienteOriginal);
     const albepet = esAlbepet(cliente);
     const sotracom = esSotracom(cliente);
+    const inditex = esInditex(cliente);
 
     const matricula = sotracom ? null : (vehicleInput.value.trim().toUpperCase() || null);
     const lugarCarga = albepet ? null : (pickupInput.value.trim() || null);
-    const lugarDescarga = (albepet || sotracom) ? null : (dropoffInput.value.trim() || null);
+
+    const lineasMercancia = inditex ? obtenerLineasMercancia() : [];
+    if (inditex) {
+      recalcularTotalesInditex();
+    }
+
+    const destinatarioInditex = inditex ? (inditexDestinatarioInput.value.trim() || null) : null;
+    const direccionDescargaInditex = inditex ? (inditexDireccionDescargaInput.value.trim() || null) : null;
+    const fechaAlbaranInditex = inditex ? (inditexFechaInput.value.trim() || null) : null;
+
+    const lugarDescarga = (albepet || sotracom)
+      ? null
+      : (
+          inditex
+            ? (direccionDescargaInditex || destinatarioInditex || dropoffInput.value.trim() || null)
+            : (dropoffInput.value.trim() || null)
+        );
+
     const numEntregas = albepet ? (numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null) : null;
     const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
     const kg = normalizarNumero(kgInput.value);
     const m3 = normalizarNumero(m3Input.value);
-    const observaciones = observationsInput.value.trim() || null;
+    const observacionesBase = observationsInput.value.trim() || null;
     const mozo = mozoInput.checked;
     const trampilla = trampillaInput.checked;
     const urgente = urgenteInput.checked;
+
+    const observaciones = construirObservacionesFinales(observacionesBase, {
+      esInditex: inditex,
+      fechaAlbaran: fechaAlbaranInditex,
+      destinatario: destinatarioInditex,
+      direccionDescarga: direccionDescargaInditex,
+      lineasMercancia
+    });
 
     if (!conductor?.id || !conductor?.empresa_id) {
       statusEl.innerText = "No se ha encontrado la empresa del conductor";
@@ -863,6 +1181,7 @@ async function initApp() {
     statusEl.innerText = "Cargando datos...";
     await obtenerConductorActual();
     await cargarFrecuentes();
+    limpiarCamposInditex(true);
     actualizarCamposCliente();
     statusEl.innerText = "";
   } catch (e) {
