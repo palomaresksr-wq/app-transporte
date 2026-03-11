@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selecciona cliente</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --circle:#ffffff;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:var(--text);
+  min-height:100vh;
+}
+
+.wrap{
+  max-width:460px;
+  margin:0 auto;
+  padding:24px 18px 40px;
+}
+
+.top{
+  text-align:center;
+  margin-bottom:24px;
+}
+
+.top h1{
+  margin:0;
+  font-size:30px;
+  font-weight:800;
+}
+
+.top p{
+  margin:10px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.clientList{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+}
+
+.clientBtn{
+  width:190px;
+  height:190px;
+  border:none;
+  border-radius:50%;
+  background:var(--circle);
+  color:#111;
+  cursor:pointer;
+  box-shadow:0 8px 22px rgba(0,0,0,.28);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  position:relative;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+
+.clientBtn:active{
+  transform:scale(.98);
+}
+
+.clientBtn:hover{
+  box-shadow:0 12px 28px rgba(0,0,0,.35);
+}
+
+.clientInner{
+  text-align:center;
+  width:100%;
+}
+
+.clientLogoText{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:.5px;
+  line-height:1.05;
+  color:#111;
+}
+
+.clientSub{
+  margin-top:8px;
+  font-size:12px;
+  color:#555;
+  font-weight:700;
+}
+
+.clientLogoMini{
+  font-size:20px;
+  font-weight:900;
+  color:#111;
+}
+
+.clientLogoOrange{
+  color:var(--accent);
+}
+
+.footerBox{
+  margin-top:28px;
+  text-align:center;
+}
+
+.backBtn{
+  display:inline-block;
+  text-decoration:none;
+  background:#24314f;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:10px;
+  font-weight:bold;
+}
+
+@media (max-width:420px){
+  .clientBtn{
+    width:170px;
+    height:170px;
+  }
+
+  .clientLogoText{
+    font-size:26px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <h1>Selecciona cliente</h1>
+    <p>Pulsa el cliente para registrar la entrega</p>
+  </div>
+
+  <div class="clientList">
+
+    <button class="clientBtn" onclick="seleccionarCliente('Inditex','conductor-inditex.html')">
+      <div class="clientInner">
+        <div class="clientLogoText">INDITEX</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Galitrans','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoMini">GALITRANS</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Cotransa','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:22px;">COTRANSA</div>
+        <div class="clientSub">GROUP</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Sotracom','conductor-sotracom.html')">
+      <div class="clientInner">
+        <div class="clientLogoText clientLogoOrange" style="font-size:24px;">SOTRACOM</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Operinter','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:22px;">OPERINTER</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Getraes','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:22px;">GETRAES</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Albepet','conductor-albepet.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:24px;color:#2c9ed8;">ALBEPET</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Oplog','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:24px;">OPLOG</div>
+      </div>
+    </button>
+
+    <button class="clientBtn" onclick="seleccionarCliente('Duttitrans','conductor-general.html')">
+      <div class="clientInner">
+        <div class="clientLogoText" style="font-size:22px;">DUTTITRANS</div>
+      </div>
+    </button>
+
+  </div>
+
+  <div class="footerBox">
+    <a href="login.html" class="backBtn">Volver</a>
+  </div>
+</div>
+
+<script>
+function seleccionarCliente(cliente, destino){
+  localStorage.setItem("clienteSeleccionadoAppTransporte", cliente);
+  window.location.href = destino;
+}
+</script>
+
+</body>
+</html>
