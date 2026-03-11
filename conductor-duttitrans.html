@@ -71,6 +71,12 @@ input, textarea, select{
   font-size:14px;
 }
 
+input[readonly]{
+  background:#e9edf5;
+  color:#333;
+  font-weight:bold;
+}
+
 textarea{
   resize:vertical;
   min-height:90px;
@@ -179,7 +185,7 @@ button, .btn{
 
   <div class="card">
     <h1>Entrega Duttitrans</h1>
-    <div class="sub">Formulario general para clientes normales</div>
+    <div class="sub">Formulario general para Duttitrans</div>
 
     <div class="topActions">
       <a href="selector-cliente.html" class="btn btnSec">← Cambiar cliente</a>
@@ -192,7 +198,7 @@ button, .btn{
     <div class="grid">
       <div>
         <label>Cliente</label>
-        <input id="client" placeholder="Nombre del cliente">
+        <input id="client" value="Duttitrans" readonly>
       </div>
 
       <div>
@@ -282,6 +288,7 @@ button, .btn{
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const CLIENTE_FIJO = "Duttitrans";
 const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
 
@@ -319,10 +326,6 @@ if (!sesion || sesion.role !== "driver") {
 let ultimaPhotoUrl = null;
 let conductorActual = null;
 
-function getClienteDesdeSelector() {
-  return localStorage.getItem("clienteSeleccionadoAppTransporte") || "Duttitrans";
-}
-
 function normalizarMatricula(valor) {
   return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
 }
@@ -331,11 +334,6 @@ function normalizarNumero(valor) {
   if (valor === null || valor === undefined || valor === "") return null;
   const n = parseFloat(String(valor).replace(",", "."));
   return Number.isNaN(n) ? null : n;
-}
-
-function rellenarClienteInicial() {
-  const clienteGuardado = getClienteDesdeSelector();
-  clientInput.value = clienteGuardado;
 }
 
 function getSelectedPhotoFile() {
@@ -350,8 +348,89 @@ async function mostrarPreviewFoto() {
   previewFoto.style.display = "block";
 }
 
-cameraInput.addEventListener("change", mostrarPreviewFoto);
-galleryInput.addEventListener("change", mostrarPreviewFoto);
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const fileName = `${prefix}${Date.now()}.${safeExt}`;
+
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
+
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
+}
+
+async function leerFotoAutomatica() {
+  try {
+    const file = getSelectedPhotoFile();
+
+    if (!file) {
+      statusEl.innerText = "No se ha seleccionado ninguna foto";
+      return;
+    }
+
+    await mostrarPreviewFoto();
+    statusEl.innerText = "Subiendo foto...";
+
+    ultimaPhotoUrl = await subirFoto(file, "preview-duttitrans-");
+
+    statusEl.innerText = "Leyendo albarán...";
+
+    const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        image: ultimaPhotoUrl
+      })
+    });
+
+    const data = await response.json();
+    console.log("RESPUESTA IA DUTTITRANS:", data);
+
+    if (!response.ok) {
+      statusEl.innerText = "Error leyendo albarán";
+      return;
+    }
+
+    if (!data.result) {
+      statusEl.innerText = "La IA no devolvió datos";
+      return;
+    }
+
+    let texto = String(data.result).trim();
+
+    texto = texto
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+
+    const json = JSON.parse(texto);
+
+    if (json.matricula) vehicleInput.value = normalizarMatricula(json.matricula);
+    if (json.lugar_carga) pickupInput.value = json.lugar_carga;
+    if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
+    if (json.bultos !== undefined && json.bultos !== null) bultosInput.value = json.bultos;
+    if (json.kg !== undefined && json.kg !== null) kgInput.value = json.kg;
+    if (json.m3 !== undefined && json.m3 !== null) m3Input.value = json.m3;
+    if (json.observaciones) observationsInput.value = json.observaciones;
+
+    statusEl.innerText = "Albarán leído correctamente";
+  } catch (e) {
+    console.error("ERROR LEYENDO ALBARÁN DUTTITRANS:", e);
+    statusEl.innerText = "Error leyendo albarán con la foto";
+  }
+}
+
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
 
 async function obtenerConductorActual() {
   if (conductorActual) return conductorActual;
@@ -504,30 +583,21 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  const { data: existe, error: errorBuscar } = await supabase
+  const { data: existe } = await supabase
     .from("clientes")
     .select("id")
     .eq("empresa_id", conductor.empresa_id)
     .eq("nombre", limpio)
     .limit(1);
 
-  if (errorBuscar) {
-    console.warn("Error buscando cliente:", errorBuscar.message);
-    return;
-  }
-
   if (existe && existe.length > 0) return;
 
-  const { error } = await supabase
+  await supabase
     .from("clientes")
     .insert({
       empresa_id: conductor.empresa_id,
       nombre: limpio
     });
-
-  if (error) {
-    console.warn("Error guardando cliente frecuente:", error.message);
-  }
 }
 
 async function guardarPickupFrecuenteSiNoExiste(nombre) {
@@ -536,30 +606,21 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  const { data: existe, error: errorBuscar } = await supabase
+  const { data: existe } = await supabase
     .from("frequent_pickups")
     .select("id")
     .eq("empresa_id", conductor.empresa_id)
     .eq("name", limpio)
     .limit(1);
 
-  if (errorBuscar) {
-    console.warn("Error buscando lugar de carga:", errorBuscar.message);
-    return;
-  }
-
   if (existe && existe.length > 0) return;
 
-  const { error } = await supabase
+  await supabase
     .from("frequent_pickups")
     .insert({
       empresa_id: conductor.empresa_id,
       name: limpio
     });
-
-  if (error) {
-    console.warn("Error guardando lugar de carga frecuente:", error.message);
-  }
 }
 
 async function guardarDropoffFrecuenteSiNoExiste(nombre) {
@@ -568,30 +629,21 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  const { data: existe, error: errorBuscar } = await supabase
+  const { data: existe } = await supabase
     .from("frequent_dropoffs")
     .select("id")
     .eq("empresa_id", conductor.empresa_id)
     .eq("name", limpio)
     .limit(1);
 
-  if (errorBuscar) {
-    console.warn("Error buscando lugar de descarga:", errorBuscar.message);
-    return;
-  }
-
   if (existe && existe.length > 0) return;
 
-  const { error } = await supabase
+  await supabase
     .from("frequent_dropoffs")
     .insert({
       empresa_id: conductor.empresa_id,
       name: limpio
     });
-
-  if (error) {
-    console.warn("Error guardando lugar de descarga frecuente:", error.message);
-  }
 }
 
 async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
@@ -600,47 +652,21 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  const { data: existe, error: errorBuscar } = await supabase
+  const { data: existe } = await supabase
     .from("frequent_vehicles")
     .select("id")
     .eq("empresa_id", conductor.empresa_id)
     .eq("name", limpio)
     .limit(1);
 
-  if (errorBuscar) {
-    console.warn("Error buscando matrícula:", errorBuscar.message);
-    return;
-  }
-
   if (existe && existe.length > 0) return;
 
-  const { error } = await supabase
+  await supabase
     .from("frequent_vehicles")
     .insert({
       empresa_id: conductor.empresa_id,
       name: limpio
     });
-
-  if (error) {
-    console.warn("Error guardando matrícula frecuente:", error.message);
-  }
-}
-
-async function subirFoto(photoFile, prefix = "") {
-  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
-  const fileName = `${prefix}${Date.now()}.${safeExt}`;
-
-  const { error } = await supabase
-    .storage
-    .from("pod")
-    .upload(fileName, photoFile, { upsert: true });
-
-  if (error) {
-    throw new Error("Error subiendo foto: " + error.message);
-  }
-
-  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
 }
 
 async function guardarEnTablaNueva(datos) {
@@ -664,7 +690,7 @@ async function guardarEnTablaViejaSinRomper(datosLegacy) {
 }
 
 function limpiarFormulario() {
-  clientInput.value = getClienteDesdeSelector();
+  clientInput.value = CLIENTE_FIJO;
   vehicleInput.value = "";
   vehicleSelect.value = "";
   pickupInput.value = "";
@@ -692,7 +718,7 @@ window.guardarEntrega = async function () {
 
     const conductor = await obtenerConductorActual();
 
-    const cliente = clientInput.value.trim();
+    const cliente = CLIENTE_FIJO;
     const matricula = normalizarMatricula(vehicleInput.value);
     const lugarCarga = pickupInput.value.trim() || null;
     const lugarDescarga = dropoffInput.value.trim() || null;
@@ -706,11 +732,6 @@ window.guardarEntrega = async function () {
 
     if (!conductor?.id || !conductor?.empresa_id) {
       statusEl.innerText = "No se ha encontrado la empresa del conductor";
-      return;
-    }
-
-    if (!cliente) {
-      statusEl.innerText = "Falta cliente";
       return;
     }
 
@@ -733,7 +754,7 @@ window.guardarEntrega = async function () {
     let photo_url = ultimaPhotoUrl;
 
     if (photoFile && !photo_url) {
-      photo_url = await subirFoto(photoFile, "entrega-general-");
+      photo_url = await subirFoto(photoFile, "entrega-duttitrans-");
     }
 
     const datosNuevaTabla = {
@@ -797,7 +818,7 @@ window.guardarEntrega = async function () {
 
 async function init() {
   try {
-    rellenarClienteInicial();
+    clientInput.value = CLIENTE_FIJO;
     await cargarFrecuentes();
   } catch (e) {
     console.error(e);
