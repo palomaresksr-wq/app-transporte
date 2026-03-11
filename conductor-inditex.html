@@ -272,7 +272,7 @@ button, .btn{
 
     <div class="totales">
       <div><strong>Total bultos:</strong> <span id="totalBultos">0</span></div>
-      <div><strong>Total kilos:</strong> <span id="totalKg">0</span></div>
+      <div><strong>Total kilos:</strong> <span id="totalKg">0.00</span></div>
     </div>
   </div>
 
@@ -295,7 +295,6 @@ button, .btn{
     <div class="photoButtons">
       <button type="button" class="btnPrimary" onclick="document.getElementById('cameraInput').click()">📷 Hacer foto</button>
       <button type="button" class="btnSec" onclick="document.getElementById('galleryInput').click()">🖼 Elegir de galería</button>
-      <button type="button" class="btnSec" onclick="simularLecturaIA()">🤖 Probar rellenado IA</button>
     </div>
 
     <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
@@ -312,7 +311,17 @@ button, .btn{
 
 </div>
 
-<script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
+
 const lineasContainer = document.getElementById("lineasContainer");
 const totalBultosEl = document.getElementById("totalBultos");
 const totalKgEl = document.getElementById("totalKg");
@@ -321,6 +330,35 @@ const previewFoto = document.getElementById("previewFoto");
 const cameraInput = document.getElementById("cameraInput");
 const galleryInput = document.getElementById("galleryInput");
 
+const clientInput = document.getElementById("client");
+const vehicleInput = document.getElementById("vehicle");
+const pickupPlaceInput = document.getElementById("pickupPlace");
+const fechaAlbaranInput = document.getElementById("fechaAlbaran");
+const destinatarioInput = document.getElementById("destinatario");
+const direccionDescargaInput = document.getElementById("direccionDescarga");
+const observationsInput = document.getElementById("observations");
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.href = "login.html?logout=1";
+}
+
+let ultimaPhotoUrl = null;
+let conductorActual = null;
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function crearLinea(data = {}) {
   const linea = document.createElement("div");
   linea.className = "linea";
@@ -328,7 +366,7 @@ function crearLinea(data = {}) {
   linea.innerHTML = `
     <div class="lineaTop">
       <div class="lineaTitulo">Línea de mercancía</div>
-      <button type="button" class="btnDanger" onclick="eliminarLinea(this)">Eliminar</button>
+      <button type="button" class="btnDanger">Eliminar</button>
     </div>
 
     <div class="lineaGrid">
@@ -354,27 +392,41 @@ function crearLinea(data = {}) {
     </div>
   `;
 
-  lineasContainer.appendChild(linea);
+  const btnEliminar = linea.querySelector(".btnDanger");
+  btnEliminar.addEventListener("click", () => {
+    linea.remove();
+    recalcularTotales();
+  });
 
   linea.querySelector(".bultos").addEventListener("input", recalcularTotales);
   linea.querySelector(".kg").addEventListener("input", recalcularTotales);
+
+  lineasContainer.appendChild(linea);
 }
 
-function agregarLinea() {
+window.agregarLinea = function () {
   crearLinea();
-}
+};
 
-function eliminarLinea(btn) {
-  const linea = btn.closest(".linea");
-  if (linea) {
-    linea.remove();
-    recalcularTotales();
-  }
+function limpiarLineas() {
+  lineasContainer.innerHTML = "";
 }
 
 function numero(valor) {
   const n = parseFloat(String(valor || "").replace(",", "."));
   return isNaN(n) ? 0 : n;
+}
+
+function numeroONull(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = parseFloat(String(valor).replace(",", "."));
+  return isNaN(n) ? null : n;
+}
+
+function enteroONull(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = parseInt(String(valor).replace(/[^\d-]/g, ""), 10);
+  return isNaN(n) ? null : n;
 }
 
 function recalcularTotales() {
@@ -386,7 +438,7 @@ function recalcularTotales() {
     totalKg += numero(linea.querySelector(".kg")?.value);
   });
 
-  totalBultosEl.innerText = totalBultos;
+  totalBultosEl.innerText = String(totalBultos);
   totalKgEl.innerText = totalKg.toFixed(2);
 }
 
@@ -396,8 +448,8 @@ function obtenerLineas() {
   document.querySelectorAll(".linea").forEach(linea => {
     const mawb = linea.querySelector(".mawb")?.value?.trim() || "";
     const pedido = linea.querySelector(".pedido")?.value?.trim() || "";
-    const bultos = linea.querySelector(".bultos")?.value ? parseInt(linea.querySelector(".bultos").value, 10) : null;
-    const kg = linea.querySelector(".kg")?.value ? numero(linea.querySelector(".kg").value) : null;
+    const bultos = enteroONull(linea.querySelector(".bultos")?.value);
+    const kg = numeroONull(linea.querySelector(".kg")?.value);
 
     if (mawb || pedido || bultos !== null || kg !== null) {
       lineas.push({ mawb, pedido, bultos, kg });
@@ -407,120 +459,489 @@ function obtenerLineas() {
   return lineas;
 }
 
+function cargarLineas(lineas) {
+  limpiarLineas();
+
+  if (Array.isArray(lineas) && lineas.length > 0) {
+    lineas.forEach(linea => crearLinea(linea));
+  } else {
+    crearLinea();
+  }
+
+  recalcularTotales();
+}
+
 function getSelectedPhotoFile() {
   return cameraInput.files[0] || galleryInput.files[0] || null;
 }
 
-function escapeHtml(valor) {
-  return String(valor || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
 
-cameraInput.addEventListener("change", mostrarPreviewFoto);
-galleryInput.addEventListener("change", mostrarPreviewFoto);
-
-function mostrarPreviewFoto() {
+async function mostrarPreviewFoto() {
   const file = getSelectedPhotoFile();
   if (!file) return;
 
   previewFoto.src = URL.createObjectURL(file);
   previewFoto.style.display = "block";
-  statusEl.innerText = "Foto seleccionada correctamente";
 }
 
-function simularLecturaIA() {
-  document.getElementById("vehicle").value = "7851KDX";
-  document.getElementById("pickupPlace").value = "COSLADA";
-  document.getElementById("fechaAlbaran").value = "11.03.2026";
-  document.getElementById("destinatario").value = "PULL & BEAR";
-  document.getElementById("direccionDescarga").value = "Av. de la Veguilla 14, Cabanillas del Campo";
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const fileName = `${prefix}${Date.now()}.${safeExt}`;
 
-  lineasContainer.innerHTML = "";
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
 
-  crearLinea({
-    mawb: "23544122912",
-    pedido: "45249-W/1",
-    bultos: 9,
-    kg: 152
-  });
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
 
-  crearLinea({
-    mawb: "23544122912",
-    pedido: "45254-W/1",
-    bultos: 22,
-    kg: 373
-  });
-
-  crearLinea({
-    mawb: "23544122912",
-    pedido: "45255-W/1",
-    bultos: 12,
-    kg: 205
-  });
-
-  crearLinea({
-    mawb: "15741815583",
-    pedido: "38892-W/1",
-    bultos: 18,
-    kg: 399
-  });
-
-  recalcularTotales();
-  statusEl.innerText = "Prueba de IA rellenada";
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
 }
 
-function guardarEntrega() {
-  const datos = {
-    cliente: "Inditex",
-    matricula: document.getElementById("vehicle").value.trim().toUpperCase(),
-    lugarCarga: document.getElementById("pickupPlace").value.trim(),
-    fechaAlbaran: document.getElementById("fechaAlbaran").value.trim(),
-    destinatario: document.getElementById("destinatario").value.trim(),
-    direccionDescarga: document.getElementById("direccionDescarga").value.trim(),
-    mozo: document.getElementById("mozo").checked,
-    trampilla: document.getElementById("trampilla").checked,
-    urgente: document.getElementById("urgente").checked,
-    observaciones: document.getElementById("observations").value.trim(),
-    lineasMercancia: obtenerLineas(),
-    totalBultos: numero(totalBultosEl.innerText),
-    totalKg: numero(totalKgEl.innerText)
-  };
-
-  if (!datos.matricula) {
-    statusEl.innerText = "Falta matrícula";
-    return;
-  }
-
-  if (!datos.lugarCarga) {
-    statusEl.innerText = "Falta lugar de carga";
-    return;
-  }
-
-  if (!datos.destinatario) {
-    statusEl.innerText = "Falta destinatario";
-    return;
-  }
-
-  if (!datos.direccionDescarga) {
-    statusEl.innerText = "Falta dirección de descarga";
-    return;
-  }
-
-  if (!datos.lineasMercancia.length) {
-    statusEl.innerText = "Añade al menos una línea de mercancía";
-    return;
-  }
-
-  console.log("ENTREGA INDITEX LISTA PARA GUARDAR:", datos);
-  statusEl.innerText = "Pantalla Inditex lista. El siguiente paso es conectarla con Supabase.";
+function extraerLineasDesdeJson(json) {
+  if (Array.isArray(json.lineas_mercancia)) return json.lineas_mercancia;
+  if (Array.isArray(json.lineasMercancia)) return json.lineasMercancia;
+  if (Array.isArray(json.lineas)) return json.lineas;
+  if (Array.isArray(json.mercancia)) return json.mercancia;
+  return [];
 }
 
-crearLinea();
-recalcularTotales();
+function normalizarMatricula(valor) {
+  return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
+}
+
+async function leerFotoAutomatica() {
+  try {
+    const file = getSelectedPhotoFile();
+
+    if (!file) {
+      statusEl.innerText = "No se ha seleccionado ninguna foto";
+      return;
+    }
+
+    await mostrarPreviewFoto();
+    statusEl.innerText = "Subiendo foto...";
+
+    ultimaPhotoUrl = await subirFoto(file, "preview-inditex-");
+
+    statusEl.innerText = "Leyendo albarán...";
+
+    const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        image: ultimaPhotoUrl,
+        tipo: "inditex"
+      })
+    });
+
+    const data = await response.json();
+    console.log("RESPUESTA IA INDITEX:", data);
+
+    if (!response.ok) {
+      statusEl.innerText = "Error leyendo albarán";
+      console.log(data);
+      return;
+    }
+
+    if (!data.result) {
+      statusEl.innerText = "La IA no devolvió datos";
+      return;
+    }
+
+    let texto = String(data.result).trim();
+
+    texto = texto
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+
+    const json = JSON.parse(texto);
+    console.log("JSON LIMPIO IA INDITEX:", json);
+
+    clientInput.value = "Inditex";
+
+    if (json.matricula) vehicleInput.value = normalizarMatricula(json.matricula);
+    if (json.lugar_carga) pickupPlaceInput.value = json.lugar_carga;
+    if (json.fecha_albaran || json.fecha) fechaAlbaranInput.value = json.fecha_albaran || json.fecha || "";
+    if (json.destinatario) destinatarioInput.value = json.destinatario;
+    if (json.direccion_descarga || json.lugar_descarga || json.lugar_descarga_detallado) {
+      direccionDescargaInput.value = json.direccion_descarga || json.lugar_descarga || json.lugar_descarga_detallado || "";
+    }
+    if (json.observaciones) observationsInput.value = json.observaciones;
+
+    const lineas = extraerLineasDesdeJson(json);
+    cargarLineas(lineas);
+
+    const totalLineas = obtenerLineas().length;
+    statusEl.innerText = totalLineas > 0
+      ? `Albarán leído correctamente\nLíneas detectadas: ${totalLineas}`
+      : "Albarán leído, pero no se detectaron líneas";
+  } catch (e) {
+    console.log("ERROR LEYENDO ALBARÁN INDITEX:", e);
+    statusEl.innerText = "Error leyendo albarán con la foto";
+  }
+}
+
+async function obtenerConductorActual() {
+  if (conductorActual) return conductorActual;
+
+  if (sesion?.conductor_id && sesion?.empresa_id) {
+    conductorActual = {
+      id: sesion.conductor_id,
+      empresa_id: sesion.empresa_id,
+      usuario: sesion.username || null
+    };
+    return conductorActual;
+  }
+
+  if (sesion?.username) {
+    const { data, error } = await supabase
+      .from("conductores")
+      .select("id, empresa_id, nombre, usuario")
+      .eq("usuario", sesion.username)
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      conductorActual = data[0];
+      return conductorActual;
+    }
+  }
+
+  if (FALLBACK_CONDUCTOR_ID && FALLBACK_EMPRESA_ID) {
+    conductorActual = {
+      id: FALLBACK_CONDUCTOR_ID,
+      empresa_id: FALLBACK_EMPRESA_ID,
+      usuario: sesion?.username || null
+    };
+    return conductorActual;
+  }
+
+  throw new Error("No se ha encontrado el conductor");
+}
+
+async function guardarClienteFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("nombre", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    console.warn("Error buscando cliente:", errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("clientes")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      nombre: limpio
+    });
+
+  if (error) {
+    console.warn("Error guardando cliente frecuente:", error.message);
+  }
+}
+
+async function guardarPickupFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_pickups")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    console.warn("Error buscando lugar de carga:", errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("frequent_pickups")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    console.warn("Error guardando lugar de carga frecuente:", error.message);
+  }
+}
+
+async function guardarDropoffFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_dropoffs")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    console.warn("Error buscando lugar de descarga:", errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("frequent_dropoffs")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    console.warn("Error guardando lugar de descarga frecuente:", error.message);
+  }
+}
+
+async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
+  const limpio = normalizarMatricula(nombre);
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_vehicles")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    console.warn("Error buscando matrícula:", errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("frequent_vehicles")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    console.warn("Error guardando matrícula frecuente:", error.message);
+  }
+}
+
+function construirObservacionesInditex(observacionesBase, fechaAlbaran, destinatario, direccionDescarga, lineasMercancia) {
+  const base = String(observacionesBase || "").trim();
+
+  const bloque = [
+    "[INDITEX]",
+    `fecha_albaran=${fechaAlbaran || ""}`,
+    `destinatario=${destinatario || ""}`,
+    `direccion_descarga=${direccionDescarga || ""}`,
+    `lineas=${JSON.stringify(lineasMercancia || [])}`
+  ].join("\n");
+
+  return `${base ? base + "\n" : ""}${bloque}`.trim();
+}
+
+async function guardarEnTablaNueva(datos) {
+  const { error } = await supabase
+    .from("entregas")
+    .insert(datos);
+
+  if (error) {
+    throw new Error("Error guardando en tabla entregas: " + error.message);
+  }
+}
+
+async function guardarEnTablaViejaSinRomper(datosLegacy) {
+  const { error } = await supabase
+    .from("deliveries")
+    .insert(datosLegacy);
+
+  if (error) {
+    console.warn("No se pudo guardar en deliveries:", error.message);
+  }
+}
+
+function limpiarFormulario() {
+  clientInput.value = "Inditex";
+  vehicleInput.value = "";
+  pickupPlaceInput.value = "";
+  fechaAlbaranInput.value = "";
+  destinatarioInput.value = "";
+  direccionDescargaInput.value = "";
+  observationsInput.value = "";
+  mozoInput.checked = false;
+  trampillaInput.checked = false;
+  urgenteInput.checked = false;
+  cameraInput.value = "";
+  galleryInput.value = "";
+  previewFoto.src = "";
+  previewFoto.style.display = "none";
+  ultimaPhotoUrl = null;
+  statusEl.innerText = "";
+  cargarLineas([]);
+}
+
+window.guardarEntrega = async function () {
+  try {
+    statusEl.innerText = "Guardando...";
+
+    const conductor = await obtenerConductorActual();
+
+    const cliente = "Inditex";
+    const matricula = normalizarMatricula(vehicleInput.value);
+    const lugarCarga = pickupPlaceInput.value.trim() || null;
+    const fechaAlbaran = fechaAlbaranInput.value.trim() || null;
+    const destinatario = destinatarioInput.value.trim() || null;
+    const direccionDescarga = direccionDescargaInput.value.trim() || null;
+    const observacionesBase = observationsInput.value.trim() || null;
+    const mozo = mozoInput.checked;
+    const trampilla = trampillaInput.checked;
+    const urgente = urgenteInput.checked;
+
+    const lineasMercancia = obtenerLineas();
+    recalcularTotales();
+
+    const totalBultos = enteroONull(totalBultosEl.innerText);
+    const totalKg = numeroONull(totalKgEl.innerText);
+
+    if (!conductor?.id || !conductor?.empresa_id) {
+      statusEl.innerText = "No se ha encontrado la empresa del conductor";
+      return;
+    }
+
+    if (!matricula) {
+      statusEl.innerText = "Falta matrícula";
+      return;
+    }
+
+    if (!lugarCarga) {
+      statusEl.innerText = "Falta lugar de carga";
+      return;
+    }
+
+    if (!destinatario) {
+      statusEl.innerText = "Falta destinatario";
+      return;
+    }
+
+    if (!direccionDescarga) {
+      statusEl.innerText = "Falta dirección de descarga";
+      return;
+    }
+
+    if (!lineasMercancia.length) {
+      statusEl.innerText = "Añade al menos una línea de mercancía";
+      return;
+    }
+
+    const photoFile = getSelectedPhotoFile();
+    let photo_url = ultimaPhotoUrl;
+
+    if (photoFile && !photo_url) {
+      photo_url = await subirFoto(photoFile, "entrega-inditex-");
+    }
+
+    const observaciones = construirObservacionesInditex(
+      observacionesBase,
+      fechaAlbaran,
+      destinatario,
+      direccionDescarga,
+      lineasMercancia
+    );
+
+    const datosNuevaTabla = {
+      fecha: new Date().toISOString().split("T")[0],
+      cliente: cliente,
+      lugar_carga: lugarCarga,
+      lugar_descarga: direccionDescarga,
+      num_entregas: null,
+      bultos: totalBultos,
+      kg: totalKg,
+      m3: null,
+      observaciones: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      matricula: matricula,
+      estado: "pendiente",
+      foto_url: photo_url || null,
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id
+    };
+
+    await guardarEnTablaNueva(datosNuevaTabla);
+
+    const datosTablaVieja = {
+      empresa_id: conductor.empresa_id,
+      driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
+      vehicle_plate: matricula,
+      client_name: cliente,
+      pickup_place: lugarCarga,
+      dropoff_place: direccionDescarga,
+      num_entregas: null,
+      bultos: totalBultos,
+      kg: totalKg,
+      m3: null,
+      observations: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      distance_km: 0,
+      price_eur: 0,
+      photo_url: photo_url || null
+    };
+
+    await guardarEnTablaViejaSinRomper(datosTablaVieja);
+
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    await guardarDropoffFrecuenteSiNoExiste(direccionDescarga);
+    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+
+    statusEl.innerText = "Entrega guardada correctamente";
+    limpiarFormulario();
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+    alert("Fallo al guardar: " + e.message);
+  }
+};
+
+function init() {
+  clientInput.value = "Inditex";
+  cargarLineas([]);
+}
+
+init();
 </script>
 
 </body>
