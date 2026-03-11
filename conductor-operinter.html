@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrega Operinter</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:20px;
+}
+
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+}
+
+h1{
+  margin:0 0 8px 0;
+  font-size:28px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+
+h3{
+  margin:0 0 12px 0;
+}
+
+label{
+  display:block;
+  margin-top:10px;
+  font-weight:bold;
+  font-size:14px;
+}
+
+input, textarea, select{
+  width:100%;
+  margin-top:6px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  font-size:14px;
+}
+
+input[readonly]{
+  background:#e9edf5;
+  color:#333;
+  font-weight:bold;
+}
+
+textarea{
+  resize:vertical;
+  min-height:90px;
+}
+
+button, .btn{
+  border:none;
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+.btnPrimary{
+  background:var(--accent);
+  color:#1b0c02;
+}
+
+.btnSec{
+  background:#24314f;
+  color:white;
+}
+
+.topActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.rowChecks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:14px;
+}
+
+.rowChecks label{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:normal;
+}
+
+.rowChecks input{
+  width:auto;
+  margin:0;
+}
+
+.photoButtons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.preview{
+  width:100%;
+  max-width:340px;
+  margin-top:14px;
+  border-radius:12px;
+  display:none;
+}
+
+.status{
+  margin-top:12px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.footerActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.selectorSecundario{
+  background:#0f1a2e;
+  color:#fff;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="card">
+    <h1>Entrega Operinter</h1>
+    <div class="sub">Formulario específico para Operinter</div>
+
+    <div class="topActions">
+      <a href="selector-cliente.html" class="btn btnSec">← Cambiar cliente</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos principales</h3>
+
+    <div class="grid">
+      <div>
+        <label>Cliente</label>
+        <input id="client" value="Operinter" readonly>
+      </div>
+
+      <div>
+        <label>Matrícula frecuente</label>
+        <select id="vehicleSelect" class="selectorSecundario">
+          <option value="">Seleccionar matrícula frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="vehicle" placeholder="Ej: 1234ABC">
+      </div>
+
+      <div>
+        <label>Lugar de carga frecuente</label>
+        <select id="pickupSelect" class="selectorSecundario">
+          <option value="">Seleccionar lugar de carga frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="pickupPlace" placeholder="Ej: Coslada">
+      </div>
+
+      <div>
+        <label>Lugar de descarga frecuente</label>
+        <select id="dropoffSelect" class="selectorSecundario">
+          <option value="">Seleccionar lugar de descarga frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input id="bultos" type="number">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="kg" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="m3" type="number" step="0.01">
+      </div>
+    </div>
+
+    <label>Observaciones</label>
+    <textarea id="observations" placeholder="Tiempo de espera, incidencias, nº bultos, etc."></textarea>
+
+    <div class="rowChecks">
+      <label><input id="mozo" type="checkbox"> Mozo</label>
+      <label><input id="trampilla" type="checkbox"> Trampilla</label>
+      <label><input id="urgente" type="checkbox"> Urgente</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Foto albarán</h3>
+
+    <div class="photoButtons">
+      <button type="button" class="btnPrimary" onclick="document.getElementById('cameraInput').click()">📷 Hacer foto</button>
+      <button type="button" class="btnSec" onclick="document.getElementById('galleryInput').click()">🖼 Elegir de galería</button>
+    </div>
+
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+    <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+    <img id="previewFoto" class="preview" alt="Vista previa del albarán">
+
+    <div id="status" class="status"></div>
+
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" onclick="guardarEntrega()">Guardar entrega</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const CLIENTE_FIJO = "Operinter";
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
+
+const statusEl = document.getElementById("status");
+const previewFoto = document.getElementById("previewFoto");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+
+const clientInput = document.getElementById("client");
+const vehicleSelect = document.getElementById("vehicleSelect");
+const vehicleInput = document.getElementById("vehicle");
+const pickupSelect = document.getElementById("pickupSelect");
+const pickupInput = document.getElementById("pickupPlace");
+const dropoffSelect = document.getElementById("dropoffSelect");
+const dropoffInput = document.getElementById("dropoffPlace");
+const bultosInput = document.getElementById("bultos");
+const kgInput = document.getElementById("kg");
+const m3Input = document.getElementById("m3");
+const observationsInput = document.getElementById("observations");
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.href = "login.html?logout=1";
+}
+
+let ultimaPhotoUrl = null;
+let conductorActual = null;
+
+function normalizarMatricula(valor) {
+  return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
+}
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = parseFloat(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+function getSelectedPhotoFile() {
+  return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+async function mostrarPreviewFoto() {
+  const file = getSelectedPhotoFile();
+  if (!file) return;
+
+  previewFoto.src = URL.createObjectURL(file);
+  previewFoto.style.display = "block";
+}
+
+cameraInput.addEventListener("change", mostrarPreviewFoto);
+galleryInput.addEventListener("change", mostrarPreviewFoto);
+
+async function obtenerConductorActual() {
+  if (conductorActual) return conductorActual;
+
+  if (sesion?.conductor_id && sesion?.empresa_id) {
+    conductorActual = {
+      id: sesion.conductor_id,
+      empresa_id: sesion.empresa_id,
+      usuario: sesion.username || null
+    };
+    return conductorActual;
+  }
+
+  if (sesion?.username) {
+    const { data, error } = await supabase
+      .from("conductores")
+      .select("id, empresa_id, nombre, usuario")
+      .eq("usuario", sesion.username)
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      conductorActual = data[0];
+      return conductorActual;
+    }
+  }
+
+  if (FALLBACK_CONDUCTOR_ID && FALLBACK_EMPRESA_ID) {
+    conductorActual = {
+      id: FALLBACK_CONDUCTOR_ID,
+      empresa_id: FALLBACK_EMPRESA_ID,
+      usuario: sesion?.username || null
+    };
+    return conductorActual;
+  }
+
+  throw new Error("No se ha encontrado el conductor");
+}
+
+function rellenarSelect(selectEl, primerTexto, valores) {
+  const unicos = [...new Set(
+    (valores || [])
+      .map(v => String(v || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "es"));
+
+  selectEl.innerHTML = `<option value="">${primerTexto}</option>`;
+
+  unicos.forEach(valor => {
+    const option = document.createElement("option");
+    option.value = valor;
+    option.textContent = valor;
+    selectEl.appendChild(option);
+  });
+}
+
+async function cargarPickupsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_pickups")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de carga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarDropoffsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_dropoffs")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de descarga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarVehiculosFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_vehicles")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar matrículas:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarFrecuentes() {
+  try {
+    const pickups = await cargarPickupsFrecuentes();
+    const dropoffs = await cargarDropoffsFrecuentes();
+    const vehicles = await cargarVehiculosFrecuentes();
+
+    rellenarSelect(
+      pickupSelect,
+      "Seleccionar lugar de carga frecuente",
+      pickups.map(p => p.name)
+    );
+
+    rellenarSelect(
+      dropoffSelect,
+      "Seleccionar lugar de descarga frecuente",
+      dropoffs.map(d => d.name)
+    );
+
+    rellenarSelect(
+      vehicleSelect,
+      "Seleccionar matrícula frecuente",
+      vehicles.map(v => v.name)
+    );
+  } catch (e) {
+    console.warn("Error cargando frecuentes:", e.message);
+  }
+}
+
+vehicleSelect.addEventListener("change", () => {
+  vehicleInput.value = vehicleSelect.value || "";
+});
+
+pickupSelect.addEventListener("change", () => {
+  pickupInput.value = pickupSelect.value || "";
+});
+
+dropoffSelect.addEventListener("change", () => {
+  dropoffInput.value = dropoffSelect.value || "";
+});
+
+async function guardarClienteFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("nombre", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase
+    .from("clientes")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      nombre: limpio
+    });
+}
+
+async function guardarPickupFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe } = await supabase
+    .from("frequent_pickups")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase
+    .from("frequent_pickups")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+}
+
+async function guardarDropoffFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe } = await supabase
+    .from("frequent_dropoffs")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase
+    .from("frequent_dropoffs")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+}
+
+async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
+  const limpio = normalizarMatricula(nombre);
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe } = await supabase
+    .from("frequent_vehicles")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase
+    .from("frequent_vehicles")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+}
+
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const fileName = `${prefix}${Date.now()}.${safeExt}`;
+
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
+
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
+}
+
+async function guardarEnTablaNueva(datos) {
+  const { error } = await supabase
+    .from("entregas")
+    .insert(datos);
+
+  if (error) {
+    throw new Error("Error guardando en tabla entregas: " + error.message);
+  }
+}
+
+async function guardarEnTablaViejaSinRomper(datosLegacy) {
+  const { error } = await supabase
+    .from("deliveries")
+    .insert(datosLegacy);
+
+  if (error) {
+    console.warn("No se pudo guardar en deliveries:", error.message);
+  }
+}
+
+function limpiarFormulario() {
+  clientInput.value = CLIENTE_FIJO;
+  vehicleInput.value = "";
+  vehicleSelect.value = "";
+  pickupInput.value = "";
+  pickupSelect.value = "";
+  dropoffInput.value = "";
+  dropoffSelect.value = "";
+  bultosInput.value = "";
+  kgInput.value = "";
+  m3Input.value = "";
+  observationsInput.value = "";
+  mozoInput.checked = false;
+  trampillaInput.checked = false;
+  urgenteInput.checked = false;
+  cameraInput.value = "";
+  galleryInput.value = "";
+  previewFoto.src = "";
+  previewFoto.style.display = "none";
+  ultimaPhotoUrl = null;
+  statusEl.innerText = "";
+}
+
+window.guardarEntrega = async function () {
+  try {
+    statusEl.innerText = "Guardando...";
+
+    const conductor = await obtenerConductorActual();
+
+    const cliente = CLIENTE_FIJO;
+    const matricula = normalizarMatricula(vehicleInput.value);
+    const lugarCarga = pickupInput.value.trim() || null;
+    const lugarDescarga = dropoffInput.value.trim() || null;
+    const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
+    const kg = normalizarNumero(kgInput.value);
+    const m3 = normalizarNumero(m3Input.value);
+    const observaciones = observationsInput.value.trim() || null;
+    const mozo = mozoInput.checked;
+    const trampilla = trampillaInput.checked;
+    const urgente = urgenteInput.checked;
+
+    if (!conductor?.id || !conductor?.empresa_id) {
+      statusEl.innerText = "No se ha encontrado la empresa del conductor";
+      return;
+    }
+
+    if (!matricula) {
+      statusEl.innerText = "Falta matrícula";
+      return;
+    }
+
+    if (!lugarCarga) {
+      statusEl.innerText = "Falta lugar de carga";
+      return;
+    }
+
+    if (!lugarDescarga) {
+      statusEl.innerText = "Falta lugar de descarga";
+      return;
+    }
+
+    const photoFile = getSelectedPhotoFile();
+    let photo_url = ultimaPhotoUrl;
+
+    if (photoFile && !photo_url) {
+      photo_url = await subirFoto(photoFile, "entrega-operinter-");
+    }
+
+    const datosNuevaTabla = {
+      fecha: new Date().toISOString().split("T")[0],
+      cliente: cliente,
+      lugar_carga: lugarCarga,
+      lugar_descarga: lugarDescarga,
+      num_entregas: null,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observaciones: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      matricula: matricula,
+      estado: "pendiente",
+      foto_url: photo_url || null,
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id
+    };
+
+    await guardarEnTablaNueva(datosNuevaTabla);
+
+    const datosTablaVieja = {
+      empresa_id: conductor.empresa_id,
+      driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
+      vehicle_plate: matricula,
+      client_name: cliente,
+      pickup_place: lugarCarga,
+      dropoff_place: lugarDescarga,
+      num_entregas: null,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observations: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      distance_km: 0,
+      price_eur: 0,
+      photo_url: photo_url || null
+    };
+
+    await guardarEnTablaViejaSinRomper(datosTablaVieja);
+
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+
+    statusEl.innerText = "Entrega guardada correctamente";
+    await cargarFrecuentes();
+    limpiarFormulario();
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+    alert("Fallo al guardar: " + e.message);
+  }
+};
+
+async function init() {
+  try {
+    clientInput.value = CLIENTE_FIJO;
+    await cargarFrecuentes();
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
