@@ -15,49 +15,39 @@
   --muted:#b7c3dd;
   --circle:#ffffff;
 }
-
-*{
-  box-sizing:border-box;
-}
-
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Arial, sans-serif;
+  font-family:Arial,sans-serif;
   background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
   color:var(--text);
   min-height:100vh;
 }
-
 .wrap{
   max-width:460px;
   margin:0 auto;
   padding:24px 18px 40px;
 }
-
 .top{
   text-align:center;
   margin-bottom:24px;
 }
-
 .top h1{
   margin:0;
   font-size:30px;
   font-weight:800;
 }
-
 .top p{
   margin:10px 0 0;
   color:var(--muted);
   font-size:14px;
 }
-
 .clientList{
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:18px;
 }
-
 .clientBtn{
   width:190px;
   height:190px;
@@ -71,23 +61,11 @@ body{
   align-items:center;
   justify-content:center;
   padding:18px;
-  position:relative;
   transition:transform .15s ease, box-shadow .15s ease;
 }
-
-.clientBtn:active{
-  transform:scale(.98);
-}
-
-.clientBtn:hover{
-  box-shadow:0 12px 28px rgba(0,0,0,.35);
-}
-
-.clientInner{
-  text-align:center;
-  width:100%;
-}
-
+.clientBtn:active{transform:scale(.98)}
+.clientBtn:hover{box-shadow:0 12px 28px rgba(0,0,0,.35)}
+.clientInner{text-align:center;width:100%}
 .clientLogoText{
   font-size:30px;
   font-weight:900;
@@ -95,29 +73,22 @@ body{
   line-height:1.05;
   color:#111;
 }
-
 .clientSub{
   margin-top:8px;
   font-size:12px;
   color:#555;
   font-weight:700;
 }
-
 .clientLogoMini{
   font-size:20px;
   font-weight:900;
   color:#111;
 }
-
-.clientLogoOrange{
-  color:var(--accent);
-}
-
+.clientLogoOrange{color:var(--accent)}
 .footerBox{
   margin-top:28px;
   text-align:center;
 }
-
 .backBtn{
   display:inline-block;
   text-decoration:none;
@@ -127,13 +98,11 @@ body{
   border-radius:10px;
   font-weight:bold;
 }
-
 @media (max-width:420px){
   .clientBtn{
     width:170px;
     height:170px;
   }
-
   .clientLogoText{
     font-size:26px;
   }
@@ -143,7 +112,6 @@ body{
 <body>
 
 <div class="wrap">
-
   <div class="top">
     <h1>Selecciona cliente</h1>
     <p>Pulsa el cliente para registrar la entrega</p>
@@ -151,32 +119,24 @@ body{
 
   <div class="clientList">
 
-    <!-- INDITEX -->
-
     <button class="clientBtn" onclick="seleccionarCliente('Inditex','conductor-inditex.html')">
       <div class="clientInner">
         <div class="clientLogoText">INDITEX</div>
       </div>
     </button>
 
-    <!-- GALITRANS -->
-
-    <button class="clientBtn" onclick="seleccionarCliente('Galitrans','conductor-duttitrans.html')">
+    <button class="clientBtn" onclick="seleccionarCliente('Galitrans','conductor-galitrans.html')">
       <div class="clientInner">
         <div class="clientLogoMini">GALITRANS</div>
       </div>
     </button>
 
-    <!-- COTRANSA -->
-
-    <button class="clientBtn" onclick="seleccionarCliente('Cotransa','conductor-duttitrans.html')">
+    <button class="clientBtn" onclick="seleccionarCliente('Cotransa','conductor-cotransa.html')">
       <div class="clientInner">
         <div class="clientLogoText" style="font-size:22px;">COTRANSA</div>
         <div class="clientSub">GROUP</div>
       </div>
     </button>
-
-    <!-- SOTRACOM -->
 
     <button class="clientBtn" onclick="seleccionarCliente('Sotracom','conductor-sotracom.html')">
       <div class="clientInner">
@@ -184,23 +144,17 @@ body{
       </div>
     </button>
 
-    <!-- OPERINTER -->
-
-    <button class="clientBtn" onclick="seleccionarCliente('Operinter','conductor-duttitrans.html')">
+    <button class="clientBtn" onclick="seleccionarCliente('Operinter','conductor-operinter.html')">
       <div class="clientInner">
         <div class="clientLogoText" style="font-size:22px;">OPERINTER</div>
       </div>
     </button>
 
-    <!-- GETRAES -->
-
-    <button class="clientBtn" onclick="seleccionarCliente('Getraes','conductor-duttitrans.html')">
+    <button class="clientBtn" onclick="seleccionarCliente('Getraes','conductor-getraes.html')">
       <div class="clientInner">
         <div class="clientLogoText" style="font-size:22px;">GETRAES</div>
       </div>
     </button>
-
-    <!-- ALBEPET -->
 
     <button class="clientBtn" onclick="seleccionarCliente('Albepet','conductor-albepet.html')">
       <div class="clientInner">
@@ -208,15 +162,11 @@ body{
       </div>
     </button>
 
-    <!-- OPLOG -->
-
-    <button class="clientBtn" onclick="seleccionarCliente('Oplog','conductor-duttitrans.html')">
+    <button class="clientBtn" onclick="seleccionarCliente('Oplog','conductor-oplog.html')">
       <div class="clientInner">
         <div class="clientLogoText" style="font-size:24px;">OPLOG</div>
       </div>
     </button>
-
-    <!-- DUTTITRANS -->
 
     <button class="clientBtn" onclick="seleccionarCliente('Duttitrans','conductor-duttitrans.html')">
       <div class="clientInner">
@@ -229,7 +179,6 @@ body{
   <div class="footerBox">
     <a href="login.html" class="backBtn">Volver</a>
   </div>
-
 </div>
 
 <script>
