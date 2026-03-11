@@ -76,13 +76,15 @@ button{
 
   <h2>Nueva entrega</h2>
 
-  <label>Matrícula frecuente</label>
-  <select id="vehicleSelect" class="selectorSecundario">
-    <option value="">Seleccionar matrícula frecuente</option>
-  </select>
+  <div id="vehicleBloque">
+    <label>Matrícula frecuente</label>
+    <select id="vehicleSelect" class="selectorSecundario">
+      <option value="">Seleccionar matrícula frecuente</option>
+    </select>
 
-  <label>Matrícula vehículo</label>
-  <input id="vehicle" placeholder="Ej: 1234ABC">
+    <label>Matrícula vehículo</label>
+    <input id="vehicle" placeholder="Ej: 1234ABC">
+  </div>
 
   <label>Cliente frecuente</label>
   <select id="clientSelect" class="selectorSecundario">
@@ -182,6 +184,7 @@ const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
 const statusEl = document.getElementById("status");
 const currentUserEl = document.getElementById("currentUser");
 
+const vehicleBloque = document.getElementById("vehicleBloque");
 const vehicleSelect = document.getElementById("vehicleSelect");
 const vehicleInput = document.getElementById("vehicle");
 
@@ -236,12 +239,17 @@ function esAlbepet(cliente) {
   return String(cliente || "").trim().toLowerCase() === "albepet";
 }
 
+function esSotracom(cliente) {
+  return String(cliente || "").trim().toLowerCase() === "sotracom";
+}
+
 function actualizarCamposCliente() {
   const cargaBloque = document.getElementById("cargaBloque");
   const descargaBloque = document.getElementById("descargaBloque");
   const albepetBloque = document.getElementById("albepetBloque");
 
   if (esAlbepet(clientInput.value)) {
+    vehicleBloque.style.display = "block";
     cargaBloque.style.display = "none";
     descargaBloque.style.display = "none";
     albepetBloque.style.display = "block";
@@ -250,7 +258,19 @@ function actualizarCamposCliente() {
     pickupSelect.value = "";
     dropoffInput.value = "";
     dropoffSelect.value = "";
+  } else if (esSotracom(clientInput.value)) {
+    vehicleBloque.style.display = "none";
+    cargaBloque.style.display = "block";
+    descargaBloque.style.display = "none";
+    albepetBloque.style.display = "none";
+
+    vehicleInput.value = "";
+    vehicleSelect.value = "";
+    dropoffInput.value = "";
+    dropoffSelect.value = "";
+    numEntregasInput.value = "";
   } else {
+    vehicleBloque.style.display = "block";
     cargaBloque.style.display = "block";
     descargaBloque.style.display = "block";
     albepetBloque.style.display = "none";
@@ -638,8 +658,6 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
 
   const conductor = await obtenerConductorActual();
 
-  console.log("Intentando guardar matrícula frecuente:", limpio);
-
   const { data: existe, error: errorBuscar } = await supabase
     .from("frequent_vehicles")
     .select("id")
@@ -647,15 +665,12 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
     .eq("name", limpio)
     .limit(1);
 
-  console.log("Resultado búsqueda:", existe, errorBuscar);
-
   if (errorBuscar) {
     alert("Error buscando matrícula: " + errorBuscar.message);
     return;
   }
 
   if (existe && existe.length > 0) {
-    console.log("La matrícula ya existe");
     return;
   }
 
@@ -667,11 +682,7 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
     });
 
   if (error) {
-    console.log("Error guardando matrícula:", error);
     alert("Error guardando matrícula frecuente: " + error.message);
-  } else {
-    console.log("Matrícula guardada correctamente");
-    alert("Matrícula frecuente guardada correctamente");
   }
 }
 
@@ -726,11 +737,13 @@ window.guardarEntrega = async function () {
 
     const conductor = await obtenerConductorActual();
 
-    const matricula = vehicleInput.value.trim().toUpperCase();
     const cliente = clientInput.value.trim();
     const albepet = esAlbepet(cliente);
-    const lugarCarga = albepet ? null : pickupInput.value.trim();
-    const lugarDescarga = albepet ? null : dropoffInput.value.trim();
+    const sotracom = esSotracom(cliente);
+
+    const matricula = sotracom ? null : (vehicleInput.value.trim().toUpperCase() || null);
+    const lugarCarga = albepet ? null : (pickupInput.value.trim() || null);
+    const lugarDescarga = (albepet || sotracom) ? null : (dropoffInput.value.trim() || null);
     const numEntregas = albepet ? (numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null) : null;
     const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
     const kg = normalizarNumero(kgInput.value);
@@ -745,13 +758,23 @@ window.guardarEntrega = async function () {
       return;
     }
 
-    if (!matricula || !cliente) {
-      statusEl.innerText = "Faltan matrícula o cliente";
+    if (!cliente) {
+      statusEl.innerText = "Falta cliente";
       return;
     }
 
-    if (!albepet && (!lugarCarga || !lugarDescarga)) {
-      statusEl.innerText = "Faltan lugar de carga o lugar de descarga";
+    if (!sotracom && !matricula) {
+      statusEl.innerText = "Falta matrícula";
+      return;
+    }
+
+    if (!albepet && !lugarCarga) {
+      statusEl.innerText = "Falta lugar de carga";
+      return;
+    }
+
+    if (!albepet && !sotracom && !lugarDescarga) {
+      statusEl.innerText = "Falta lugar de descarga";
       return;
     }
 
@@ -793,10 +816,15 @@ window.guardarEntrega = async function () {
 
     if (!albepet) {
       await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    }
+
+    if (!albepet && !sotracom) {
       await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
     }
 
-    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+    if (!sotracom && matricula) {
+      await guardarVehiculoFrecuenteSiNoExiste(matricula);
+    }
 
     const datosTablaVieja = {
       empresa_id: conductor.empresa_id,
