@@ -882,10 +882,6 @@ window.guardarDatosFactura = function() {
 };
 
 function calcularImporte(entrega) {
-  if (entrega.price_eur !== null && entrega.price_eur !== undefined && entrega.price_eur !== "") {
-    return Number(numero(entrega.price_eur).toFixed(2));
-  }
-
   const tarifas = obtenerTarifas();
   const cliente = String(entrega.client_name || "").trim().toLowerCase();
   const esAlbepet = cliente === "albepet";
@@ -910,7 +906,7 @@ function calcularImporte(entrega) {
 
   return Number(total.toFixed(2));
 }
-
+  
 function rellenarFiltros(lista) {
   const drivers = [...new Set(lista.map(x => x.driver_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
   const clients = [...new Set(lista.map(x => x.client_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
