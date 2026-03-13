@@ -113,11 +113,11 @@ function redirigirSegunSesion(sesion){
     return;
   }
 
-if (sesion.role === "driver") {
-  window.location.replace("selector-cliente.html");
-  return;
-}
-  
+  if (sesion.role === "driver") {
+    window.location.replace("menu-conductor.html");
+    return;
+  }
+
   localStorage.removeItem("sesionAppTransporte");
 }
 
@@ -224,7 +224,7 @@ async function entrar() {
       empresa_id: conductor.empresa_id || null
     }));
 
-    window.location.replace("selector-cliente.html");
+    window.location.replace("menu-conductor.html");
   } catch (e) {
     console.error(e);
     statusEl.innerText = "Error: " + e.message;
