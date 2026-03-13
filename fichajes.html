@@ -6,555 +6,191 @@
 <title>Fichajes</title>
 
 <style>
-:root{
-  --bg:#0b1220;
-  --card:#121b2f;
-  --soft:#18233b;
-  --accent:#ff7a18;
-  --text:#ffffff;
-  --muted:#b7c3dd;
-  --ok:#1f8b4c;
-  --danger:#b43a3a;
-}
-
-*{
-  box-sizing:border-box;
-}
-
 body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
-  color:var(--text);
-  min-height:100vh;
-  padding:20px;
-}
-
-.wrap{
-  max-width:700px;
-  margin:0 auto;
+font-family:Arial;
+background:#0b1220;
+color:white;
+margin:0;
+padding:30px;
 }
 
 .card{
-  background:var(--card);
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 10px 28px rgba(0,0,0,.22);
-}
-
-.topActions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-
-.btn, button{
-  border:none;
-  border-radius:10px;
-  padding:12px 14px;
-  font-weight:bold;
-  cursor:pointer;
-  text-decoration:none;
-  display:inline-block;
-}
-
-.btnSec{
-  background:#24314f;
-  color:#fff;
-}
-
-.btnEntrada{
-  background:var(--ok);
-  color:#fff;
-  width:100%;
-}
-
-.btnSalida{
-  background:var(--danger);
-  color:#fff;
-  width:100%;
-}
-
-h1{
-  margin:0 0 8px 0;
-  font-size:28px;
-}
-
-.sub{
-  color:var(--muted);
-  font-size:14px;
-}
-
-.clockBox{
-  text-align:center;
-  background:var(--soft);
-  border-radius:16px;
-  padding:22px;
+background:#121b2f;
+padding:20px;
+border-radius:12px;
+max-width:600px;
+margin:auto;
 }
 
 .clock{
-  font-size:56px;
-  font-weight:900;
-  letter-spacing:1px;
-  line-height:1;
+font-size:48px;
+text-align:center;
+margin:20px 0;
 }
 
-.date{
-  margin-top:10px;
-  font-size:18px;
-  color:var(--muted);
+button{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
+.entrada{
+background:#1f8b4c;
+color:white;
 }
 
-label{
-  display:block;
-  margin-top:10px;
-  font-weight:bold;
-  font-size:14px;
+.salida{
+background:#b43a3a;
+color:white;
 }
 
 textarea{
-  width:100%;
-  margin-top:6px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#fff;
-  color:#111;
-  font-size:14px;
-  min-height:90px;
-  resize:vertical;
+width:100%;
+margin-top:10px;
+padding:10px;
+border-radius:6px;
+border:none;
 }
 
-.status{
-  margin-top:14px;
-  font-weight:bold;
-  white-space:pre-line;
+#status{
+margin-top:15px;
+white-space:pre-line;
 }
 
-.dataBox{
-  background:var(--soft);
-  border-radius:14px;
-  padding:14px;
+.top{
+display:flex;
+gap:10px;
+margin-bottom:10px;
 }
 
-.dataRow{
-  margin-bottom:8px;
-  color:#dfe8ff;
-}
-
-.dataRow strong{
-  color:#fff;
-}
-
-.badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:bold;
-}
-
-.badgeEntrada{
-  background:rgba(31,139,76,.18);
-  color:#8ff0ad;
-}
-
-.badgeSalida{
-  background:rgba(180,58,58,.18);
-  color:#ffb0b0;
-}
-
-.small{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.summaryGrid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:12px;
-}
-
-.summaryItem{
-  background:var(--soft);
-  border-radius:14px;
-  padding:14px;
-}
-
-.summaryLabel{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.summaryValue{
-  margin-top:6px;
-  font-size:20px;
-  font-weight:bold;
-}
-
-@media (max-width:700px){
-  body{
-    padding:12px;
-  }
-
-  .clock{
-    font-size:44px;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  .summaryGrid{
-    grid-template-columns:1fr;
-  }
-
-  h1{
-    font-size:24px;
-  }
+.btn{
+background:#24314f;
+color:white;
+text-decoration:none;
+padding:10px;
+border-radius:8px;
 }
 </style>
 </head>
+
 <body>
 
-<div class="wrap">
+<div class="card">
 
-  <div class="card">
-    <div class="topActions">
-      <a href="menu-conductor.html" class="btn btnSec">← Volver al menú</a>
-      <button class="btn btnSec" onclick="cerrarSesion()">Salir</button>
-    </div>
+<div class="top">
+<a href="menu-conductor.html" class="btn">← Volver</a>
+<a href="login.html?logout=1" class="btn">Salir</a>
+</div>
 
-    <h1>Fichajes</h1>
-    <div class="sub">Registra entrada y salida con hora exacta y ubicación GPS.</div>
-  </div>
+<h2>Fichajes</h2>
 
-  <div class="card">
-    <div class="clockBox">
-      <div id="clock" class="clock">--:--:--</div>
-      <div id="dateText" class="date">Cargando fecha...</div>
-    </div>
-  </div>
+<div id="clock" class="clock">--:--:--</div>
 
-  <div class="card">
-    <div class="summaryGrid">
-      <div class="summaryItem">
-        <div class="summaryLabel">Último movimiento</div>
-        <div id="ultimoMovimiento" class="summaryValue">-</div>
-      </div>
-      <div class="summaryItem">
-        <div class="summaryLabel">Estado actual</div>
-        <div id="estadoActual" class="summaryValue">-</div>
-      </div>
-      <div class="summaryItem">
-        <div class="summaryLabel">Horas hoy</div>
-        <div id="horasHoy" class="summaryValue">0h 00m</div>
-      </div>
-    </div>
-  </div>
+<label>Observaciones</label>
+<textarea id="observaciones"></textarea>
 
-  <div class="card">
-    <label>Observaciones opcionales</label>
-    <textarea id="observaciones" placeholder="Ej: inicio de ruta, llegada a base, incidencia, etc."></textarea>
+<button class="entrada" onclick="fichar('entrada')">Fichar entrada</button>
+<button class="salida" onclick="fichar('salida')">Fichar salida</button>
 
-    <div class="grid" style="margin-top:16px;">
-      <button class="btnEntrada" onclick="fichar('entrada')">Fichar entrada</button>
-      <button class="btnSalida" onclick="fichar('salida')">Fichar salida</button>
-    </div>
-
-    <div id="status" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-top:0;">Último fichaje</h3>
-    <div id="ultimoFichajeBox" class="dataBox">
-      <div class="small">Todavía no hay fichajes cargados.</div>
-    </div>
-  </div>
+<div id="status"></div>
 
 </div>
 
 <script type="module">
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL="https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY="sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
 
-const statusEl = document.getElementById("status");
-const clockEl = document.getElementById("clock");
-const dateTextEl = document.getElementById("dateText");
-const observacionesEl = document.getElementById("observaciones");
-const ultimoFichajeBox = document.getElementById("ultimoFichajeBox");
-const ultimoMovimientoEl = document.getElementById("ultimoMovimiento");
-const estadoActualEl = document.getElementById("estadoActual");
-const horasHoyEl = document.getElementById("horasHoy");
+const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+const statusEl=document.getElementById("status");
 
-if (!sesion || sesion.role !== "driver") {
-  window.location.href = "login.html?logout=1";
-}
+const sesion=JSON.parse(localStorage.getItem("sesionAppTransporte")||"null");
 
-let conductorActual = null;
-let fichajesHoy = [];
-
-function pad(n){
-  return String(n).padStart(2, "0");
+if(!sesion){
+location.href="login.html";
 }
 
 function actualizarReloj(){
-  const ahora = new Date();
+const ahora=new Date();
 
-  const hora = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:${pad(ahora.getSeconds())}`;
-  clockEl.innerText = hora;
+const h=String(ahora.getHours()).padStart(2,"0");
+const m=String(ahora.getMinutes()).padStart(2,"0");
+const s=String(ahora.getSeconds()).padStart(2,"0");
 
-  const fecha = ahora.toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric"
-  });
-
-  dateTextEl.innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+document.getElementById("clock").innerText=`${h}:${m}:${s}`;
 }
 
-setInterval(actualizarReloj, 1000);
+setInterval(actualizarReloj,1000);
 actualizarReloj();
 
-window.cerrarSesion = function(){
-  try{
-    localStorage.removeItem("sesionAppTransporte");
-    sessionStorage.clear();
-  }catch(e){
-    console.error(e);
-  }
-  window.location.href = "login.html?logout=1&t=" + Date.now();
-};
+function obtenerUbicacion(){
+return new Promise((resolve,reject)=>{
 
-function escapeHtml(valor) {
-  return String(valor ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+navigator.geolocation.getCurrentPosition(
+(pos)=>{
+
+resolve({
+latitud:pos.coords.latitude,
+longitud:pos.coords.longitude,
+precision:pos.coords.accuracy
+})
+
+},
+(err)=>reject(err),
+{enableHighAccuracy:true}
+
+)
+
+})
 }
 
-async function obtenerConductorActual() {
-  if (conductorActual) return conductorActual;
+window.fichar=async function(tipo){
 
-  if (sesion?.conductor_id && sesion?.empresa_id) {
-    conductorActual = {
-      id: sesion.conductor_id,
-      empresa_id: sesion.empresa_id,
-      usuario: sesion.username || null,
-      nombre: sesion.nombre || null
-    };
-    return conductorActual;
-  }
+try{
 
-  if (sesion?.username) {
-    const { data, error } = await supabase
-      .from("conductores")
-      .select("id, empresa_id, nombre, usuario")
-      .eq("usuario", sesion.username)
-      .limit(1);
+statusEl.innerText="Obteniendo ubicación...";
 
-    if (error) {
-      throw new Error("Error consultando conductor: " + error.message);
-    }
+const ubicacion=await obtenerUbicacion();
 
-    if (data && data.length > 0) {
-      conductorActual = data[0];
-      return conductorActual;
-    }
-  }
+statusEl.innerText="Guardando fichaje...";
 
-  throw new Error("No se ha encontrado el conductor");
+const {error}=await supabase
+.from("fichajes")
+.insert({
+
+conductor_id:sesion.conductor_id,
+empresa_id:sesion.empresa_id,
+usuario:sesion.username,
+nombre:sesion.nombre,
+tipo:tipo,
+latitud:ubicacion.latitud,
+longitud:ubicacion.longitud,
+precision_metros:ubicacion.precision,
+observaciones:document.getElementById("observaciones").value
+
+})
+
+if(error){
+throw new Error(error.message)
 }
 
-function obtenerUbicacion() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("Este dispositivo no permite geolocalización"));
-      return;
-    }
+statusEl.innerText=`Fichaje ${tipo} guardado correctamente`;
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        resolve({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy
-        });
-      },
-      (err) => {
-        reject(new Error("No se pudo obtener la ubicación: " + err.message));
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
-      }
-    );
-  });
+}catch(e){
+
+statusEl.innerText="Error: "+e.message
+
 }
 
-function renderUltimoFichaje(fichaje) {
-  if (!fichaje) {
-    ultimoFichajeBox.innerHTML = `<div class="small">Todavía no hay fichajes cargados.</div>`;
-    return;
-  }
-
-  const badgeClass = fichaje.tipo === "entrada" ? "badgeEntrada" : "badgeSalida";
-  const badgeText = fichaje.tipo === "entrada" ? "Entrada" : "Salida";
-
-  ultimoFichajeBox.innerHTML = `
-    <div class="dataRow">
-      <span class="badge ${badgeClass}">${badgeText}</span>
-    </div>
-    <div class="dataRow"><strong>Fecha y hora:</strong> ${new Date(fichaje.fecha_hora).toLocaleString("es-ES")}</div>
-    <div class="dataRow"><strong>Usuario:</strong> ${escapeHtml(fichaje.usuario || "")}</div>
-    <div class="dataRow"><strong>Latitud:</strong> ${fichaje.latitud ?? ""}</div>
-    <div class="dataRow"><strong>Longitud:</strong> ${fichaje.longitud ?? ""}</div>
-    <div class="dataRow"><strong>Precisión:</strong> ${fichaje.precision_metros != null ? Math.round(fichaje.precision_metros) + " m" : ""}</div>
-    <div class="dataRow"><strong>Observaciones:</strong> ${escapeHtml(fichaje.observaciones || "")}</div>
-  `;
 }
 
-function calcularHorasHoy(lista) {
-  if (!Array.isArray(lista) || !lista.length) return "0h 00m";
-
-  const ordenada = [...lista].sort((a, b) => new Date(a.fecha_hora) - new Date(b.fecha_hora));
-  let totalMs = 0;
-  let entradaAbierta = null;
-
-  for (const item of ordenada) {
-    const fecha = new Date(item.fecha_hora);
-
-    if (item.tipo === "entrada") {
-      entradaAbierta = fecha;
-    } else if (item.tipo === "salida" && entradaAbierta) {
-      totalMs += fecha - entradaAbierta;
-      entradaAbierta = null;
-    }
-  }
-
-  const horas = Math.floor(totalMs / 3600000);
-  const minutos = Math.floor((totalMs % 3600000) / 60000);
-
-  return `${horas}h ${String(minutos).padStart(2, "0")}m`;
-}
-
-function actualizarResumen() {
-  if (!fichajesHoy.length) {
-    ultimoMovimientoEl.innerText = "-";
-    estadoActualEl.innerText = "-";
-    horasHoyEl.innerText = "0h 00m";
-    return;
-  }
-
-  const ultimo = [...fichajesHoy].sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora))[0];
-
-  ultimoMovimientoEl.innerText = ultimo.tipo === "entrada" ? "Entrada" : "Salida";
-  estadoActualEl.innerText = ultimo.tipo === "entrada" ? "Trabajando" : "Fuera";
-  horasHoyEl.innerText = calcularHorasHoy(fichajesHoy);
-}
-
-async function cargarFichajesHoy() {
-  const conductor = await obtenerConductorActual();
-
-  const ahora = new Date();
-  const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0);
-  const fin = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 23, 59, 59);
-
-  const { data, error } = await supabase
-    .from("fichajes")
-    .select("*")
-    .eq("conductor_id", conductor.id)
-    .gte("fecha_hora", inicio.toISOString())
-    .lte("fecha_hora", fin.toISOString())
-    .order("fecha_hora", { ascending: false });
-
-  if (error) {
-    throw new Error("Error cargando fichajes: " + error.message);
-  }
-
-  fichajesHoy = data || [];
-  renderUltimoFichaje(fichajesHoy.length ? fichajesHoy[0] : null);
-  actualizarResumen();
-}
-
-function obtenerUltimoTipo() {
-  if (!fichajesHoy.length) return null;
-  const ultimo = [...fichajesHoy].sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora))[0];
-  return ultimo.tipo || null;
-}
-
-window.fichar = async function(tipo) {
-  try {
-    const ultimoTipo = obtenerUltimoTipo();
-
-    if (tipo === "entrada" && ultimoTipo === "entrada") {
-      statusEl.innerText = "Ya tienes una entrada abierta. Primero debes fichar salida.";
-      return;
-    }
-
-    if (tipo === "salida" && ultimoTipo !== "entrada") {
-      statusEl.innerText = "No puedes fichar salida sin haber fichado antes una entrada.";
-      return;
-    }
-
-    statusEl.innerText = "Obteniendo ubicación...";
-    const conductor = await obtenerConductorActual();
-    const ubicacion = await obtenerUbicacion();
-
-    statusEl.innerText = "Guardando fichaje...";
-
-    const payload = {
-      conductor_id: conductor.id,
-      empresa_id: conductor.empresa_id,
-      usuario: sesion.username || conductor.usuario || null,
-      nombre: sesion.nombre || conductor.nombre || null,
-      tipo: tipo,
-      fecha_hora: new Date().toISOString(),
-      latitud: ubicacion.latitude,
-      longitud: ubicacion.longitude,
-      precision_metros: ubicacion.accuracy,
-      observaciones: observacionesEl.value.trim() || null
-    };
-
-    const { error } = await supabase
-      .from("fichajes")
-      .insert(payload);
-
-    if (error) {
-      throw new Error("Error guardando fichaje: " + error.message);
-    }
-
-    statusEl.innerText =
-      `${tipo === "entrada" ? "Entrada" : "Salida"} fichada correctamente\n` +
-      `Hora: ${new Date(payload.fecha_hora).toLocaleTimeString("es-ES")}\n` +
-      `Ubicación guardada`;
-
-    observacionesEl.value = "";
-    await cargarFichajesHoy();
-  } catch (e) {
-    console.error(e);
-    statusEl.innerText = e.message;
-  }
-};
-
-await cargarFichajesHoy();
 </script>
 
 </body>
