@@ -109,7 +109,7 @@ function redirigirSegunSesion(sesion){
   }
 
   if (sesion.role === "admin_global" || sesion.role === "admin_empresa") {
-    window.location.replace("admin.html");
+    window.location.replace("menu-admin.html");
     return;
   }
 
@@ -191,7 +191,7 @@ async function entrar() {
         nombre: "Oficina",
         empresa_id: null
       }));
-      window.location.replace("admin.html");
+      window.location.replace("menu-admin.html");
       return;
     }
 
@@ -205,7 +205,7 @@ async function entrar() {
         admin_empresa_id: adminEmpresa.id,
         empresa_id: adminEmpresa.empresa_id || null
       }));
-      window.location.replace("admin.html");
+      window.location.replace("menu-admin.html");
       return;
     }
 
