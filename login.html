@@ -113,11 +113,11 @@ function redirigirSegunSesion(sesion){
     return;
   }
 
-  if (sesion.role === "driver") {
-    window.location.replace("selector-cliente.html");
-    return;
-  }
-
+if (sesion.role === "driver") {
+  window.location.replace("selector-cliente.html");
+  return;
+}
+  
   localStorage.removeItem("sesionAppTransporte");
 }
 
