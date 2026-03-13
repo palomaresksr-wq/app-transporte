@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú Conductor</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:var(--text);
+  min-height:100vh;
+  padding:20px;
+}
+
+.wrap{
+  max-width:520px;
+  margin:0 auto;
+}
+
+.topCard{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+h1{
+  margin:0 0 8px 0;
+  font-size:28px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+
+.menuGrid{
+  display:grid;
+  gap:14px;
+}
+
+.menuBtn{
+  display:block;
+  width:100%;
+  text-decoration:none;
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.06);
+  transition:transform .15s ease, box-shadow .15s ease;
+  box-shadow:0 8px 22px rgba(0,0,0,.22);
+}
+
+.menuBtn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(0,0,0,.28);
+}
+
+.menuBtn .title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.menuBtn .desc{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.4;
+}
+
+.actions{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btnSec{
+  background:#24314f;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:10px;
+  background:rgba(255,122,24,.15);
+  color:#ffb074;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topCard">
+    <h1>Menú conductor</h1>
+    <div class="sub">Selecciona la opción que quieras usar</div>
+    <div class="badge" id="nombreUsuario">Usuario</div>
+
+    <div class="actions">
+      <button class="btnSec" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="menuGrid">
+    <a class="menuBtn" href="fichajes.html">
+      <div class="title">Fichar entrada y salida</div>
+      <div class="desc">Registrar hora de entrada, salida y futuros fichajes.</div>
+    </a>
+
+    <a class="menuBtn" href="selector-cliente.html">
+      <div class="title">Albaranes</div>
+      <div class="desc">Entrar al selector de cliente y registrar entregas.</div>
+    </a>
+
+    <a class="menuBtn" href="vacaciones.html">
+      <div class="title">Vacaciones</div>
+      <div class="desc">Solicitar vacaciones o consultar futuras solicitudes.</div>
+    </a>
+  </div>
+
+</div>
+
+<script>
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.href = "login.html?logout=1";
+}
+
+const nombreUsuarioEl = document.getElementById("nombreUsuario");
+nombreUsuarioEl.innerText = sesion?.nombre || sesion?.username || "Conductor";
+
+function cerrarSesion(){
+  try{
+    localStorage.removeItem("sesionAppTransporte");
+    sessionStorage.clear();
+  }catch(e){
+    console.error(e);
+  }
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+}
+</script>
+
+</body>
+</html>
