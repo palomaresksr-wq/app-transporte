@@ -1,0 +1,23 @@
+create table if not exists public.fichajes (
+  id uuid primary key default gen_random_uuid(),
+  conductor_id uuid not null,
+  empresa_id uuid null,
+  usuario text null,
+  nombre text null,
+  tipo text not null check (tipo in ('entrada', 'salida')),
+  fecha_hora timestamptz not null default now(),
+  latitud double precision null,
+  longitud double precision null,
+  precision_metros double precision null,
+  observaciones text null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists fichajes_conductor_id_idx
+on public.fichajes (conductor_id);
+
+create index if not exists fichajes_empresa_id_idx
+on public.fichajes (empresa_id);
+
+create index if not exists fichajes_fecha_hora_idx
+on public.fichajes (fecha_hora desc);
