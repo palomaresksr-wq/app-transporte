@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Albaranes - App Transporte</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --soft2:#0f1a2e;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --line:rgba(255,255,255,.08);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1500px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1700px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-bottom:4px;
+}
+
+.si{
+  background:#1f8b4c;
+  color:white;
+}
+
+.no{
+  background:#3a445f;
+  color:#cfd8f0;
+}
+
+.info{
+  background:#274d8a;
+  color:white;
+}
+
+a{
+  color:#7db4ff;
+}
+
+img.thumb{
+  width:90px;
+  max-width:90px;
+  border-radius:8px;
+  display:block;
+  cursor:pointer;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.smallBtn{
+  padding:8px 10px;
+  font-size:12px;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+input, select, textarea{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+input[type="checkbox"]{
+  width:auto;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modalContent{
+  background:#121b2f;
+  border-radius:16px;
+  padding:20px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.modalContent img{
+  width:100%;
+  border-radius:10px;
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.formGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.checkboxRow{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.checkboxRow label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap:wrap;
+}
+
+.inditexBox{
+  margin-top:14px;
+  background:#0f1a2e;
+  border-radius:12px;
+  padding:14px;
+}
+
+.inditexTitle{
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.inditexGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.inditexField{
+  background:#0b1220;
+  border-radius:8px;
+  padding:10px;
+}
+
+.inditexField strong{
+  display:block;
+  margin-bottom:4px;
+  color:#cfd8f0;
+}
+
+.inditexTableWrap{
+  overflow:auto;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.inditexMiniTable{
+  width:100%;
+  min-width:600px;
+  border-collapse:collapse;
+  background:#0b1220;
+}
+
+.inditexMiniTable th,
+.inditexMiniTable td{
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:13px;
+}
+
+.inditexMiniTable th{
+  background:#162238;
+  position:static;
+}
+
+.inditexResumen{
+  margin-top:10px;
+  font-size:13px;
+  color:#d9e4ff;
+}
+
+.detalleCompacto{
+  font-size:13px;
+  line-height:1.45;
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#18233b;
+  border-radius:12px;
+  padding:14px;
+}
+
+.kpi .label{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:26px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+@media (max-width: 700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1 id="panelTitle">Albaranes</h1>
+      <div class="muted" id="panelSubtitle">Gestión de entregas</div>
+    </div>
+
+    <div class="actions">
+      <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+      <button class="sec" onclick="cargarEntregas()">Actualizar</button>
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Entregas visibles</div>
+        <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Urgentes</div>
+        <div class="value" id="kpiUrgentes">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Con mozo</div>
+        <div class="value" id="kpiMozos">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Con trampilla</div>
+        <div class="value" id="kpiTrampillas">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <div>
+        <label>Buscar</label>
+        <input id="searchInput" placeholder="Conductor, cliente, matrícula, carga, descarga...">
+      </div>
+
+      <div>
+        <label>Urgente</label>
+        <select id="urgenteFilter">
+          <option value="">Todos</option>
+          <option value="si">Solo urgentes</option>
+          <option value="no">No urgentes</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Mozo</label>
+        <select id="mozoFilter">
+          <option value="">Todos</option>
+          <option value="si">Con mozo</option>
+          <option value="no">Sin mozo</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Trampilla</label>
+        <select id="trampillaFilter">
+          <option value="">Todos</option>
+          <option value="si">Con trampilla</option>
+          <option value="no">Sin trampilla</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Matrícula</th>
+            <th>Cliente</th>
+            <th>Lugar de carga</th>
+            <th>Lugar de descarga</th>
+            <th>Nº entregas</th>
+            <th>Bultos</th>
+            <th>Kg</th>
+            <th>M3</th>
+            <th>Observaciones</th>
+            <th>Detalle Inditex</th>
+            <th>Extras</th>
+            <th>Foto</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyEntregas">
+          <tr>
+            <td colspan="16" class="empty">Cargando entregas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="photoModal" class="modal" onclick="cerrarModalSiFondo(event)">
+  <div class="modalContent">
+    <div class="actions" style="justify-content:space-between;margin-bottom:12px;">
+      <strong>Foto de albarán</strong>
+      <button class="sec smallBtn" onclick="cerrarModal()">Cerrar</button>
+    </div>
+    <img id="modalImg" src="" alt="Foto de entrega">
+  </div>
+</div>
+
+<div id="editModal" class="modal" onclick="cerrarEditModalSiFondo(event)">
+  <div class="modalContent">
+    <div class="actions" style="justify-content:space-between;margin-bottom:12px;">
+      <strong>Editar entrega</strong>
+      <button class="sec smallBtn" onclick="cerrarEditModal()">Cerrar</button>
+    </div>
+
+    <div class="formGrid">
+      <div>
+        <label>Conductor</label>
+        <input id="edit_driver_name">
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="edit_vehicle_plate">
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <input id="edit_client_name">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="edit_pickup_place">
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="edit_dropoff_place">
+      </div>
+
+      <div>
+        <label>Nº entregas</label>
+        <input id="edit_num_entregas" type="number">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input id="edit_bultos" type="number">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="edit_kg" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="edit_m3" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Km</label>
+        <input id="edit_distance_km" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Precio (€)</label>
+        <input id="edit_price_eur" type="number" step="0.01">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Observaciones</label>
+      <textarea id="edit_observations" rows="4"></textarea>
+    </div>
+
+    <div id="editInditexBox" class="inditexBox" style="display:none;">
+      <div class="inditexTitle">Datos Inditex detectados</div>
+
+      <div class="inditexGrid">
+        <div class="inditexField">
+          <strong>Fecha albarán</strong>
+          <div id="edit_inditex_fecha"></div>
+        </div>
+
+        <div class="inditexField">
+          <strong>Destinatario</strong>
+          <div id="edit_inditex_destinatario"></div>
+        </div>
+
+        <div class="inditexField">
+          <strong>Dirección descarga</strong>
+          <div id="edit_inditex_direccion"></div>
+        </div>
+      </div>
+
+      <div class="inditexTableWrap">
+        <table class="inditexMiniTable">
+          <thead>
+            <tr>
+              <th>MAWB</th>
+              <th>Pedido</th>
+              <th>Bultos</th>
+              <th>Kilos</th>
+            </tr>
+          </thead>
+          <tbody id="edit_inditex_lineas">
+            <tr>
+              <td colspan="4" class="muted">Sin líneas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inditexResumen">
+        <strong>Total bultos:</strong> <span id="edit_inditex_total_bultos">0</span>
+        &nbsp; | &nbsp;
+        <strong>Total kilos:</strong> <span id="edit_inditex_total_kilos">0</span>
+      </div>
+    </div>
+
+    <div class="checkboxRow">
+      <label>
+        <input id="edit_mozo" type="checkbox">
+        Mozo
+      </label>
+
+      <label>
+        <input id="edit_trampilla" type="checkbox">
+        Trampilla
+      </label>
+
+      <label>
+        <input id="edit_urgente" type="checkbox">
+        Urgente
+      </label>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" onclick="cerrarEditModal()">Cancelar</button>
+      <button onclick="guardarCambiosEntrega()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const statusEl = document.getElementById("status");
+const tbodyEntregas = document.getElementById("tbodyEntregas");
+const searchInput = document.getElementById("searchInput");
+const urgenteFilter = document.getElementById("urgenteFilter");
+const mozoFilter = document.getElementById("mozoFilter");
+const trampillaFilter = document.getElementById("trampillaFilter");
+const photoModal = document.getElementById("photoModal");
+const modalImg = document.getElementById("modalImg");
+const panelTitle = document.getElementById("panelTitle");
+const panelSubtitle = document.getElementById("panelSubtitle");
+const kpiEntregas = document.getElementById("kpiEntregas");
+const kpiUrgentes = document.getElementById("kpiUrgentes");
+const kpiMozos = document.getElementById("kpiMozos");
+const kpiTrampillas = document.getElementById("kpiTrampillas");
+
+const editModal = document.getElementById("editModal");
+const editDriverName = document.getElementById("edit_driver_name");
+const editVehiclePlate = document.getElementById("edit_vehicle_plate");
+const editClientName = document.getElementById("edit_client_name");
+const editPickupPlace = document.getElementById("edit_pickup_place");
+const editDropoffPlace = document.getElementById("edit_dropoff_place");
+const editNumEntregas = document.getElementById("edit_num_entregas");
+const editBultos = document.getElementById("edit_bultos");
+const editKg = document.getElementById("edit_kg");
+const editM3 = document.getElementById("edit_m3");
+const editDistanceKm = document.getElementById("edit_distance_km");
+const editPriceEur = document.getElementById("edit_price_eur");
+const editObservations = document.getElementById("edit_observations");
+const editMozo = document.getElementById("edit_mozo");
+const editTrampilla = document.getElementById("edit_trampilla");
+const editUrgente = document.getElementById("edit_urgente");
+
+const editInditexBox = document.getElementById("editInditexBox");
+const editInditexFecha = document.getElementById("edit_inditex_fecha");
+const editInditexDestinatario = document.getElementById("edit_inditex_destinatario");
+const editInditexDireccion = document.getElementById("edit_inditex_direccion");
+const editInditexLineas = document.getElementById("edit_inditex_lineas");
+const editInditexTotalBultos = document.getElementById("edit_inditex_total_bultos");
+const editInditexTotalKilos = document.getElementById("edit_inditex_total_kilos");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (
+  !sesion ||
+  (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
+) {
+  window.location.href = "login.html";
+}
+
+window.cerrarSesion = function(){
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error limpiando sesión:", e);
+  }
+
+  const destino = "login.html?logout=1&t=" + Date.now();
+  window.location.href = destino;
+};
+
+let entregasGlobal = [];
+let entregaEditandoId = null;
+let empresaActual = null;
+let datosInditexEditando = null;
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      panelTitle.innerText = "Albaranes - Admin General";
+      panelSubtitle.innerText = "Viendo todas las entregas de todas las empresas";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      panelTitle.innerText = "Albaranes";
+      panelSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre,email,telefono")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      panelTitle.innerText = "Albaranes - Admin Empresa";
+      panelSubtitle.innerText = "No se pudo cargar la empresa";
+      return;
+    }
+
+    const empresa = data && data.length ? data[0] : null;
+    empresaActual = empresa;
+
+    panelTitle.innerText = "Albaranes - Admin Empresa";
+    panelSubtitle.innerText = empresa
+      ? "Empresa: " + (empresa.nombre || "Sin nombre")
+      : "Empresa no encontrada";
+  } catch (e) {
+    console.error(e);
+    panelTitle.innerText = "Albaranes - Admin Empresa";
+    panelSubtitle.innerText = "Error cargando empresa";
+  }
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function badgeBooleano(activo, texto) {
+  return `<span class="badge ${activo ? "si" : "no"}">${texto}: ${activo ? "Sí" : "No"}</span>`;
+}
+
+function cumpleFiltroBooleano(valorReal, filtro) {
+  if (!filtro) return true;
+  if (filtro === "si") return !!valorReal === true;
+  if (filtro === "no") return !!valorReal === false;
+  return true;
+}
+
+function abrirModal(url) {
+  modalImg.src = url;
+  photoModal.classList.add("open");
+}
+
+window.abrirModal = abrirModal;
+
+window.cerrarModal = function() {
+  photoModal.classList.remove("open");
+  modalImg.src = "";
+};
+
+window.cerrarModalSiFondo = function(event) {
+  if (event.target === photoModal) {
+    cerrarModal();
+  }
+};
+
+window.cerrarEditModal = function() {
+  editModal.classList.remove("open");
+  entregaEditandoId = null;
+  datosInditexEditando = null;
+};
+
+window.cerrarEditModalSiFondo = function(event) {
+  if (event.target === editModal) {
+    cerrarEditModal();
+  }
+};
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = Number(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+function puedeEditarEntrega(entrega) {
+  if (sesion.role === "admin_global") return true;
+  if (sesion.role === "admin_empresa") {
+    return String(entrega.empresa_id || "") === String(sesion.empresa_id || "");
+  }
+  return false;
+}
+
+function parsearObservacionesInditex(observations) {
+  const texto = String(observations || "");
+  const marca = "[INDITEX]";
+
+  if (!texto.includes(marca)) {
+    return {
+      esInditex: false,
+      observacionesLimpias: texto.trim(),
+      fechaAlbaran: "",
+      destinatario: "",
+      direccionDescarga: "",
+      lineasMercancia: []
+    };
+  }
+
+  const partes = texto.split(marca);
+  const observacionesLimpias = (partes[0] || "").trim();
+  const bloque = (partes.slice(1).join(marca) || "").trim();
+
+  let fechaAlbaran = "";
+  let destinatario = "";
+  let direccionDescarga = "";
+  let lineasMercancia = [];
+
+  bloque.split("\n").forEach(linea => {
+    const l = linea.trim();
+    if (!l) return;
+
+    if (l.startsWith("fecha_albaran=")) {
+      fechaAlbaran = l.substring("fecha_albaran=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("destinatario=")) {
+      destinatario = l.substring("destinatario=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("direccion_descarga=")) {
+      direccionDescarga = l.substring("direccion_descarga=".length).trim();
+      return;
+    }
+
+    if (l.startsWith("lineas=")) {
+      const jsonTxt = l.substring("lineas=".length).trim();
+      try {
+        const parsed = JSON.parse(jsonTxt);
+        if (Array.isArray(parsed)) {
+          lineasMercancia = parsed;
+        }
+      } catch (e) {
+        console.warn("No se pudieron parsear líneas Inditex:", e);
+      }
+    }
+  });
+
+  return {
+    esInditex: true,
+    observacionesLimpias,
+    fechaAlbaran,
+    destinatario,
+    direccionDescarga,
+    lineasMercancia
+  };
+}
+
+function totalizarLineasMercancia(lineas) {
+  const totalBultos = (lineas || []).reduce((acc, item) => {
+    const n = parseInt(item?.bultos ?? 0, 10);
+    return acc + (Number.isNaN(n) ? 0 : n);
+  }, 0);
+
+  const totalKilos = (lineas || []).reduce((acc, item) => {
+    const n = Number(String(item?.kilos ?? 0).replace(",", "."));
+    return acc + (Number.isNaN(n) ? 0 : n);
+  }, 0);
+
+  return { totalBultos, totalKilos };
+}
+
+function renderDetalleInditexCompacto(datos) {
+  if (!datos?.esInditex) return "";
+
+  const { totalBultos, totalKilos } = totalizarLineasMercancia(datos.lineasMercancia || []);
+  const totalLineas = Array.isArray(datos.lineasMercancia) ? datos.lineasMercancia.length : 0;
+
+  return `
+    <div class="detalleCompacto">
+      <span class="badge info">Inditex</span><br>
+      <strong>Fecha albarán:</strong> ${escapeHtml(datos.fechaAlbaran || "")}<br>
+      <strong>Destinatario:</strong> ${escapeHtml(datos.destinatario || "")}<br>
+      <strong>Descarga:</strong> ${escapeHtml(datos.direccionDescarga || "")}<br>
+      <strong>Líneas:</strong> ${escapeHtml(totalLineas)}<br>
+      <strong>Total bultos:</strong> ${escapeHtml(totalBultos)}<br>
+      <strong>Total kilos:</strong> ${escapeHtml(totalKilos)}
+    </div>
+  `;
+}
+
+function renderLineasInditexTabla(datos) {
+  if (!datos?.esInditex || !Array.isArray(datos.lineasMercancia) || !datos.lineasMercancia.length) {
+    return "";
+  }
+
+  const filas = datos.lineasMercancia.map(linea => `
+    <tr>
+      <td>${escapeHtml(linea.mawb || "")}</td>
+      <td>${escapeHtml(linea.pedido || "")}</td>
+      <td>${escapeHtml(linea.bultos ?? "")}</td>
+      <td>${escapeHtml(linea.kilos ?? "")}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div class="inditexTableWrap">
+      <table class="inditexMiniTable">
+        <thead>
+          <tr>
+            <th>MAWB</th>
+            <th>Pedido</th>
+            <th>Bultos</th>
+            <th>Kilos</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function actualizarKpis(lista) {
+  kpiEntregas.innerText = String(lista.length);
+  kpiUrgentes.innerText = String(lista.filter(x => !!x.urgente).length);
+  kpiMozos.innerText = String(lista.filter(x => !!x.mozo).length);
+  kpiTrampillas.innerText = String(lista.filter(x => !!x.trampilla).length);
+}
+
+function renderEntregas(lista) {
+  actualizarKpis(lista);
+
+  if (!lista.length) {
+    tbodyEntregas.innerHTML = `
+      <tr>
+        <td colspan="16" class="empty">No hay entregas que coincidan con el filtro.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbodyEntregas.innerHTML = lista.map(entrega => {
+    const extras = `
+      ${badgeBooleano(entrega.mozo, "Mozo")}
+      ${badgeBooleano(entrega.trampilla, "Trampilla")}
+      ${badgeBooleano(entrega.urgente, "Urgente")}
+    `;
+
+    const datosInditex = parsearObservacionesInditex(entrega.observations);
+
+    const fotoHtml = entrega.photo_url
+      ? `
+        <a href="${escapeHtml(entrega.photo_url)}" target="_blank" rel="noopener noreferrer">Ver</a>
+        <br><br>
+        <img class="thumb" src="${escapeHtml(entrega.photo_url)}" alt="Foto entrega" onclick="abrirModal('${escapeHtml(entrega.photo_url)}')">
+      `
+      : "Sin foto";
+
+    const acciones = puedeEditarEntrega(entrega)
+      ? `
+        <div class="actions">
+          <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}')">Editar</button>
+          <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
+        </div>
+      `
+      : `<span class="muted">Sin permiso</span>`;
+
+    return `
+      <tr>
+        <td>${formatearFecha(entrega.created_at)}</td>
+        <td>${escapeHtml(entrega.driver_name)}</td>
+        <td>${escapeHtml(entrega.vehicle_plate)}</td>
+        <td>${escapeHtml(entrega.client_name)}</td>
+        <td>${escapeHtml(entrega.pickup_place)}</td>
+        <td>${escapeHtml(entrega.dropoff_place)}</td>
+        <td>${escapeHtml(entrega.num_entregas)}</td>
+        <td>${escapeHtml(entrega.bultos)}</td>
+        <td>${escapeHtml(entrega.kg)}</td>
+        <td>${escapeHtml(entrega.m3)}</td>
+        <td>${escapeHtml(datosInditex.observacionesLimpias)}</td>
+        <td>
+          ${renderDetalleInditexCompacto(datosInditex)}
+          ${renderLineasInditexTabla(datosInditex)}
+        </td>
+        <td>${extras}</td>
+        <td>${fotoHtml}</td>
+        <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
+        <td>${acciones}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function aplicarFiltros() {
+  const texto = searchInput.value.trim().toLowerCase();
+
+  const filtradas = entregasGlobal.filter(entrega => {
+    const datosInditex = parsearObservacionesInditex(entrega.observations);
+
+    const bloqueLineas = (datosInditex.lineasMercancia || [])
+      .map(linea => [
+        linea.mawb,
+        linea.pedido,
+        linea.bultos,
+        linea.kilos
+      ].join(" "))
+      .join(" ");
+
+    const bloqueTexto = [
+      entrega.driver_name,
+      entrega.vehicle_plate,
+      entrega.client_name,
+      entrega.pickup_place,
+      entrega.dropoff_place,
+      entrega.num_entregas,
+      datosInditex.observacionesLimpias,
+      datosInditex.fechaAlbaran,
+      datosInditex.destinatario,
+      datosInditex.direccionDescarga,
+      bloqueLineas
+    ]
+    .map(v => (v || "").toString().toLowerCase())
+    .join(" ");
+
+    const pasaTexto = !texto || bloqueTexto.includes(texto);
+    const pasaUrgente = cumpleFiltroBooleano(entrega.urgente, urgenteFilter.value);
+    const pasaMozo = cumpleFiltroBooleano(entrega.mozo, mozoFilter.value);
+    const pasaTrampilla = cumpleFiltroBooleano(entrega.trampilla, trampillaFilter.value);
+
+    return pasaTexto && pasaUrgente && pasaMozo && pasaTrampilla;
+  });
+
+  renderEntregas(filtradas);
+}
+
+async function cargarEntregas() {
+  try {
+    statusEl.innerText = "Cargando entregas...";
+
+    let query = supabase
+      .from("deliveries")
+      .select(`
+        id,
+        empresa_id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        num_entregas,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        distance_km,
+        price_eur,
+        photo_url
+      `)
+      .order("created_at", { ascending: false });
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error cargando entregas: " + error.message;
+      tbodyEntregas.innerHTML = `
+        <tr>
+          <td colspan="16" class="empty">No se pudieron cargar las entregas.</td>
+        </tr>
+      `;
+      actualizarKpis([]);
+      return;
+    }
+
+    entregasGlobal = data || [];
+    aplicarFiltros();
+
+    if (sesion.role === "admin_empresa") {
+      statusEl.innerText = "Entregas de tu empresa: " + entregasGlobal.length;
+    } else {
+      statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
+    }
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando entregas: " + e.message;
+    tbodyEntregas.innerHTML = `
+      <tr>
+        <td colspan="16" class="empty">Error inesperado al cargar entregas.</td>
+      </tr>
+    `;
+    actualizarKpis([]);
+  }
+}
+
+window.cargarEntregas = cargarEntregas;
+
+function limpiarVistaInditexEdicion() {
+  editInditexBox.style.display = "none";
+  editInditexFecha.innerText = "";
+  editInditexDestinatario.innerText = "";
+  editInditexDireccion.innerText = "";
+  editInditexLineas.innerHTML = `<tr><td colspan="4" class="muted">Sin líneas</td></tr>`;
+  editInditexTotalBultos.innerText = "0";
+  editInditexTotalKilos.innerText = "0";
+}
+
+function pintarVistaInditexEdicion(datos) {
+  if (!datos?.esInditex) {
+    limpiarVistaInditexEdicion();
+    return;
+  }
+
+  editInditexBox.style.display = "block";
+  editInditexFecha.innerText = datos.fechaAlbaran || "";
+  editInditexDestinatario.innerText = datos.destinatario || "";
+  editInditexDireccion.innerText = datos.direccionDescarga || "";
+
+  const lineas = Array.isArray(datos.lineasMercancia) ? datos.lineasMercancia : [];
+  const { totalBultos, totalKilos } = totalizarLineasMercancia(lineas);
+
+  if (!lineas.length) {
+    editInditexLineas.innerHTML = `<tr><td colspan="4" class="muted">Sin líneas</td></tr>`;
+  } else {
+    editInditexLineas.innerHTML = lineas.map(linea => `
+      <tr>
+        <td>${escapeHtml(linea.mawb || "")}</td>
+        <td>${escapeHtml(linea.pedido || "")}</td>
+        <td>${escapeHtml(linea.bultos ?? "")}</td>
+        <td>${escapeHtml(linea.kilos ?? "")}</td>
+      </tr>
+    `).join("");
+  }
+
+  editInditexTotalBultos.innerText = totalBultos;
+  editInditexTotalKilos.innerText = totalKilos;
+}
+
+window.editarEntrega = function(id) {
+  const entrega = entregasGlobal.find(e => e.id === id);
+
+  if (!entrega) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entrega)) {
+    alert("No tienes permiso para editar esta entrega");
+    return;
+  }
+
+  entregaEditandoId = id;
+
+  const datosInditex = parsearObservacionesInditex(entrega.observations);
+  datosInditexEditando = datosInditex;
+
+  editDriverName.value = entrega.driver_name || "";
+  editVehiclePlate.value = entrega.vehicle_plate || "";
+  editClientName.value = entrega.client_name || "";
+  editPickupPlace.value = entrega.pickup_place || "";
+  editDropoffPlace.value = entrega.dropoff_place || "";
+  editNumEntregas.value = entrega.num_entregas ?? "";
+  editBultos.value = entrega.bultos ?? "";
+  editKg.value = entrega.kg ?? "";
+  editM3.value = entrega.m3 ?? "";
+  editDistanceKm.value = entrega.distance_km ?? "";
+  editPriceEur.value = entrega.price_eur ?? "";
+  editObservations.value = datosInditex.observacionesLimpias || "";
+  editMozo.checked = !!entrega.mozo;
+  editTrampilla.checked = !!entrega.trampilla;
+  editUrgente.checked = !!entrega.urgente;
+
+  pintarVistaInditexEdicion(datosInditex);
+
+  editModal.classList.add("open");
+};
+
+function reconstruirObservacionesConInditex(observacionesLimpias, datosInditex) {
+  const base = String(observacionesLimpias || "").trim();
+
+  if (!datosInditex?.esInditex) {
+    return base || null;
+  }
+
+  const bloque = [
+    "[INDITEX]",
+    `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
+    `destinatario=${datosInditex.destinatario || ""}`,
+    `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
+    `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
+  ].join("\n");
+
+  return `${base ? base + "\n" : ""}${bloque}`.trim();
+}
+
+window.guardarCambiosEntrega = async function() {
+  if (!entregaEditandoId) {
+    alert("No hay ninguna entrega seleccionada");
+    return;
+  }
+
+  const entregaOriginal = entregasGlobal.find(e => e.id === entregaEditandoId);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega original");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para editar esta entrega");
+    return;
+  }
+
+  try {
+    statusEl.innerText = "Guardando cambios...";
+
+    const observationsFinal = reconstruirObservacionesConInditex(
+      editObservations.value.trim() || null,
+      datosInditexEditando
+    );
+
+    const datosActualizados = {
+      driver_name: editDriverName.value.trim() || null,
+      vehicle_plate: editVehiclePlate.value.trim() || null,
+      client_name: editClientName.value.trim() || null,
+      pickup_place: editPickupPlace.value.trim() || null,
+      dropoff_place: editDropoffPlace.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      distance_km: normalizarNumero(editDistanceKm.value),
+      price_eur: normalizarNumero(editPriceEur.value),
+      observations: observationsFinal,
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
+
+    let query = supabase
+      .from("deliveries")
+      .update(datosActualizados)
+      .eq("id", entregaEditandoId);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      alert("Error guardando cambios: " + error.message);
+      statusEl.innerText = "Error guardando cambios: " + error.message;
+      return;
+    }
+
+    cerrarEditModal();
+    statusEl.innerText = "Entrega actualizada correctamente";
+    await cargarEntregas();
+  } catch (e) {
+    alert("Fallo guardando cambios: " + e.message);
+    statusEl.innerText = "Fallo guardando cambios: " + e.message;
+  }
+};
+
+async function borrarEntrega(id) {
+  const entregaOriginal = entregasGlobal.find(e => e.id === id);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para borrar esta entrega");
+    return;
+  }
+
+  const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
+  if (!confirmar) return;
+
+  try {
+    statusEl.innerText = "Borrando entrega...";
+
+    let query = supabase
+      .from("deliveries")
+      .delete()
+      .eq("id", id);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      alert("Error borrando: " + error.message);
+      statusEl.innerText = "Error borrando: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = "Entrega borrada correctamente";
+    await cargarEntregas();
+  } catch (e) {
+    alert("Fallo borrando: " + e.message);
+    statusEl.innerText = "Fallo borrando: " + e.message;
+  }
+}
+
+window.borrarEntrega = borrarEntrega;
+
+searchInput.addEventListener("input", aplicarFiltros);
+urgenteFilter.addEventListener("change", aplicarFiltros);
+mozoFilter.addEventListener("change", aplicarFiltros);
+trampillaFilter.addEventListener("change", aplicarFiltros);
+
+await cargarInfoEmpresaActual();
+cargarEntregas();
+</script>
+</body>
+</html>
