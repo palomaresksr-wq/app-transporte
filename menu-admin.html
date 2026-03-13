@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vacaciones</title>
+<title>Menú Admin</title>
 
 <style>
 :root{
@@ -13,9 +13,6 @@
   --accent:#ff7a18;
   --text:#ffffff;
   --muted:#b7c3dd;
-  --ok:#1f8b4c;
-  --warn:#c98a10;
-  --danger:#b43a3a;
 }
 
 *{
@@ -32,44 +29,16 @@ body{
 }
 
 .wrap{
-  max-width:760px;
+  max-width:560px;
   margin:0 auto;
 }
 
-.card{
+.topCard{
   background:var(--card);
   border-radius:16px;
   padding:20px;
-  margin-bottom:18px;
+  margin-bottom:20px;
   box-shadow:0 10px 28px rgba(0,0,0,.22);
-}
-
-.topActions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-
-.btn, button{
-  border:none;
-  border-radius:10px;
-  padding:12px 14px;
-  font-weight:bold;
-  cursor:pointer;
-  text-decoration:none;
-  display:inline-block;
-}
-
-.btnSec{
-  background:#24314f;
-  color:#fff;
-}
-
-.btnPrimary{
-  background:var(--accent);
-  color:#1b0c02;
-  width:100%;
 }
 
 h1{
@@ -82,119 +51,72 @@ h1{
   font-size:14px;
 }
 
-.grid{
+.menuGrid{
   display:grid;
-  grid-template-columns:1fr 1fr;
   gap:14px;
 }
 
-label{
+.menuBtn{
   display:block;
-  margin-top:10px;
-  font-weight:bold;
-  font-size:14px;
+  width:100%;
+  text-decoration:none;
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.06);
+  transition:transform .15s ease, box-shadow .15s ease;
+  box-shadow:0 8px 22px rgba(0,0,0,.22);
 }
 
-input, textarea{
-  width:100%;
-  margin-top:6px;
-  padding:12px;
+.menuBtn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(0,0,0,.28);
+}
+
+.menuBtn .title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.menuBtn .desc{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.4;
+}
+
+.actions{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btnSec{
+  background:#24314f;
+  color:white;
   border:none;
   border-radius:10px;
-  background:#fff;
-  color:#111;
-  font-size:14px;
-}
-
-textarea{
-  min-height:90px;
-  resize:vertical;
-}
-
-.status{
-  margin-top:14px;
+  padding:12px 14px;
   font-weight:bold;
-  white-space:pre-line;
-}
-
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.item{
-  background:var(--soft);
-  border-radius:14px;
-  padding:14px;
-}
-
-.row{
-  margin-bottom:8px;
+  cursor:pointer;
 }
 
 .badge{
   display:inline-block;
+  margin-top:10px;
+  background:rgba(255,122,24,.15);
+  color:#ffb074;
   padding:6px 10px;
   border-radius:999px;
   font-size:12px;
   font-weight:bold;
 }
 
-.badgePendiente{
-  background:rgba(201,138,16,.18);
-  color:#ffd27d;
-}
-
-.badgeAprobado{
-  background:rgba(31,139,76,.18);
-  color:#8ff0ad;
-}
-
-.badgeRechazado{
-  background:rgba(180,58,58,.18);
-  color:#ffb0b0;
-}
-
-.small{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.summaryGrid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:12px;
-}
-
-.summaryItem{
-  background:var(--soft);
-  border-radius:14px;
-  padding:14px;
-}
-
-.summaryLabel{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.summaryValue{
-  margin-top:6px;
-  font-size:20px;
-  font-weight:bold;
-}
-
 @media (max-width:700px){
   body{
     padding:12px;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  .summaryGrid{
-    grid-template-columns:1fr;
   }
 
   h1{
@@ -207,93 +129,51 @@ textarea{
 
 <div class="wrap">
 
-  <div class="card">
-    <div class="topActions">
-      <a href="menu-conductor.html" class="btn btnSec">← Volver al menú</a>
-      <button class="btn btnSec" onclick="cerrarSesion()">Salir</button>
-    </div>
+  <div class="topCard">
+    <h1>Menú administración</h1>
+    <div class="sub">Selecciona el área que quieres gestionar</div>
+    <div class="badge" id="nombreAdmin">Administrador</div>
 
-    <h1>Vacaciones</h1>
-    <div class="sub">Solicita tus vacaciones y consulta el estado de tus solicitudes.</div>
-  </div>
-
-  <div class="card">
-    <div class="summaryGrid">
-      <div class="summaryItem">
-        <div class="summaryLabel">Pendientes</div>
-        <div id="totalPendientes" class="summaryValue">0</div>
-      </div>
-      <div class="summaryItem">
-        <div class="summaryLabel">Aprobadas</div>
-        <div id="totalAprobadas" class="summaryValue">0</div>
-      </div>
-      <div class="summaryItem">
-        <div class="summaryLabel">Rechazadas</div>
-        <div id="totalRechazadas" class="summaryValue">0</div>
-      </div>
+    <div class="actions">
+      <button class="btnSec" onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
 
-  <div class="card">
-    <h3 style="margin-top:0;">Nueva solicitud</h3>
+  <div class="menuGrid">
+    <a class="menuBtn" href="admin-albaranes.html">
+      <div class="title">Albaranes</div>
+      <div class="desc">Ver, editar y filtrar entregas registradas por los conductores.</div>
+    </a>
 
-    <div class="grid">
-      <div>
-        <label>Fecha inicio</label>
-        <input id="fechaInicio" type="date">
-      </div>
+    <a class="menuBtn" href="admin-facturacion.html">
+      <div class="title">Facturación</div>
+      <div class="desc">Calcular importes, filtrar entregas y generar facturas.</div>
+    </a>
 
-      <div>
-        <label>Fecha fin</label>
-        <input id="fechaFin" type="date">
-      </div>
-    </div>
+    <a class="menuBtn" href="admin-fichajes.html">
+      <div class="title">Fichajes</div>
+      <div class="desc">Consultar entradas, salidas, ubicación y horas de los conductores.</div>
+    </a>
 
-    <label>Observaciones</label>
-    <textarea id="observaciones" placeholder="Ej: vacaciones de verano, asuntos familiares, etc."></textarea>
-
-    <div style="margin-top:16px;">
-      <button class="btnPrimary" onclick="solicitarVacaciones()">Solicitar vacaciones</button>
-    </div>
-
-    <div id="status" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-top:0;">Mis solicitudes</h3>
-    <div id="listaSolicitudes" class="list">
-      <div class="small">Cargando solicitudes...</div>
-    </div>
+    <a class="menuBtn" href="admin-vacaciones.html">
+      <div class="title">Vacaciones</div>
+      <div class="desc">Revisar solicitudes y aprobar o rechazar vacaciones.</div>
+    </a>
   </div>
 
 </div>
 
-<script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
+<script>
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
-if (!sesion || sesion.role !== "driver") {
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
   window.location.href = "login.html?logout=1";
 }
 
-const statusEl = document.getElementById("status");
-const fechaInicioEl = document.getElementById("fechaInicio");
-const fechaFinEl = document.getElementById("fechaFin");
-const observacionesEl = document.getElementById("observaciones");
-const listaSolicitudesEl = document.getElementById("listaSolicitudes");
-const totalPendientesEl = document.getElementById("totalPendientes");
-const totalAprobadasEl = document.getElementById("totalAprobadas");
-const totalRechazadasEl = document.getElementById("totalRechazadas");
+const nombreAdminEl = document.getElementById("nombreAdmin");
+nombreAdminEl.innerText = sesion?.nombre || sesion?.username || "Administrador";
 
-let conductorActual = null;
-let solicitudes = [];
-
-window.cerrarSesion = function(){
+function cerrarSesion(){
   try{
     localStorage.removeItem("sesionAppTransporte");
     sessionStorage.clear();
@@ -301,202 +181,7 @@ window.cerrarSesion = function(){
     console.error(e);
   }
   window.location.href = "login.html?logout=1&t=" + Date.now();
-};
-
-async function obtenerConductorActual() {
-  if (conductorActual) return conductorActual;
-
-  if (sesion?.conductor_id && sesion?.empresa_id) {
-    conductorActual = {
-      id: sesion.conductor_id,
-      empresa_id: sesion.empresa_id,
-      usuario: sesion.username || null,
-      nombre: sesion.nombre || null
-    };
-    return conductorActual;
-  }
-
-  if (sesion?.username) {
-    const { data, error } = await supabase
-      .from("conductores")
-      .select("id, empresa_id, nombre, usuario")
-      .eq("usuario", sesion.username)
-      .limit(1);
-
-    if (error) {
-      throw new Error("Error consultando conductor: " + error.message);
-    }
-
-    if (data && data.length > 0) {
-      conductorActual = data[0];
-      return conductorActual;
-    }
-  }
-
-  throw new Error("No se ha encontrado el conductor");
 }
-
-function formatearFecha(fecha) {
-  if (!fecha) return "";
-  const d = new Date(fecha + "T00:00:00");
-  return d.toLocaleDateString("es-ES");
-}
-
-function diasEntre(inicio, fin) {
-  const a = new Date(inicio + "T00:00:00");
-  const b = new Date(fin + "T00:00:00");
-  const ms = b - a;
-  const dias = Math.floor(ms / 86400000) + 1;
-  return dias > 0 ? dias : 0;
-}
-
-function badgeEstado(estado) {
-  if (estado === "aprobado") {
-    return `<span class="badge badgeAprobado">Aprobado</span>`;
-  }
-  if (estado === "rechazado") {
-    return `<span class="badge badgeRechazado">Rechazado</span>`;
-  }
-  return `<span class="badge badgePendiente">Pendiente</span>`;
-}
-
-function escapeHtml(valor) {
-  return String(valor ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function renderResumen() {
-  const pendientes = solicitudes.filter(x => x.estado === "pendiente").length;
-  const aprobadas = solicitudes.filter(x => x.estado === "aprobado").length;
-  const rechazadas = solicitudes.filter(x => x.estado === "rechazado").length;
-
-  totalPendientesEl.innerText = String(pendientes);
-  totalAprobadasEl.innerText = String(aprobadas);
-  totalRechazadasEl.innerText = String(rechazadas);
-}
-
-function renderSolicitudes() {
-  if (!solicitudes.length) {
-    listaSolicitudesEl.innerHTML = `<div class="small">Todavía no has enviado solicitudes.</div>`;
-    renderResumen();
-    return;
-  }
-
-  listaSolicitudesEl.innerHTML = solicitudes.map(item => {
-    const totalDias = diasEntre(item.fecha_inicio, item.fecha_fin);
-
-    return `
-      <div class="item">
-        <div class="row">${badgeEstado(item.estado)}</div>
-        <div class="row"><strong>Inicio:</strong> ${formatearFecha(item.fecha_inicio)}</div>
-        <div class="row"><strong>Fin:</strong> ${formatearFecha(item.fecha_fin)}</div>
-        <div class="row"><strong>Total días:</strong> ${totalDias}</div>
-        <div class="row"><strong>Observaciones:</strong> ${escapeHtml(item.observaciones || "-")}</div>
-        <div class="small">Solicitud enviada: ${new Date(item.created_at).toLocaleString("es-ES")}</div>
-      </div>
-    `;
-  }).join("");
-
-  renderResumen();
-}
-
-async function cargarSolicitudes() {
-  const conductor = await obtenerConductorActual();
-
-  const { data, error } = await supabase
-    .from("vacaciones")
-    .select("*")
-    .eq("conductor_id", conductor.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error("Error cargando solicitudes: " + error.message);
-  }
-
-  solicitudes = data || [];
-  renderSolicitudes();
-}
-
-function validarFechas(inicio, fin) {
-  if (!inicio || !fin) {
-    return "Debes indicar fecha de inicio y fecha de fin";
-  }
-
-  if (fin < inicio) {
-    return "La fecha de fin no puede ser anterior a la fecha de inicio";
-  }
-
-  return null;
-}
-
-function solapaConPendienteOAprobada(inicio, fin) {
-  const nuevaInicio = new Date(inicio + "T00:00:00").getTime();
-  const nuevaFin = new Date(fin + "T00:00:00").getTime();
-
-  return solicitudes.some(item => {
-    if (item.estado !== "pendiente" && item.estado !== "aprobado") return false;
-
-    const existenteInicio = new Date(item.fecha_inicio + "T00:00:00").getTime();
-    const existenteFin = new Date(item.fecha_fin + "T00:00:00").getTime();
-
-    return nuevaInicio <= existenteFin && nuevaFin >= existenteInicio;
-  });
-}
-
-window.solicitarVacaciones = async function() {
-  try {
-    statusEl.innerText = "Guardando solicitud...";
-
-    const conductor = await obtenerConductorActual();
-    const fechaInicio = fechaInicioEl.value;
-    const fechaFin = fechaFinEl.value;
-    const observaciones = observacionesEl.value.trim() || null;
-
-    const errorFechas = validarFechas(fechaInicio, fechaFin);
-    if (errorFechas) {
-      statusEl.innerText = errorFechas;
-      return;
-    }
-
-    if (solapaConPendienteOAprobada(fechaInicio, fechaFin)) {
-      statusEl.innerText = "Ya tienes una solicitud pendiente o aprobada que coincide con esas fechas";
-      return;
-    }
-
-    const { error } = await supabase
-      .from("vacaciones")
-      .insert({
-        conductor_id: conductor.id,
-        empresa_id: conductor.empresa_id,
-        usuario: sesion.username || conductor.usuario || null,
-        nombre: sesion.nombre || conductor.nombre || null,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
-        observaciones: observaciones,
-        estado: "pendiente"
-      });
-
-    if (error) {
-      throw new Error("Error guardando solicitud: " + error.message);
-    }
-
-    statusEl.innerText = "Solicitud de vacaciones enviada correctamente";
-    fechaInicioEl.value = "";
-    fechaFinEl.value = "";
-    observacionesEl.value = "";
-
-    await cargarSolicitudes();
-  } catch (e) {
-    console.error(e);
-    statusEl.innerText = e.message;
-  }
-};
-
-await cargarSolicitudes();
 </script>
 
 </body>
