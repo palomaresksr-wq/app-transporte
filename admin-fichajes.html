@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Fichajes - App Transporte</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --ok:#1f8b4c;
+  --danger:#b43a3a;
+  --line:rgba(255,255,255,.08);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1500px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1300px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badgeEntrada{
+  background:rgba(31,139,76,.18);
+  color:#8ff0ad;
+}
+
+.badgeSalida{
+  background:rgba(180,58,58,.18);
+  color:#ffb0b0;
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#18233b;
+  border-radius:12px;
+  padding:14px;
+}
+
+.kpi .label{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:26px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.linkMap{
+  color:#7db4ff;
+  text-decoration:none;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1 id="panelTitle">Fichajes</h1>
+      <div class="muted" id="panelSubtitle">Control de entradas y salidas</div>
+    </div>
+
+    <div class="actions">
+      <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+      <button class="sec" onclick="cargarFichajes()">Actualizar</button>
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Fichajes visibles</div>
+        <div class="value" id="kpiTotal">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Entradas</div>
+        <div class="value" id="kpiEntradas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Salidas</div>
+        <div class="value" id="kpiSalidas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Conductores</div>
+        <div class="value" id="kpiConductores">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <div>
+        <label>Buscar</label>
+        <input id="searchInput" placeholder="Conductor, usuario, observaciones...">
+      </div>
+
+      <div>
+        <label>Tipo</label>
+        <select id="tipoFilter">
+          <option value="">Todos</option>
+          <option value="entrada">Entradas</option>
+          <option value="salida">Salidas</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fecha desde</label>
+        <input id="dateFrom" type="date">
+      </div>
+
+      <div>
+        <label>Fecha hasta</label>
+        <input id="dateTo" type="date">
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha y hora</th>
+            <th>Conductor</th>
+            <th>Usuario</th>
+            <th>Tipo</th>
+            <th>Latitud</th>
+            <th>Longitud</th>
+            <th>Precisión</th>
+            <th>Mapa</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyFichajes">
+          <tr>
+            <td colspan="9" class="empty">Cargando fichajes...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const statusEl = document.getElementById("status");
+const tbodyFichajes = document.getElementById("tbodyFichajes");
+const panelTitle = document.getElementById("panelTitle");
+const panelSubtitle = document.getElementById("panelSubtitle");
+
+const searchInput = document.getElementById("searchInput");
+const tipoFilter = document.getElementById("tipoFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+
+const kpiTotal = document.getElementById("kpiTotal");
+const kpiEntradas = document.getElementById("kpiEntradas");
+const kpiSalidas = document.getElementById("kpiSalidas");
+const kpiConductores = document.getElementById("kpiConductores");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+  window.location.href = "login.html";
+}
+
+window.cerrarSesion = function(){
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error limpiando sesión:", e);
+  }
+
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
+
+let fichajesGlobal = [];
+let empresaActual = null;
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      panelTitle.innerText = "Fichajes - Admin General";
+      panelSubtitle.innerText = "Viendo fichajes de todas las empresas";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      panelTitle.innerText = "Fichajes";
+      panelSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      panelTitle.innerText = "Fichajes - Admin Empresa";
+      panelSubtitle.innerText = "No se pudo cargar la empresa";
+      return;
+    }
+
+    empresaActual = data && data.length ? data[0] : null;
+
+    panelTitle.innerText = "Fichajes - Admin Empresa";
+    panelSubtitle.innerText = empresaActual
+      ? "Empresa: " + (empresaActual.nombre || "Sin nombre")
+      : "Empresa no encontrada";
+  } catch (e) {
+    console.error(e);
+    panelTitle.innerText = "Fichajes - Admin Empresa";
+    panelSubtitle.innerText = "Error cargando empresa";
+  }
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderTipoBadge(tipo) {
+  if (tipo === "entrada") {
+    return `<span class="badge badgeEntrada">Entrada</span>`;
+  }
+  return `<span class="badge badgeSalida">Salida</span>`;
+}
+
+function actualizarKpis(lista) {
+  kpiTotal.innerText = String(lista.length);
+  kpiEntradas.innerText = String(lista.filter(x => x.tipo === "entrada").length);
+  kpiSalidas.innerText = String(lista.filter(x => x.tipo === "salida").length);
+  kpiConductores.innerText = String(new Set(lista.map(x => x.conductor_id).filter(Boolean)).size);
+}
+
+function renderFichajes(lista) {
+  actualizarKpis(lista);
+
+  if (!lista.length) {
+    tbodyFichajes.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty">No hay fichajes que coincidan con el filtro.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbodyFichajes.innerHTML = lista.map(item => {
+    const mapa = (item.latitud != null && item.longitud != null)
+      ? `<a class="linkMap" href="https://www.google.com/maps?q=${item.latitud},${item.longitud}" target="_blank" rel="noopener noreferrer">Abrir mapa</a>`
+      : "";
+
+    return `
+      <tr>
+        <td>${formatearFecha(item.fecha_hora)}</td>
+        <td>${escapeHtml(item.nombre || "")}</td>
+        <td>${escapeHtml(item.usuario || "")}</td>
+        <td>${renderTipoBadge(item.tipo)}</td>
+        <td>${item.latitud ?? ""}</td>
+        <td>${item.longitud ?? ""}</td>
+        <td>${item.precision_metros != null ? Math.round(item.precision_metros) + " m" : ""}</td>
+        <td>${mapa}</td>
+        <td>${escapeHtml(item.observaciones || "")}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function aplicarFiltros() {
+  const texto = searchInput.value.trim().toLowerCase();
+  const tipo = tipoFilter.value;
+  const desde = dateFrom.value;
+  const hasta = dateTo.value;
+
+  const filtrados = fichajesGlobal.filter(item => {
+    const fecha = item.fecha_hora ? item.fecha_hora.slice(0, 10) : "";
+
+    const bloqueTexto = [
+      item.nombre,
+      item.usuario,
+      item.observaciones,
+      item.tipo
+    ].map(v => (v || "").toString().toLowerCase()).join(" ");
+
+    if (texto && !bloqueTexto.includes(texto)) return false;
+    if (tipo && item.tipo !== tipo) return false;
+    if (desde && fecha < desde) return false;
+    if (hasta && fecha > hasta) return false;
+
+    return true;
+  });
+
+  renderFichajes(filtrados);
+}
+
+async function cargarFichajes() {
+  try {
+    statusEl.innerText = "Cargando fichajes...";
+
+    let query = supabase
+      .from("fichajes")
+      .select(`
+        id,
+        conductor_id,
+        empresa_id,
+        usuario,
+        nombre,
+        tipo,
+        fecha_hora,
+        latitud,
+        longitud,
+        precision_metros,
+        observaciones,
+        created_at
+      `)
+      .order("fecha_hora", { ascending: false });
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error cargando fichajes: " + error.message;
+      tbodyFichajes.innerHTML = `
+        <tr>
+          <td colspan="9" class="empty">No se pudieron cargar los fichajes.</td>
+        </tr>
+      `;
+      actualizarKpis([]);
+      return;
+    }
+
+    fichajesGlobal = data || [];
+    aplicarFiltros();
+
+    statusEl.innerText = sesion.role === "admin_empresa"
+      ? "Fichajes de tu empresa: " + fichajesGlobal.length
+      : "Fichajes cargados: " + fichajesGlobal.length;
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando fichajes: " + e.message;
+    tbodyFichajes.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty">Error inesperado al cargar fichajes.</td>
+      </tr>
+    `;
+    actualizarKpis([]);
+  }
+}
+
+window.cargarFichajes = cargarFichajes;
+
+searchInput.addEventListener("input", aplicarFiltros);
+tipoFilter.addEventListener("change", aplicarFiltros);
+dateFrom.addEventListener("change", aplicarFiltros);
+dateTo.addEventListener("change", aplicarFiltros);
+
+await cargarInfoEmpresaActual();
+cargarFichajes();
+</script>
+
+</body>
+</html>
