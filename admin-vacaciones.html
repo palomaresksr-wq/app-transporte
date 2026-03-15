@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Vacaciones - App Transporte</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --ok:#1f8b4c;
+  --warn:#c98a10;
+  --danger:#b43a3a;
+  --line:rgba(255,255,255,.08);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1500px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+button.ok{
+  background:#1f8b4c;
+  color:white;
+}
+
+button.danger{
+  background:#b43a3a;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1200px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badgePendiente{
+  background:rgba(201,138,16,.18);
+  color:#ffd27d;
+}
+
+.badgeAprobado{
+  background:rgba(31,139,76,.18);
+  color:#8ff0ad;
+}
+
+.badgeRechazado{
+  background:rgba(180,58,58,.18);
+  color:#ffb0b0;
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#18233b;
+  border-radius:12px;
+  padding:14px;
+}
+
+.kpi .label{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:26px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+
+  h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1 id="panelTitle">Vacaciones</h1>
+      <div class="muted" id="panelSubtitle">Gestión de solicitudes</div>
+    </div>
+
+    <div class="actions">
+      <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+      <button class="sec" onclick="cargarVacaciones()">Actualizar</button>
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Solicitudes visibles</div>
+        <div class="value" id="kpiTotal">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Pendientes</div>
+        <div class="value" id="kpiPendientes">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Aprobadas</div>
+        <div class="value" id="kpiAprobadas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Rechazadas</div>
+        <div class="value" id="kpiRechazadas">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <div>
+        <label>Buscar</label>
+        <input id="searchInput" placeholder="Conductor, usuario, observaciones...">
+      </div>
+
+      <div>
+        <label>Estado</label>
+        <select id="estadoFilter">
+          <option value="">Todos</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="aprobado">Aprobadas</option>
+          <option value="rechazado">Rechazadas</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fecha desde</label>
+        <input id="dateFrom" type="date">
+      </div>
+
+      <div>
+        <label>Fecha hasta</label>
+        <input id="dateTo" type="date">
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Conductor</th>
+            <th>Usuario</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Total días</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+            <th>Solicitud enviada</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyVacaciones">
+          <tr>
+            <td colspan="9" class="empty">Cargando solicitudes...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const statusEl = document.getElementById("status");
+const tbodyVacaciones = document.getElementById("tbodyVacaciones");
+const panelTitle = document.getElementById("panelTitle");
+const panelSubtitle = document.getElementById("panelSubtitle");
+
+const searchInput = document.getElementById("searchInput");
+const estadoFilter = document.getElementById("estadoFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+
+const kpiTotal = document.getElementById("kpiTotal");
+const kpiPendientes = document.getElementById("kpiPendientes");
+const kpiAprobadas = document.getElementById("kpiAprobadas");
+const kpiRechazadas = document.getElementById("kpiRechazadas");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+  window.location.href = "login.html";
+}
+
+window.cerrarSesion = function(){
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error limpiando sesión:", e);
+  }
+
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
+
+let vacacionesGlobal = [];
+let empresaActual = null;
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      panelTitle.innerText = "Vacaciones - Admin General";
+      panelSubtitle.innerText = "Viendo solicitudes de todas las empresas";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      panelTitle.innerText = "Vacaciones";
+      panelSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      panelTitle.innerText = "Vacaciones - Admin Empresa";
+      panelSubtitle.innerText = "No se pudo cargar la empresa";
+      return;
+    }
+
+    empresaActual = data && data.length ? data[0] : null;
+
+    panelTitle.innerText = "Vacaciones - Admin Empresa";
+    panelSubtitle.innerText = empresaActual
+      ? "Empresa: " + (empresaActual.nombre || "Sin nombre")
+      : "Empresa no encontrada";
+  } catch (e) {
+    console.error(e);
+    panelTitle.innerText = "Vacaciones - Admin Empresa";
+    panelSubtitle.innerText = "Error cargando empresa";
+  }
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return "";
+  const d = new Date(fecha + "T00:00:00");
+  return d.toLocaleDateString("es-ES");
+}
+
+function formatearFechaHora(fechaIso) {
+  if (!fechaIso) return "";
+  const d = new Date(fechaIso);
+  if (isNaN(d.getTime())) return fechaIso;
+  return d.toLocaleString("es-ES");
+}
+
+function diasEntre(inicio, fin) {
+  const a = new Date(inicio + "T00:00:00");
+  const b = new Date(fin + "T00:00:00");
+  const ms = b - a;
+  const dias = Math.floor(ms / 86400000) + 1;
+  return dias > 0 ? dias : 0;
+}
+
+function badgeEstado(estado) {
+  if (estado === "aprobado") {
+    return `<span class="badge badgeAprobado">Aprobado</span>`;
+  }
+  if (estado === "rechazado") {
+    return `<span class="badge badgeRechazado">Rechazado</span>`;
+  }
+  return `<span class="badge badgePendiente">Pendiente</span>`;
+}
+
+function actualizarKpis(lista) {
+  kpiTotal.innerText = String(lista.length);
+  kpiPendientes.innerText = String(lista.filter(x => x.estado === "pendiente").length);
+  kpiAprobadas.innerText = String(lista.filter(x => x.estado === "aprobado").length);
+  kpiRechazadas.innerText = String(lista.filter(x => x.estado === "rechazado").length);
+}
+
+function renderVacaciones(lista) {
+  actualizarKpis(lista);
+
+  if (!lista.length) {
+    tbodyVacaciones.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty">No hay solicitudes que coincidan con el filtro.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbodyVacaciones.innerHTML = lista.map(item => {
+    const totalDias = diasEntre(item.fecha_inicio, item.fecha_fin);
+
+    const acciones = item.estado === "pendiente"
+      ? `
+        <div class="actions">
+          <button class="ok" onclick="cambiarEstado('${item.id}','aprobado')">Aprobar</button>
+          <button class="danger" onclick="cambiarEstado('${item.id}','rechazado')">Rechazar</button>
+        </div>
+      `
+      : `<span class="muted">Sin acciones</span>`;
+
+    return `
+      <tr>
+        <td>${escapeHtml(item.nombre || "")}</td>
+        <td>${escapeHtml(item.usuario || "")}</td>
+        <td>${formatearFecha(item.fecha_inicio)}</td>
+        <td>${formatearFecha(item.fecha_fin)}</td>
+        <td>${totalDias}</td>
+        <td>${badgeEstado(item.estado)}</td>
+        <td>${escapeHtml(item.observaciones || "")}</td>
+        <td>${formatearFechaHora(item.created_at)}</td>
+        <td>${acciones}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function aplicarFiltros() {
+  const texto = searchInput.value.trim().toLowerCase();
+  const estado = estadoFilter.value;
+  const desde = dateFrom.value;
+  const hasta = dateTo.value;
+
+  const filtradas = vacacionesGlobal.filter(item => {
+    const bloqueTexto = [
+      item.nombre,
+      item.usuario,
+      item.observaciones,
+      item.estado
+    ].map(v => (v || "").toString().toLowerCase()).join(" ");
+
+    if (texto && !bloqueTexto.includes(texto)) return false;
+    if (estado && item.estado !== estado) return false;
+    if (desde && item.fecha_inicio < desde) return false;
+    if (hasta && item.fecha_fin > hasta) return false;
+
+    return true;
+  });
+
+  renderVacaciones(filtradas);
+}
+
+async function cargarVacaciones() {
+  try {
+    statusEl.innerText = "Cargando solicitudes...";
+
+    let query = supabase
+      .from("vacaciones")
+      .select(`
+        id,
+        conductor_id,
+        empresa_id,
+        usuario,
+        nombre,
+        fecha_inicio,
+        fecha_fin,
+        observaciones,
+        estado,
+        created_at
+      `)
+      .order("created_at", { ascending: false });
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error cargando solicitudes: " + error.message;
+      tbodyVacaciones.innerHTML = `
+        <tr>
+          <td colspan="9" class="empty">No se pudieron cargar las solicitudes.</td>
+        </tr>
+      `;
+      actualizarKpis([]);
+      return;
+    }
+
+    vacacionesGlobal = data || [];
+    aplicarFiltros();
+
+    statusEl.innerText = sesion.role === "admin_empresa"
+      ? "Solicitudes de tu empresa: " + vacacionesGlobal.length
+      : "Solicitudes cargadas: " + vacacionesGlobal.length;
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando solicitudes: " + e.message;
+    tbodyVacaciones.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty">Error inesperado al cargar solicitudes.</td>
+      </tr>
+    `;
+    actualizarKpis([]);
+  }
+}
+
+window.cargarVacaciones = cargarVacaciones;
+
+window.cambiarEstado = async function(id, nuevoEstado) {
+  try {
+    statusEl.innerText = "Guardando cambio...";
+
+    let query = supabase
+      .from("vacaciones")
+      .update({ estado: nuevoEstado })
+      .eq("id", id);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error actualizando estado: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = `Solicitud ${nuevoEstado === "aprobado" ? "aprobada" : "rechazada"} correctamente`;
+    await cargarVacaciones();
+  } catch (e) {
+    statusEl.innerText = "Fallo actualizando estado: " + e.message;
+  }
+};
+
+searchInput.addEventListener("input", aplicarFiltros);
+estadoFilter.addEventListener("change", aplicarFiltros);
+dateFrom.addEventListener("change", aplicarFiltros);
+dateTo.addEventListener("change", aplicarFiltros);
+
+await cargarInfoEmpresaActual();
+cargarVacaciones();
+</script>
+
+</body>
+</html>
