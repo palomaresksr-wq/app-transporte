@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Facturación - App Transporte</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --line:rgba(255,255,255,.08);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1600px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+h3{
+  margin-top:0;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:10px;
+}
+
+input, select, textarea{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1650px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.totalBox{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#18233b;
+  border-radius:12px;
+  padding:15px;
+}
+
+.kpi .label{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:28px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+#status{
+  margin-top:10px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.muted{
+  color:#b7c3dd;
+  font-size:13px;
+}
+
+.invoicePreview{
+  background:#fff;
+  color:#111;
+  border-radius:12px;
+  padding:20px;
+  overflow:auto;
+}
+
+.invoicePreview table{
+  min-width:100%;
+  background:#fff;
+}
+
+.invoicePreview th,
+.invoicePreview td{
+  border:1px solid #ddd;
+  color:#111;
+  font-size:12px;
+}
+
+.invoicePreview th{
+  background:#f2f2f2;
+  position:static;
+}
+
+.invoiceHeader{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-bottom:25px;
+  align-items:flex-start;
+}
+
+.invoiceBox{
+  min-width:260px;
+  flex:1;
+}
+
+.invoiceTitle{
+  font-size:30px;
+  font-weight:bold;
+  margin-bottom:10px;
+  color:#111;
+}
+
+.invoiceLogo{
+  width:180px;
+  max-width:100%;
+  display:block;
+  margin-bottom:15px;
+}
+
+.invoiceCompany{
+  line-height:1.6;
+}
+
+.invoiceClientBlock,
+.invoiceMetaBlock{
+  background:#f7f7f7;
+  padding:14px;
+  border-radius:10px;
+}
+
+.invoiceTotals{
+  max-width:360px;
+  margin-left:auto;
+  margin-top:20px;
+}
+
+.invoiceNotes{
+  margin-top:24px;
+  padding-top:12px;
+  border-top:1px solid #ddd;
+}
+
+.smallBtn{
+  padding:8px 10px;
+  font-size:12px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modalContent{
+  background:#121b2f;
+  border-radius:12px;
+  padding:20px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.formGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.checkboxRow{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.checkboxRow label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap:wrap;
+}
+
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+  h1{
+    font-size:22px;
+  }
+}
+
+@media print{
+  body{
+    background:#fff !important;
+    color:#111 !important;
+    padding:0;
+  }
+
+  .no-print{
+    display:none !important;
+  }
+
+  .wrap{
+    max-width:none;
+    margin:0;
+  }
+
+  .card{
+    background:#fff !important;
+    color:#111 !important;
+    padding:0;
+    margin:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+
+  #invoicePreview{
+    border-radius:0;
+    padding:0;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar no-print">
+    <div>
+      <h1 id="pageTitle">Facturación</h1>
+      <div class="muted" id="pageSubtitle">Cálculo por entrega y generación de factura</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+      <button class="sec" onclick="cargarDatos()">Actualizar</button>
+      <button onclick="guardarPreciosCalculados()">Guardar precios</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Filtros</h3>
+    <div class="grid">
+      <div>
+        <label>Conductor</label>
+        <select id="driverFilter">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <select id="clientFilter">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fecha desde</label>
+        <input id="dateFrom" type="date">
+      </div>
+
+      <div>
+        <label>Fecha hasta</label>
+        <input id="dateTo" type="date">
+      </div>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Tarifa de cálculo</h3>
+    <div class="grid">
+      <div>
+        <label>Precio base (€)</label>
+        <input id="tarifaBase" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por bulto (€)</label>
+        <input id="tarifaBulto" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por kg (€)</label>
+        <input id="tarifaKg" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por m3 (€)</label>
+        <input id="tarifaM3" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por entrega Albepet (€)</label>
+        <input id="tarifaEntregaAlbepet" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Precio por carga Sotracom (€)</label>
+        <input id="tarifaCargaSotracom" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra mozo (€)</label>
+        <input id="tarifaMozo" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra trampilla (€)</label>
+        <input id="tarifaTrampilla" type="number" step="0.01" value="0">
+      </div>
+
+      <div>
+        <label>Extra urgente (€)</label>
+        <input id="tarifaUrgente" type="number" step="0.01" value="0">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="aplicarFiltrosYCalculo()">Recalcular</button>
+      <button class="sec" onclick="guardarTarifas()">Guardar tarifa</button>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Datos de la factura</h3>
+    <div class="grid2">
+      <div>
+        <label>Número de factura</label>
+        <input id="invoiceNumber" placeholder="FAC-2026-001">
+      </div>
+
+      <div>
+        <label>Fecha de factura</label>
+        <input id="invoiceDate" type="date">
+      </div>
+
+      <div>
+        <label>Nombre cliente factura</label>
+        <input id="invoiceClientName" placeholder="Nombre del cliente">
+      </div>
+
+      <div>
+        <label>NIF cliente</label>
+        <input id="invoiceClientNif" placeholder="NIF/CIF del cliente">
+      </div>
+
+      <div>
+        <label>Dirección cliente</label>
+        <input id="invoiceClientAddress" placeholder="Dirección del cliente">
+      </div>
+
+      <div>
+        <label>Concepto</label>
+        <input id="invoiceConcept" placeholder="Servicios de transporte">
+      </div>
+
+      <div>
+        <label>IVA (%)</label>
+        <input id="invoiceVat" type="number" step="0.01" value="21">
+      </div>
+
+      <div>
+        <label>Observaciones factura</label>
+        <input id="invoiceNotes" placeholder="Observaciones o forma de pago">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="generarFacturaPreview()">Generar factura</button>
+      <button class="sec" onclick="imprimirFactura()">Imprimir / Guardar PDF</button>
+      <button class="sec" onclick="guardarDatosFactura()">Guardar datos</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="totalBox">
+      <div class="kpi">
+        <div class="label">Entregas calculadas</div>
+        <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Base imponible</div>
+        <div class="value" id="kpiBase">0.00 €</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">IVA</div>
+        <div class="value" id="kpiIva">0.00 €</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Total factura</div>
+        <div class="value" id="kpiTotal">0.00 €</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Cliente</th>
+            <th>Matrícula</th>
+            <th>Carga</th>
+            <th>Descarga</th>
+            <th>Nº entregas</th>
+            <th>Bultos</th>
+            <th>Kg</th>
+            <th>M3</th>
+            <th>Mozo</th>
+            <th>Trampilla</th>
+            <th>Urgente</th>
+            <th>Importe</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyFactura">
+          <tr>
+            <td colspan="15">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="no-print">Vista previa de factura</h3>
+    <div id="invoicePreview" class="invoicePreview">
+      Genera la factura para ver aquí el documento listo para imprimir o guardar en PDF.
+    </div>
+  </div>
+
+</div>
+
+<div id="editModal" class="modal" onclick="cerrarEditModalSiFondo(event)">
+  <div class="modalContent">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+      <strong>Editar entrega desde facturación</strong>
+      <button class="sec smallBtn" onclick="cerrarEditModal()">Cerrar</button>
+    </div>
+
+    <div class="formGrid">
+      <div>
+        <label>Conductor</label>
+        <input id="edit_driver_name">
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <input id="edit_client_name">
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="edit_vehicle_plate">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="edit_pickup_place">
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="edit_dropoff_place">
+      </div>
+
+      <div>
+        <label>Nº entregas</label>
+        <input id="edit_num_entregas" type="number">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input id="edit_bultos" type="number">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="edit_kg" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="edit_m3" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>Precio (€)</label>
+        <input id="edit_price_eur" type="number" step="0.01">
+      </div>
+    </div>
+
+    <div class="checkboxRow">
+      <label><input id="edit_mozo" type="checkbox"> Mozo</label>
+      <label><input id="edit_trampilla" type="checkbox"> Trampilla</label>
+      <label><input id="edit_urgente" type="checkbox"> Urgente</label>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" onclick="cerrarEditModal()">Cancelar</button>
+      <button onclick="guardarCambiosEntregaFactura()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const EMPRESA = {
+  nombre: "Dutti Trans, S.L",
+  nif: "B83282897",
+  direccion: "C. de Tierra de Barros, 2, 28823 Coslada, Madrid",
+  telefono: "637 78 78 30",
+  email: "info@duttitrans.com",
+  logo: "logo-dutti-trans.jpg"
+};
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+  window.location.href = "login.html?logout=1";
+}
+
+const statusEl = document.getElementById("status");
+const tbodyFactura = document.getElementById("tbodyFactura");
+const driverFilter = document.getElementById("driverFilter");
+const clientFilter = document.getElementById("clientFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const kpiEntregas = document.getElementById("kpiEntregas");
+const kpiBase = document.getElementById("kpiBase");
+const kpiIva = document.getElementById("kpiIva");
+const kpiTotal = document.getElementById("kpiTotal");
+const invoicePreview = document.getElementById("invoicePreview");
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
+
+const tarifaBase = document.getElementById("tarifaBase");
+const tarifaBulto = document.getElementById("tarifaBulto");
+const tarifaKg = document.getElementById("tarifaKg");
+const tarifaM3 = document.getElementById("tarifaM3");
+const tarifaEntregaAlbepet = document.getElementById("tarifaEntregaAlbepet");
+const tarifaCargaSotracom = document.getElementById("tarifaCargaSotracom");
+const tarifaMozo = document.getElementById("tarifaMozo");
+const tarifaTrampilla = document.getElementById("tarifaTrampilla");
+const tarifaUrgente = document.getElementById("tarifaUrgente");
+
+const invoiceNumber = document.getElementById("invoiceNumber");
+const invoiceDate = document.getElementById("invoiceDate");
+const invoiceClientName = document.getElementById("invoiceClientName");
+const invoiceClientNif = document.getElementById("invoiceClientNif");
+const invoiceClientAddress = document.getElementById("invoiceClientAddress");
+const invoiceConcept = document.getElementById("invoiceConcept");
+const invoiceVat = document.getElementById("invoiceVat");
+const invoiceNotes = document.getElementById("invoiceNotes");
+
+const editModal = document.getElementById("editModal");
+const editDriverName = document.getElementById("edit_driver_name");
+const editClientName = document.getElementById("edit_client_name");
+const editVehiclePlate = document.getElementById("edit_vehicle_plate");
+const editPickupPlace = document.getElementById("edit_pickup_place");
+const editDropoffPlace = document.getElementById("edit_dropoff_place");
+const editNumEntregas = document.getElementById("edit_num_entregas");
+const editBultos = document.getElementById("edit_bultos");
+const editKg = document.getElementById("edit_kg");
+const editM3 = document.getElementById("edit_m3");
+const editPriceEur = document.getElementById("edit_price_eur");
+const editMozo = document.getElementById("edit_mozo");
+const editTrampilla = document.getElementById("edit_trampilla");
+const editUrgente = document.getElementById("edit_urgente");
+
+let entregasGlobal = [];
+let entregasCalculadas = [];
+let empresaActual = null;
+let entregaEditandoId = null;
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      pageTitle.innerText = "Facturación - Admin General";
+      pageSubtitle.innerText = "Viendo y facturando todas las entregas";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      pageTitle.innerText = "Facturación";
+      pageSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre,email,telefono")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      pageTitle.innerText = "Facturación - Admin Empresa";
+      pageSubtitle.innerText = "No se pudo cargar la empresa";
+      return;
+    }
+
+    empresaActual = data && data.length ? data[0] : null;
+
+    pageTitle.innerText = "Facturación - Admin Empresa";
+    pageSubtitle.innerText = empresaActual
+      ? "Empresa: " + (empresaActual.nombre || "Sin nombre")
+      : "Empresa no encontrada";
+  } catch (e) {
+    console.error(e);
+    pageTitle.innerText = "Facturación - Admin Empresa";
+    pageSubtitle.innerText = "Error cargando empresa";
+  }
+}
+
+function numero(valor) {
+  const n = parseFloat(valor);
+  return isNaN(n) ? 0 : n;
+}
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = Number(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+function escaparHtml(texto) {
+  return String(texto ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatearEuros(valor) {
+  return numero(valor).toFixed(2) + " €";
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function formatearFechaSoloDia(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleDateString("es-ES");
+}
+
+function hoyISO() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function storageKeyTarifas() {
+  if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+    return "tarifasFacturaAppTransporte_" + sesion.empresa_id;
+  }
+  return "tarifasFacturaAppTransporte_admin";
+}
+
+function storageKeyDatosFactura() {
+  if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+    return "datosFacturaAppTransporte_" + sesion.empresa_id;
+  }
+  return "datosFacturaAppTransporte_admin";
+}
+
+function cargarTarifas() {
+  const guardadas = JSON.parse(localStorage.getItem(storageKeyTarifas()) || "{}");
+
+  tarifaBase.value = guardadas.base ?? 0;
+  tarifaBulto.value = guardadas.bulto ?? 0;
+  tarifaKg.value = guardadas.kg ?? 0;
+  tarifaM3.value = guardadas.m3 ?? 0;
+  tarifaEntregaAlbepet.value = guardadas.entregaAlbepet ?? 0;
+  tarifaCargaSotracom.value = guardadas.cargaSotracom ?? 0;
+  tarifaMozo.value = guardadas.mozo ?? 0;
+  tarifaTrampilla.value = guardadas.trampilla ?? 0;
+  tarifaUrgente.value = guardadas.urgente ?? 0;
+}
+
+window.guardarTarifas = function() {
+  const tarifas = {
+    base: numero(tarifaBase.value),
+    bulto: numero(tarifaBulto.value),
+    kg: numero(tarifaKg.value),
+    m3: numero(tarifaM3.value),
+    entregaAlbepet: numero(tarifaEntregaAlbepet.value),
+    cargaSotracom: numero(tarifaCargaSotracom.value),
+    mozo: numero(tarifaMozo.value),
+    trampilla: numero(tarifaTrampilla.value),
+    urgente: numero(tarifaUrgente.value)
+  };
+
+  localStorage.setItem(storageKeyTarifas(), JSON.stringify(tarifas));
+  statusEl.innerText = "Tarifa guardada correctamente";
+};
+
+function obtenerTarifas() {
+  return {
+    base: numero(tarifaBase.value),
+    bulto: numero(tarifaBulto.value),
+    kg: numero(tarifaKg.value),
+    m3: numero(tarifaM3.value),
+    entregaAlbepet: numero(tarifaEntregaAlbepet.value),
+    cargaSotracom: numero(tarifaCargaSotracom.value),
+    mozo: numero(tarifaMozo.value),
+    trampilla: numero(tarifaTrampilla.value),
+    urgente: numero(tarifaUrgente.value)
+  };
+}
+
+function cargarDatosFacturaGuardados() {
+  const guardados = JSON.parse(localStorage.getItem(storageKeyDatosFactura()) || "{}");
+
+  invoiceNumber.value = guardados.invoiceNumber ?? "";
+  invoiceDate.value = guardados.invoiceDate ?? hoyISO();
+  invoiceClientName.value = guardados.invoiceClientName ?? "";
+  invoiceClientNif.value = guardados.invoiceClientNif ?? "";
+  invoiceClientAddress.value = guardados.invoiceClientAddress ?? "";
+  invoiceConcept.value = guardados.invoiceConcept ?? "Servicios de transporte";
+  invoiceVat.value = guardados.invoiceVat ?? 21;
+  invoiceNotes.value = guardados.invoiceNotes ?? "";
+}
+
+window.guardarDatosFactura = function() {
+  const datos = {
+    invoiceNumber: invoiceNumber.value.trim(),
+    invoiceDate: invoiceDate.value,
+    invoiceClientName: invoiceClientName.value.trim(),
+    invoiceClientNif: invoiceClientNif.value.trim(),
+    invoiceClientAddress: invoiceClientAddress.value.trim(),
+    invoiceConcept: invoiceConcept.value.trim(),
+    invoiceVat: numero(invoiceVat.value),
+    invoiceNotes: invoiceNotes.value.trim()
+  };
+
+  localStorage.setItem(storageKeyDatosFactura(), JSON.stringify(datos));
+  statusEl.innerText = "Datos de factura guardados correctamente";
+};
+
+function calcularImporte(entrega) {
+  const tarifas = obtenerTarifas();
+  const cliente = String(entrega.client_name || "").trim().toLowerCase();
+  const esAlbepet = cliente === "albepet";
+  const esSotracom = cliente === "sotracom";
+
+  let total = 0;
+  total += tarifas.base;
+
+  if (esAlbepet) {
+    total += numero(entrega.num_entregas) * tarifas.entregaAlbepet;
+  } else if (esSotracom) {
+    total += tarifas.cargaSotracom;
+  } else {
+    total += numero(entrega.bultos) * tarifas.bulto;
+    total += numero(entrega.kg) * tarifas.kg;
+    total += numero(entrega.m3) * tarifas.m3;
+  }
+
+  if (entrega.mozo) total += tarifas.mozo;
+  if (entrega.trampilla) total += tarifas.trampilla;
+  if (entrega.urgente) total += tarifas.urgente;
+
+  return Number(total.toFixed(2));
+}
+
+function rellenarFiltros(lista) {
+  const drivers = [...new Set(lista.map(x => x.driver_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const clients = [...new Set(lista.map(x => x.client_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+
+  const driverActual = driverFilter.value;
+  const clientActual = clientFilter.value;
+
+  driverFilter.innerHTML = '<option value="">Todos</option>';
+  clientFilter.innerHTML = '<option value="">Todos</option>';
+
+  drivers.forEach(driver => {
+    const option = document.createElement("option");
+    option.value = driver;
+    option.textContent = driver;
+    driverFilter.appendChild(option);
+  });
+
+  clients.forEach(client => {
+    const option = document.createElement("option");
+    option.value = client;
+    option.textContent = client;
+    clientFilter.appendChild(option);
+  });
+
+  driverFilter.value = drivers.includes(driverActual) ? driverActual : "";
+  clientFilter.value = clients.includes(clientActual) ? clientActual : "";
+
+  if (clientFilter.value && !invoiceClientName.value.trim()) {
+    invoiceClientName.value = clientFilter.value;
+  }
+}
+
+window.aplicarFiltrosYCalculo = function() {
+  const driver = driverFilter.value;
+  const client = clientFilter.value;
+  const desde = dateFrom.value;
+  const hasta = dateTo.value;
+
+  const lista = entregasGlobal.filter(entrega => {
+    const fecha = entrega.created_at ? entrega.created_at.slice(0,10) : "";
+
+    if (driver && entrega.driver_name !== driver) return false;
+    if (client && entrega.client_name !== client) return false;
+    if (desde && fecha < desde) return false;
+    if (hasta && fecha > hasta) return false;
+
+    return true;
+  });
+
+  entregasCalculadas = lista.map(entrega => ({
+    ...entrega,
+    importe_calculado: calcularImporte(entrega)
+  }));
+
+  renderFactura(entregasCalculadas);
+};
+
+function puedeEditarEntrega(entrega) {
+  if (sesion.role === "admin_global") return true;
+  if (sesion.role === "admin_empresa") {
+    return String(entrega.empresa_id || "") === String(sesion.empresa_id || "");
+  }
+  return false;
+}
+
+function renderFactura(lista) {
+  if (!lista.length) {
+    tbodyFactura.innerHTML = `
+      <tr>
+        <td colspan="15">No hay entregas para esos filtros.</td>
+      </tr>
+    `;
+    kpiEntregas.innerText = "0";
+    kpiBase.innerText = "0.00 €";
+    kpiIva.innerText = "0.00 €";
+    kpiTotal.innerText = "0.00 €";
+    return;
+  }
+
+  tbodyFactura.innerHTML = lista.map(entrega => {
+    const acciones = puedeEditarEntrega(entrega)
+      ? `<button class="smallBtn sec" onclick="editarEntregaFactura('${entrega.id}')">Editar</button>`
+      : `<span class="muted">Sin permiso</span>`;
+
+    return `
+      <tr>
+        <td>${formatearFecha(entrega.created_at)}</td>
+        <td>${escaparHtml(entrega.driver_name || "")}</td>
+        <td>${escaparHtml(entrega.client_name || "")}</td>
+        <td>${escaparHtml(entrega.vehicle_plate || "")}</td>
+        <td>${escaparHtml(entrega.pickup_place || "")}</td>
+        <td>${escaparHtml(entrega.dropoff_place || "")}</td>
+        <td>${entrega.num_entregas ?? ""}</td>
+        <td>${entrega.bultos ?? ""}</td>
+        <td>${entrega.kg ?? ""}</td>
+        <td>${entrega.m3 ?? ""}</td>
+        <td>${entrega.mozo ? "Sí" : "No"}</td>
+        <td>${entrega.trampilla ? "Sí" : "No"}</td>
+        <td>${entrega.urgente ? "Sí" : "No"}</td>
+        <td><strong>${formatearEuros(entrega.importe_calculado)}</strong></td>
+        <td>${acciones}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const base = lista.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const ivaImporte = base * (numero(invoiceVat.value) / 100);
+  const total = base + ivaImporte;
+
+  kpiEntregas.innerText = String(lista.length);
+  kpiBase.innerText = formatearEuros(base);
+  kpiIva.innerText = formatearEuros(ivaImporte);
+  kpiTotal.innerText = formatearEuros(total);
+}
+
+function construirHtmlFactura() {
+  if (!entregasCalculadas.length) {
+    return `<div>No hay entregas filtradas para generar factura.</div>`;
+  }
+
+  const base = entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const ivaPorcentaje = numero(invoiceVat.value);
+  const ivaImporte = base * (ivaPorcentaje / 100);
+  const total = base + ivaImporte;
+
+  const clienteAutomatico = clientFilter.value || "";
+  const nombreClienteFinal = invoiceClientName.value.trim() || clienteAutomatico;
+  const rangoFechas = `${dateFrom.value || "sin inicio"} - ${dateTo.value || "sin fin"}`;
+
+  const filas = entregasCalculadas.map((entrega, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escaparHtml(formatearFechaSoloDia(entrega.created_at))}</td>
+      <td>${escaparHtml(entrega.vehicle_plate || "")}</td>
+      <td>${escaparHtml(entrega.pickup_place || "")}</td>
+      <td>${escaparHtml(entrega.dropoff_place || "")}</td>
+      <td>${escaparHtml(entrega.num_entregas ?? "")}</td>
+      <td>${escaparHtml(entrega.bultos ?? "")}</td>
+      <td>${escaparHtml(entrega.kg ?? "")}</td>
+      <td>${escaparHtml(entrega.m3 ?? "")}</td>
+      <td>${escaparHtml(entrega.mozo ? "Sí" : "No")}</td>
+      <td>${escaparHtml(entrega.trampilla ? "Sí" : "No")}</td>
+      <td>${escaparHtml(entrega.urgente ? "Sí" : "No")}</td>
+      <td>${formatearEuros(entrega.importe_calculado)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div class="invoiceHeader">
+      <div class="invoiceBox">
+        <img src="${escaparHtml(EMPRESA.logo)}" alt="Logo empresa" class="invoiceLogo">
+        <div class="invoiceCompany">
+          <strong>${escaparHtml(EMPRESA.nombre)}</strong><br>
+          CIF: ${escaparHtml(EMPRESA.nif)}<br>
+          ${escaparHtml(EMPRESA.direccion)}<br>
+          Tel: ${escaparHtml(EMPRESA.telefono)}<br>
+          Email: ${escaparHtml(EMPRESA.email)}
+        </div>
+      </div>
+
+      <div class="invoiceBox invoiceMetaBlock">
+        <div class="invoiceTitle">FACTURA</div>
+        <div><strong>Nº factura:</strong> ${escaparHtml(invoiceNumber.value || "")}</div>
+        <div><strong>Fecha:</strong> ${escaparHtml(invoiceDate.value || "")}</div>
+        <div><strong>Concepto:</strong> ${escaparHtml(invoiceConcept.value || "Servicios de transporte")}</div>
+        <div><strong>Periodo:</strong> ${escaparHtml(rangoFechas)}</div>
+      </div>
+
+      <div class="invoiceBox invoiceClientBlock">
+        <div><strong>Facturar a:</strong></div>
+        <div style="margin-top:8px;">
+          ${escaparHtml(nombreClienteFinal)}<br>
+          ${escaparHtml(invoiceClientNif.value || "")}<br>
+          ${escaparHtml(invoiceClientAddress.value || "")}
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Matrícula</th>
+          <th>Carga</th>
+          <th>Descarga</th>
+          <th>Nº entregas</th>
+          <th>Bultos</th>
+          <th>Kg</th>
+          <th>M3</th>
+          <th>Mozo</th>
+          <th>Trampilla</th>
+          <th>Urgente</th>
+          <th>Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas}
+      </tbody>
+    </table>
+
+    <div class="invoiceTotals">
+      <table>
+        <tr>
+          <th>Base imponible</th>
+          <td>${formatearEuros(base)}</td>
+        </tr>
+        <tr>
+          <th>IVA (${ivaPorcentaje.toFixed(2)}%)</th>
+          <td>${formatearEuros(ivaImporte)}</td>
+        </tr>
+        <tr>
+          <th>Total factura</th>
+          <td><strong>${formatearEuros(total)}</strong></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="invoiceNotes">
+      <strong>Observaciones:</strong><br>
+      ${escaparHtml(invoiceNotes.value || "")}
+    </div>
+  `;
+}
+
+window.generarFacturaPreview = function() {
+  if (!entregasCalculadas.length) {
+    alert("No hay entregas filtradas para generar la factura.");
+    return;
+  }
+
+  if (clientFilter.value && !invoiceClientName.value.trim()) {
+    invoiceClientName.value = clientFilter.value;
+  }
+
+  invoicePreview.innerHTML = construirHtmlFactura();
+  statusEl.innerText = "Factura generada correctamente";
+};
+
+window.imprimirFactura = function() {
+  if (!entregasCalculadas.length) {
+    alert("No hay entregas filtradas para imprimir.");
+    return;
+  }
+
+  const contenido = construirHtmlFactura();
+  const titulo = `Factura ${invoiceNumber.value || ""}`.trim();
+
+  const ventana = window.open("", "_blank");
+  if (!ventana) {
+    alert("El navegador ha bloqueado la ventana de impresión.");
+    return;
+  }
+
+  ventana.document.write(`
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>${escaparHtml(titulo)}</title>
+      <style>
+        body{
+          font-family: Arial, sans-serif;
+          color:#111;
+          padding:30px;
+        }
+        table{
+          width:100%;
+          border-collapse:collapse;
+          margin-top:15px;
+        }
+        th, td{
+          border:1px solid #ccc;
+          padding:8px;
+          text-align:left;
+          vertical-align:top;
+          font-size:12px;
+        }
+        th{
+          background:#f2f2f2;
+        }
+        .invoiceHeader{
+          display:flex;
+          justify-content:space-between;
+          gap:20px;
+          flex-wrap:wrap;
+          margin-bottom:25px;
+          align-items:flex-start;
+        }
+        .invoiceBox{
+          min-width:240px;
+          flex:1;
+        }
+        .invoiceTitle{
+          font-size:30px;
+          font-weight:bold;
+          margin-bottom:10px;
+        }
+        .invoiceLogo{
+          width:180px;
+          max-width:100%;
+          display:block;
+          margin-bottom:15px;
+        }
+        .invoiceClientBlock,
+        .invoiceMetaBlock{
+          background:#f7f7f7;
+          padding:14px;
+          border-radius:10px;
+        }
+        .invoiceTotals{
+          max-width:360px;
+          margin-left:auto;
+          margin-top:20px;
+        }
+        .invoiceNotes{
+          margin-top:24px;
+          padding-top:12px;
+          border-top:1px solid #ddd;
+        }
+        @media print{
+          body{
+            padding:0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${contenido}
+    </body>
+    </html>
+  `);
+
+  ventana.document.close();
+  ventana.focus();
+  setTimeout(() => {
+    ventana.print();
+  }, 300);
+};
+
+window.cerrarEditModal = function() {
+  editModal.classList.remove("open");
+  entregaEditandoId = null;
+};
+
+window.cerrarEditModalSiFondo = function(event) {
+  if (event.target === editModal) {
+    cerrarEditModal();
+  }
+};
+
+window.editarEntregaFactura = function(id) {
+  const entrega = entregasGlobal.find(e => e.id === id);
+
+  if (!entrega) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entrega)) {
+    alert("No tienes permiso para editar esta entrega");
+    return;
+  }
+
+  entregaEditandoId = id;
+
+  editDriverName.value = entrega.driver_name || "";
+  editClientName.value = entrega.client_name || "";
+  editVehiclePlate.value = entrega.vehicle_plate || "";
+  editPickupPlace.value = entrega.pickup_place || "";
+  editDropoffPlace.value = entrega.dropoff_place || "";
+  editNumEntregas.value = entrega.num_entregas ?? "";
+  editBultos.value = entrega.bultos ?? "";
+  editKg.value = entrega.kg ?? "";
+  editM3.value = entrega.m3 ?? "";
+  editPriceEur.value = entrega.price_eur ?? "";
+  editMozo.checked = !!entrega.mozo;
+  editTrampilla.checked = !!entrega.trampilla;
+  editUrgente.checked = !!entrega.urgente;
+
+  editModal.classList.add("open");
+};
+
+window.guardarCambiosEntregaFactura = async function() {
+  if (!entregaEditandoId) {
+    alert("No hay ninguna entrega seleccionada");
+    return;
+  }
+
+  const entregaOriginal = entregasGlobal.find(e => e.id === entregaEditandoId);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega original");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para editar esta entrega");
+    return;
+  }
+
+  try {
+    statusEl.innerText = "Guardando cambios...";
+
+    const datosActualizados = {
+      driver_name: editDriverName.value.trim() || null,
+      client_name: editClientName.value.trim() || null,
+      vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
+      pickup_place: editPickupPlace.value.trim() || null,
+      dropoff_place: editDropoffPlace.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      price_eur: normalizarNumero(editPriceEur.value),
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
+
+    let query = supabase
+      .from("deliveries")
+      .update(datosActualizados)
+      .eq("id", entregaEditandoId);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      alert("Error guardando cambios: " + error.message);
+      statusEl.innerText = "Error guardando cambios: " + error.message;
+      return;
+    }
+
+    cerrarEditModal();
+    statusEl.innerText = "Entrega actualizada correctamente";
+    await cargarDatos();
+  } catch (e) {
+    alert("Fallo guardando cambios: " + e.message);
+    statusEl.innerText = "Fallo guardando cambios: " + e.message;
+  }
+};
+
+async function cargarDatos() {
+  try {
+    statusEl.innerText = "Cargando entregas...";
+
+    let query = supabase
+      .from("deliveries")
+      .select(`
+        id,
+        empresa_id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        num_entregas,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        price_eur
+      `)
+      .order("created_at", { ascending: false });
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error cargando datos: " + error.message;
+      tbodyFactura.innerHTML = `
+        <tr>
+          <td colspan="15">No se pudieron cargar las entregas.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    entregasGlobal = data || [];
+    rellenarFiltros(entregasGlobal);
+    aplicarFiltrosYCalculo();
+
+    statusEl.innerText = sesion.role === "admin_empresa"
+      ? "Entregas de tu empresa: " + entregasGlobal.length
+      : "Entregas cargadas: " + entregasGlobal.length;
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando datos: " + e.message;
+  }
+}
+
+window.cargarDatos = cargarDatos;
+
+async function guardarPreciosCalculados() {
+  try {
+    if (!entregasCalculadas.length) {
+      alert("No hay entregas calculadas para guardar.");
+      return;
+    }
+
+    statusEl.innerText = "Guardando precios calculados...";
+
+    for (const entrega of entregasCalculadas) {
+      let query = supabase
+        .from("deliveries")
+        .update({ price_eur: entrega.importe_calculado })
+        .eq("id", entrega.id);
+
+      if (sesion.role === "admin_empresa") {
+        query = query.eq("empresa_id", sesion.empresa_id);
+      }
+
+      const { error } = await query;
+
+      if (error) {
+        alert("Error guardando en una entrega: " + error.message);
+        statusEl.innerText = "Error guardando precios";
+        return;
+      }
+    }
+
+    statusEl.innerText = "Precios guardados correctamente en las entregas";
+    await cargarDatos();
+  } catch (e) {
+    alert("Fallo guardando precios: " + e.message);
+    statusEl.innerText = "Fallo guardando precios: " + e.message;
+  }
+}
+
+window.guardarPreciosCalculados = guardarPreciosCalculados;
+
+driverFilter.addEventListener("change", aplicarFiltrosYCalculo);
+clientFilter.addEventListener("change", () => {
+  aplicarFiltrosYCalculo();
+  if (clientFilter.value) {
+    invoiceClientName.value = clientFilter.value;
+  }
+});
+dateFrom.addEventListener("change", aplicarFiltrosYCalculo);
+dateTo.addEventListener("change", aplicarFiltrosYCalculo);
+invoiceVat.addEventListener("input", aplicarFiltrosYCalculo);
+
+await cargarInfoEmpresaActual();
+cargarTarifas();
+cargarDatosFacturaGuardados();
+cargarDatos();
+
+if (!invoiceDate.value) {
+  invoiceDate.value = hoyISO();
+}
+</script>
+
+</body>
+</html>
