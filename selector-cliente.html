@@ -72,6 +72,7 @@ body{
   letter-spacing:.5px;
   line-height:1.05;
   color:#111;
+  word-break:break-word;
 }
 .clientSub{
   margin-top:8px;
@@ -83,6 +84,7 @@ body{
   font-size:20px;
   font-weight:900;
   color:#111;
+  word-break:break-word;
 }
 .clientLogoOrange{color:var(--accent)}
 .footerBox{
@@ -97,6 +99,36 @@ body{
   padding:12px 18px;
   border-radius:10px;
   font-weight:bold;
+}
+.infoBox{
+  margin:0 auto 22px;
+  max-width:340px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:12px 14px;
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+}
+.statusBox{
+  margin:0 auto 22px;
+  max-width:340px;
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+  white-space:pre-line;
+}
+.emptyBox{
+  margin:20px auto 0;
+  max-width:340px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:18px 16px;
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
 }
 @media (max-width:420px){
   .clientBtn{
@@ -117,75 +149,209 @@ body{
     <p>Pulsa el cliente para registrar la entrega</p>
   </div>
 
-  <div class="clientList">
+  <div class="infoBox" id="infoEmpresa" style="display:none;"></div>
 
-    <button class="clientBtn" onclick="seleccionarCliente('Inditex','conductor-inditex.html')">
-      <div class="clientInner">
-        <div class="clientLogoText">INDITEX</div>
-      </div>
-    </button>
+  <div class="statusBox" id="status">Cargando clientes...</div>
 
-    <button class="clientBtn" onclick="seleccionarCliente('Galitrans','conductor-galitrans.html')">
-      <div class="clientInner">
-        <div class="clientLogoMini">GALITRANS</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Cotransa','conductor-cotransa.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:22px;">COTRANSA</div>
-        <div class="clientSub">GROUP</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Sotracom','conductor-sotracom.html')">
-      <div class="clientInner">
-        <div class="clientLogoText clientLogoOrange" style="font-size:24px;">SOTRACOM</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Operinter','conductor-operinter.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:22px;">OPERINTER</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Getraes','conductor-getraes.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:22px;">GETRAES</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Albepet','conductor-albepet.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:24px;color:#2c9ed8;">ALBEPET</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Oplog','conductor-oplog.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:24px;">OPLOG</div>
-      </div>
-    </button>
-
-    <button class="clientBtn" onclick="seleccionarCliente('Duttitrans','conductor-duttitrans.html')">
-      <div class="clientInner">
-        <div class="clientLogoText" style="font-size:22px;">DUTTITRANS</div>
-      </div>
-    </button>
-
-  </div>
+  <div class="clientList" id="clientList"></div>
 
   <div class="footerBox">
-    <a href="login.html" class="backBtn">Volver</a>
+    <a href="menu-conductor.html" class="backBtn">Volver</a>
   </div>
 </div>
 
-<script>
-function seleccionarCliente(cliente, destino){
-  localStorage.setItem("clienteSeleccionadoAppTransporte", cliente);
-  window.location.href = destino;
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const statusEl = document.getElementById("status");
+const clientListEl = document.getElementById("clientList");
+const infoEmpresaEl = document.getElementById("infoEmpresa");
+
+const sesionRaw = localStorage.getItem("sesionAppTransporte");
+let sesion = null;
+
+try {
+  sesion = sesionRaw ? JSON.parse(sesionRaw) : null;
+} catch (e) {
+  sesion = null;
 }
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.replace("login.html?forzar=1");
+}
+
+const EMPRESA_ID = sesion?.empresa_id || null;
+
+if (!EMPRESA_ID) {
+  statusEl.innerText = "Este usuario no tiene una empresa asignada";
+  clientListEl.innerHTML = "";
+  throw new Error("Usuario sin empresa_id");
+}
+
+function guardarClienteSeleccionado(cliente) {
+  localStorage.setItem("clienteSeleccionadoAppTransporte", cliente.nombre || "");
+  localStorage.setItem("cliente_id_actual", cliente.id);
+  localStorage.setItem("cliente_nombre_actual", cliente.nombre || "");
+}
+
+function limpiarTexto(texto) {
+  return String(texto || "").replace(/[<>"']/g, "");
+}
+
+function obtenerEstiloCliente(nombre) {
+  const n = String(nombre || "").trim().toUpperCase();
+
+  if (n === "INDITEX") {
+    return {
+      html: `<div class="clientLogoText">INDITEX</div>`
+    };
+  }
+
+  if (n === "GALITRANS") {
+    return {
+      html: `<div class="clientLogoMini">GALITRANS</div>`
+    };
+  }
+
+  if (n === "COTRANSA") {
+    return {
+      html: `
+        <div class="clientLogoText" style="font-size:22px;">COTRANSA</div>
+        <div class="clientSub">GROUP</div>
+      `
+    };
+  }
+
+  if (n === "SOTRACOM") {
+    return {
+      html: `<div class="clientLogoText clientLogoOrange" style="font-size:24px;">SOTRACOM</div>`
+    };
+  }
+
+  if (n === "OPERINTER") {
+    return {
+      html: `<div class="clientLogoText" style="font-size:22px;">OPERINTER</div>`
+    };
+  }
+
+  if (n === "GETRAES") {
+    return {
+      html: `<div class="clientLogoText" style="font-size:22px;">GETRAES</div>`
+    };
+  }
+
+  if (n === "ALBEPET") {
+    return {
+      html: `<div class="clientLogoText" style="font-size:24px;color:#2c9ed8;">ALBEPET</div>`
+    };
+  }
+
+  if (n === "OPLOG") {
+    return {
+      html: `<div class="clientLogoText" style="font-size:24px;">OPLOG</div>`
+    };
+  }
+
+  if (n === "DUTTITRANS") {
+    return {
+      html: `<div class="clientLogoText" style="font-size:22px;">DUTTITRANS</div>`
+    };
+  }
+
+  const textoSeguro = limpiarTexto(nombre);
+  return {
+    html: `<div class="clientLogoText" style="font-size:24px;">${textoSeguro}</div>`
+  };
+}
+
+function renderClientes(clientes) {
+  clientListEl.innerHTML = "";
+
+  clientes.forEach(cliente => {
+    const btn = document.createElement("button");
+    btn.className = "clientBtn";
+    btn.type = "button";
+
+    const inner = document.createElement("div");
+    inner.className = "clientInner";
+    inner.innerHTML = obtenerEstiloCliente(cliente.nombre).html;
+
+    btn.appendChild(inner);
+
+    btn.addEventListener("click", function() {
+      guardarClienteSeleccionado(cliente);
+      window.location.href = "conductor.html";
+    });
+
+    clientListEl.appendChild(btn);
+  });
+}
+
+async function cargarNombreEmpresa() {
+  try {
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id, nombre")
+      .eq("id", EMPRESA_ID)
+      .limit(1);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data && data.length) {
+      infoEmpresaEl.style.display = "block";
+      infoEmpresaEl.innerText = "Empresa activa: " + (data[0].nombre || "");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function cargarClientes() {
+  try {
+    statusEl.innerText = "Cargando clientes...";
+
+    const { data, error } = await supabase
+      .from("clientes")
+      .select("id, nombre, empresa_id")
+      .eq("empresa_id", EMPRESA_ID)
+      .order("nombre", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || !data.length) {
+      statusEl.innerHTML = `
+        <div class="emptyBox">
+          No hay clientes dados de alta para esta empresa
+        </div>
+      `;
+      clientListEl.innerHTML = "";
+      return;
+    }
+
+    statusEl.innerText = "";
+    renderClientes(data);
+  } catch (e) {
+    console.error(e);
+    statusEl.innerHTML = `
+      <div class="emptyBox">
+        Error al cargar clientes
+      </div>
+    `;
+    clientListEl.innerHTML = "";
+  }
+}
+
+await cargarNombreEmpresa();
+await cargarClientes();
 </script>
 
 </body>
