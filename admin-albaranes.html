@@ -135,6 +135,11 @@ th{
   color:white;
 }
 
+.legacy{
+  background:#6a4b16;
+  color:#ffe2b0;
+}
+
 a{
   color:#7db4ff;
 }
@@ -443,12 +448,13 @@ input[type="checkbox"]{
             <th>Extras</th>
             <th>Foto</th>
             <th>Precio</th>
+            <th>Origen</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tbodyEntregas">
           <tr>
-            <td colspan="16" class="empty">Cargando entregas...</td>
+            <td colspan="17" class="empty">Cargando entregas...</td>
           </tr>
         </tbody>
       </table>
@@ -659,12 +665,15 @@ if (
   !sesion ||
   (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
 ) {
-  window.location.href = "login.html";
+  window.location.href = "login.html?logout=1";
 }
 
 window.cerrarSesion = function(){
   try {
     localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
     sessionStorage.clear();
   } catch (e) {
     console.error("Error limpiando sesión:", e);
@@ -683,7 +692,7 @@ async function cargarInfoEmpresaActual() {
   try {
     if (sesion.role === "admin_global") {
       panelTitle.innerText = "Albaranes - Admin General";
-      panelSubtitle.innerText = "Viendo todas las entregas de todas las empresas";
+      panelSubtitle.innerText = "Viendo entregas de todas las empresas";
       empresaActual = null;
       return;
     }
@@ -931,13 +940,63 @@ function actualizarKpis(lista) {
   kpiTrampillas.innerText = String(lista.filter(x => !!x.trampilla).length);
 }
 
+function normalizarEntregaNueva(entrega) {
+  return {
+    id: entrega.id,
+    empresa_id: entrega.empresa_id,
+    created_at: entrega.fecha || entrega.created_at || null,
+    driver_name: entrega.driver_nombre || entrega.driver_name || entrega.conductor_nombre || "",
+    vehicle_plate: entrega.matricula || entrega.vehicle_plate || "",
+    client_name: entrega.cliente || entrega.client_name || "",
+    pickup_place: entrega.lugar_carga || entrega.pickup_place || "",
+    dropoff_place: entrega.lugar_descarga || entrega.dropoff_place || "",
+    num_entregas: entrega.num_entregas ?? null,
+    bultos: entrega.bultos ?? null,
+    kg: entrega.kg ?? null,
+    m3: entrega.m3 ?? null,
+    observations: entrega.observaciones || entrega.observations || "",
+    mozo: !!entrega.mozo,
+    trampilla: !!entrega.trampilla,
+    urgente: !!entrega.urgente,
+    distance_km: entrega.distance_km ?? null,
+    price_eur: entrega.precio ?? entrega.price_eur ?? null,
+    photo_url: entrega.foto_url || entrega.photo_url || null,
+    source_table: "entregas"
+  };
+}
+
+function normalizarEntregaLegacy(entrega) {
+  return {
+    id: entrega.id,
+    empresa_id: entrega.empresa_id,
+    created_at: entrega.created_at || null,
+    driver_name: entrega.driver_name || "",
+    vehicle_plate: entrega.vehicle_plate || "",
+    client_name: entrega.client_name || "",
+    pickup_place: entrega.pickup_place || "",
+    dropoff_place: entrega.dropoff_place || "",
+    num_entregas: entrega.num_entregas ?? null,
+    bultos: entrega.bultos ?? null,
+    kg: entrega.kg ?? null,
+    m3: entrega.m3 ?? null,
+    observations: entrega.observations || "",
+    mozo: !!entrega.mozo,
+    trampilla: !!entrega.trampilla,
+    urgente: !!entrega.urgente,
+    distance_km: entrega.distance_km ?? null,
+    price_eur: entrega.price_eur ?? null,
+    photo_url: entrega.photo_url || null,
+    source_table: "deliveries"
+  };
+}
+
 function renderEntregas(lista) {
   actualizarKpis(lista);
 
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="16" class="empty">No hay entregas que coincidan con el filtro.</td>
+        <td colspan="17" class="empty">No hay entregas que coincidan con el filtro.</td>
       </tr>
     `;
     return;
@@ -959,6 +1018,10 @@ function renderEntregas(lista) {
         <img class="thumb" src="${escapeHtml(entrega.photo_url)}" alt="Foto entrega" onclick="abrirModal('${escapeHtml(entrega.photo_url)}')">
       `
       : "Sin foto";
+
+    const origenHtml = entrega.source_table === "deliveries"
+      ? `<span class="badge legacy">Legacy</span>`
+      : `<span class="badge info">Nueva</span>`;
 
     const acciones = puedeEditarEntrega(entrega)
       ? `
@@ -989,6 +1052,7 @@ function renderEntregas(lista) {
         <td>${extras}</td>
         <td>${fotoHtml}</td>
         <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
+        <td>${origenHtml}</td>
         <td>${acciones}</td>
       </tr>
     `;
@@ -1037,53 +1101,127 @@ function aplicarFiltros() {
   renderEntregas(filtradas);
 }
 
+async function cargarEntregasNuevaTabla() {
+  let query = supabase
+    .from("entregas")
+    .select(`
+      id,
+      empresa_id,
+      fecha,
+      created_at,
+      cliente,
+      cliente_id,
+      lugar_carga,
+      lugar_descarga,
+      num_entregas,
+      bultos,
+      kg,
+      m3,
+      observaciones,
+      mozo,
+      trampilla,
+      urgente,
+      matricula,
+      estado,
+      foto_url,
+      conductor_id,
+      precio,
+      driver_name,
+      conductor_nombre
+    `)
+    .order("fecha", { ascending: false });
+
+  if (sesion.role === "admin_empresa") {
+    query = query.eq("empresa_id", sesion.empresa_id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.warn("No se pudieron cargar entregas nuevas:", error.message);
+    return [];
+  }
+
+  return (data || []).map(normalizarEntregaNueva);
+}
+
+async function cargarEntregasLegacy() {
+  let query = supabase
+    .from("deliveries")
+    .select(`
+      id,
+      empresa_id,
+      created_at,
+      driver_name,
+      vehicle_plate,
+      client_name,
+      pickup_place,
+      dropoff_place,
+      num_entregas,
+      bultos,
+      kg,
+      m3,
+      observations,
+      mozo,
+      trampilla,
+      urgente,
+      distance_km,
+      price_eur,
+      photo_url
+    `)
+    .order("created_at", { ascending: false });
+
+  if (sesion.role === "admin_empresa") {
+    query = query.eq("empresa_id", sesion.empresa_id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.warn("No se pudieron cargar deliveries legacy:", error.message);
+    return [];
+  }
+
+  return (data || []).map(normalizarEntregaLegacy);
+}
+
 async function cargarEntregas() {
   try {
     statusEl.innerText = "Cargando entregas...";
 
-    let query = supabase
-      .from("deliveries")
-      .select(`
-        id,
-        empresa_id,
-        created_at,
-        driver_name,
-        vehicle_plate,
-        client_name,
-        pickup_place,
-        dropoff_place,
-        num_entregas,
-        bultos,
-        kg,
-        m3,
-        observations,
-        mozo,
-        trampilla,
-        urgente,
-        distance_km,
-        price_eur,
-        photo_url
-      `)
-      .order("created_at", { ascending: false });
+    const nuevas = await cargarEntregasNuevaTabla();
+    const legacy = await cargarEntregasLegacy();
 
-    if (sesion.role === "admin_empresa") {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
+    const mapa = new Map();
 
-    const { data, error } = await query;
+    legacy.forEach(item => {
+      mapa.set("deliveries-" + item.id, item);
+    });
 
-    if (error) {
-      statusEl.innerText = "Error cargando entregas: " + error.message;
-      tbodyEntregas.innerHTML = `
-        <tr>
-          <td colspan="16" class="empty">No se pudieron cargar las entregas.</td>
-        </tr>
-      `;
-      actualizarKpis([]);
-      return;
-    }
+    nuevas.forEach(item => {
+      const clavePosibleLegacy = Array.from(mapa.keys()).find(k => {
+        const l = mapa.get(k);
+        return String(l.empresa_id || "") === String(item.empresa_id || "")
+          && String(l.client_name || "").trim() === String(item.client_name || "").trim()
+          && String(l.vehicle_plate || "").trim() === String(item.vehicle_plate || "").trim()
+          && String(l.pickup_place || "").trim() === String(item.pickup_place || "").trim()
+          && String(l.dropoff_place || "").trim() === String(item.dropoff_place || "").trim()
+          && String(l.created_at || "").slice(0,10) === String(item.created_at || "").slice(0,10);
+      });
 
-    entregasGlobal = data || [];
+      if (clavePosibleLegacy) {
+        mapa.delete(clavePosibleLegacy);
+      }
+
+      mapa.set("entregas-" + item.id, item);
+    });
+
+    entregasGlobal = Array.from(mapa.values()).sort((a, b) => {
+      const fa = new Date(a.created_at || 0).getTime();
+      const fb = new Date(b.created_at || 0).getTime();
+      return fb - fa;
+    });
+
     aplicarFiltros();
 
     if (sesion.role === "admin_empresa") {
@@ -1095,7 +1233,7 @@ async function cargarEntregas() {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="16" class="empty">Error inesperado al cargar entregas.</td>
+        <td colspan="17" class="empty">Error inesperado al cargar entregas.</td>
       </tr>
     `;
     actualizarKpis([]);
@@ -1146,7 +1284,7 @@ function pintarVistaInditexEdicion(datos) {
 }
 
 window.editarEntrega = function(id) {
-  const entrega = entregasGlobal.find(e => e.id === id);
+  const entrega = entregasGlobal.find(e => String(e.id) === String(id));
 
   if (!entrega) {
     alert("No se encontró la entrega");
@@ -1208,7 +1346,7 @@ window.guardarCambiosEntrega = async function() {
     return;
   }
 
-  const entregaOriginal = entregasGlobal.find(e => e.id === entregaEditandoId);
+  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(entregaEditandoId));
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega original");
@@ -1228,39 +1366,75 @@ window.guardarCambiosEntrega = async function() {
       datosInditexEditando
     );
 
-    const datosActualizados = {
-      driver_name: editDriverName.value.trim() || null,
-      vehicle_plate: editVehiclePlate.value.trim() || null,
-      client_name: editClientName.value.trim() || null,
-      pickup_place: editPickupPlace.value.trim() || null,
-      dropoff_place: editDropoffPlace.value.trim() || null,
-      num_entregas: normalizarNumero(editNumEntregas.value),
-      bultos: normalizarNumero(editBultos.value),
-      kg: normalizarNumero(editKg.value),
-      m3: normalizarNumero(editM3.value),
-      distance_km: normalizarNumero(editDistanceKm.value),
-      price_eur: normalizarNumero(editPriceEur.value),
-      observations: observationsFinal,
-      mozo: editMozo.checked,
-      trampilla: editTrampilla.checked,
-      urgente: editUrgente.checked
-    };
+    if (entregaOriginal.source_table === "entregas") {
+      const datosActualizadosNueva = {
+        cliente: editClientName.value.trim() || null,
+        lugar_carga: editPickupPlace.value.trim() || null,
+        lugar_descarga: editDropoffPlace.value.trim() || null,
+        num_entregas: normalizarNumero(editNumEntregas.value),
+        bultos: normalizarNumero(editBultos.value),
+        kg: normalizarNumero(editKg.value),
+        m3: normalizarNumero(editM3.value),
+        observaciones: observationsFinal,
+        mozo: editMozo.checked,
+        trampilla: editTrampilla.checked,
+        urgente: editUrgente.checked,
+        matricula: editVehiclePlate.value.trim() || null,
+        precio: normalizarNumero(editPriceEur.value),
+        driver_name: editDriverName.value.trim() || null
+      };
 
-    let query = supabase
-      .from("deliveries")
-      .update(datosActualizados)
-      .eq("id", entregaEditandoId);
+      let queryNueva = supabase
+        .from("entregas")
+        .update(datosActualizadosNueva)
+        .eq("id", entregaEditandoId);
 
-    if (sesion.role === "admin_empresa") {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
+      if (sesion.role === "admin_empresa") {
+        queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
+      }
 
-    const { error } = await query;
+      const { error } = await queryNueva;
 
-    if (error) {
-      alert("Error guardando cambios: " + error.message);
-      statusEl.innerText = "Error guardando cambios: " + error.message;
-      return;
+      if (error) {
+        alert("Error guardando cambios: " + error.message);
+        statusEl.innerText = "Error guardando cambios: " + error.message;
+        return;
+      }
+    } else {
+      const datosActualizadosLegacy = {
+        driver_name: editDriverName.value.trim() || null,
+        vehicle_plate: editVehiclePlate.value.trim() || null,
+        client_name: editClientName.value.trim() || null,
+        pickup_place: editPickupPlace.value.trim() || null,
+        dropoff_place: editDropoffPlace.value.trim() || null,
+        num_entregas: normalizarNumero(editNumEntregas.value),
+        bultos: normalizarNumero(editBultos.value),
+        kg: normalizarNumero(editKg.value),
+        m3: normalizarNumero(editM3.value),
+        distance_km: normalizarNumero(editDistanceKm.value),
+        price_eur: normalizarNumero(editPriceEur.value),
+        observations: observationsFinal,
+        mozo: editMozo.checked,
+        trampilla: editTrampilla.checked,
+        urgente: editUrgente.checked
+      };
+
+      let queryLegacy = supabase
+        .from("deliveries")
+        .update(datosActualizadosLegacy)
+        .eq("id", entregaEditandoId);
+
+      if (sesion.role === "admin_empresa") {
+        queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
+      }
+
+      const { error } = await queryLegacy;
+
+      if (error) {
+        alert("Error guardando cambios: " + error.message);
+        statusEl.innerText = "Error guardando cambios: " + error.message;
+        return;
+      }
     }
 
     cerrarEditModal();
@@ -1273,7 +1447,7 @@ window.guardarCambiosEntrega = async function() {
 };
 
 async function borrarEntrega(id) {
-  const entregaOriginal = entregasGlobal.find(e => e.id === id);
+  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(id));
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega");
@@ -1291,21 +1465,40 @@ async function borrarEntrega(id) {
   try {
     statusEl.innerText = "Borrando entrega...";
 
-    let query = supabase
-      .from("deliveries")
-      .delete()
-      .eq("id", id);
+    if (entregaOriginal.source_table === "entregas") {
+      let queryNueva = supabase
+        .from("entregas")
+        .delete()
+        .eq("id", id);
 
-    if (sesion.role === "admin_empresa") {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
+      if (sesion.role === "admin_empresa") {
+        queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
+      }
 
-    const { error } = await query;
+      const { error } = await queryNueva;
 
-    if (error) {
-      alert("Error borrando: " + error.message);
-      statusEl.innerText = "Error borrando: " + error.message;
-      return;
+      if (error) {
+        alert("Error borrando: " + error.message);
+        statusEl.innerText = "Error borrando: " + error.message;
+        return;
+      }
+    } else {
+      let queryLegacy = supabase
+        .from("deliveries")
+        .delete()
+        .eq("id", id);
+
+      if (sesion.role === "admin_empresa") {
+        queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
+      }
+
+      const { error } = await queryLegacy;
+
+      if (error) {
+        alert("Error borrando: " + error.message);
+        statusEl.innerText = "Error borrando: " + error.message;
+        return;
+      }
     }
 
     statusEl.innerText = "Entrega borrada correctamente";
