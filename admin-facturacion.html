@@ -108,7 +108,7 @@ input, select, textarea{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1650px;
+  min-width:1750px;
   background:#121b2f;
 }
 
@@ -159,6 +159,26 @@ th{
 .muted{
   color:#b7c3dd;
   font-size:13px;
+}
+
+.legacy{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  background:#6a4b16;
+  color:#ffe2b0;
+}
+
+.nueva{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  background:#274d8a;
+  color:#fff;
 }
 
 .invoicePreview{
@@ -349,6 +369,7 @@ th{
       <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
       <button class="sec" onclick="cargarDatos()">Actualizar</button>
       <button onclick="guardarPreciosCalculados()">Guardar precios</button>
+      <button class="sec" onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
 
@@ -532,12 +553,13 @@ th{
             <th>Trampilla</th>
             <th>Urgente</th>
             <th>Importe</th>
+            <th>Origen</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tbodyFactura">
           <tr>
-            <td colspan="15">Cargando...</td>
+            <td colspan="16">Cargando...</td>
           </tr>
         </tbody>
       </table>
@@ -633,7 +655,7 @@ const supabase = createClient(
   "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
 );
 
-const EMPRESA = {
+const EMPRESA_DEFAULT = {
   nombre: "Dutti Trans, S.L",
   nif: "B83282897",
   direccion: "C. de Tierra de Barros, 2, 28823 Coslada, Madrid",
@@ -701,11 +723,25 @@ let entregasCalculadas = [];
 let empresaActual = null;
 let entregaEditandoId = null;
 
+window.cerrarSesion = function(){
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error limpiando sesión:", e);
+  }
+
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
+
 async function cargarInfoEmpresaActual() {
   try {
     if (sesion.role === "admin_global") {
       pageTitle.innerText = "Facturación - Admin General";
-      pageSubtitle.innerText = "Viendo y facturando todas las entregas";
+      pageSubtitle.innerText = "Viendo y facturando entregas de todas las empresas";
       empresaActual = null;
       return;
     }
@@ -719,7 +755,7 @@ async function cargarInfoEmpresaActual() {
 
     const { data, error } = await supabase
       .from("empresas")
-      .select("id,nombre,email,telefono")
+      .select("id,nombre,cif,direccion,telefono,email")
       .eq("id", sesion.empresa_id)
       .limit(1);
 
@@ -740,6 +776,19 @@ async function cargarInfoEmpresaActual() {
     pageTitle.innerText = "Facturación - Admin Empresa";
     pageSubtitle.innerText = "Error cargando empresa";
   }
+}
+
+function obtenerEmpresaFactura() {
+  if (!empresaActual) return EMPRESA_DEFAULT;
+
+  return {
+    nombre: empresaActual.nombre || EMPRESA_DEFAULT.nombre,
+    nif: empresaActual.cif || EMPRESA_DEFAULT.nif,
+    direccion: empresaActual.direccion || EMPRESA_DEFAULT.direccion,
+    telefono: empresaActual.telefono || EMPRESA_DEFAULT.telefono,
+    email: empresaActual.email || EMPRESA_DEFAULT.email,
+    logo: EMPRESA_DEFAULT.logo
+  };
 }
 
 function numero(valor) {
@@ -876,6 +925,58 @@ window.guardarDatosFactura = function() {
   statusEl.innerText = "Datos de factura guardados correctamente";
 };
 
+function puedeEditarEntrega(entrega) {
+  if (sesion.role === "admin_global") return true;
+  if (sesion.role === "admin_empresa") {
+    return String(entrega.empresa_id || "") === String(sesion.empresa_id || "");
+  }
+  return false;
+}
+
+function normalizarEntregaNueva(entrega) {
+  return {
+    id: entrega.id,
+    empresa_id: entrega.empresa_id,
+    created_at: entrega.fecha || entrega.created_at || null,
+    driver_name: entrega.driver_name || entrega.conductor_nombre || "",
+    client_name: entrega.cliente || "",
+    vehicle_plate: entrega.matricula || "",
+    pickup_place: entrega.lugar_carga || "",
+    dropoff_place: entrega.lugar_descarga || "",
+    num_entregas: entrega.num_entregas ?? null,
+    bultos: entrega.bultos ?? null,
+    kg: entrega.kg ?? null,
+    m3: entrega.m3 ?? null,
+    mozo: !!entrega.mozo,
+    trampilla: !!entrega.trampilla,
+    urgente: !!entrega.urgente,
+    price_eur: entrega.precio ?? null,
+    source_table: "entregas"
+  };
+}
+
+function normalizarEntregaLegacy(entrega) {
+  return {
+    id: entrega.id,
+    empresa_id: entrega.empresa_id,
+    created_at: entrega.created_at || null,
+    driver_name: entrega.driver_name || "",
+    client_name: entrega.client_name || "",
+    vehicle_plate: entrega.vehicle_plate || "",
+    pickup_place: entrega.pickup_place || "",
+    dropoff_place: entrega.dropoff_place || "",
+    num_entregas: entrega.num_entregas ?? null,
+    bultos: entrega.bultos ?? null,
+    kg: entrega.kg ?? null,
+    m3: entrega.m3 ?? null,
+    mozo: !!entrega.mozo,
+    trampilla: !!entrega.trampilla,
+    urgente: !!entrega.urgente,
+    price_eur: entrega.price_eur ?? null,
+    source_table: "deliveries"
+  };
+}
+
 function calcularImporte(entrega) {
   const tarifas = obtenerTarifas();
   const cliente = String(entrega.client_name || "").trim().toLowerCase();
@@ -941,7 +1042,7 @@ window.aplicarFiltrosYCalculo = function() {
   const hasta = dateTo.value;
 
   const lista = entregasGlobal.filter(entrega => {
-    const fecha = entrega.created_at ? entrega.created_at.slice(0,10) : "";
+    const fecha = entrega.created_at ? String(entrega.created_at).slice(0,10) : "";
 
     if (driver && entrega.driver_name !== driver) return false;
     if (client && entrega.client_name !== client) return false;
@@ -959,19 +1060,11 @@ window.aplicarFiltrosYCalculo = function() {
   renderFactura(entregasCalculadas);
 };
 
-function puedeEditarEntrega(entrega) {
-  if (sesion.role === "admin_global") return true;
-  if (sesion.role === "admin_empresa") {
-    return String(entrega.empresa_id || "") === String(sesion.empresa_id || "");
-  }
-  return false;
-}
-
 function renderFactura(lista) {
   if (!lista.length) {
     tbodyFactura.innerHTML = `
       <tr>
-        <td colspan="15">No hay entregas para esos filtros.</td>
+        <td colspan="16">No hay entregas para esos filtros.</td>
       </tr>
     `;
     kpiEntregas.innerText = "0";
@@ -982,6 +1075,10 @@ function renderFactura(lista) {
   }
 
   tbodyFactura.innerHTML = lista.map(entrega => {
+    const origen = entrega.source_table === "deliveries"
+      ? `<span class="legacy">Legacy</span>`
+      : `<span class="nueva">Nueva</span>`;
+
     const acciones = puedeEditarEntrega(entrega)
       ? `<button class="smallBtn sec" onclick="editarEntregaFactura('${entrega.id}')">Editar</button>`
       : `<span class="muted">Sin permiso</span>`;
@@ -1002,6 +1099,7 @@ function renderFactura(lista) {
         <td>${entrega.trampilla ? "Sí" : "No"}</td>
         <td>${entrega.urgente ? "Sí" : "No"}</td>
         <td><strong>${formatearEuros(entrega.importe_calculado)}</strong></td>
+        <td>${origen}</td>
         <td>${acciones}</td>
       </tr>
     `;
@@ -1022,6 +1120,7 @@ function construirHtmlFactura() {
     return `<div>No hay entregas filtradas para generar factura.</div>`;
   }
 
+  const EMPRESA = obtenerEmpresaFactura();
   const base = entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
   const ivaPorcentaje = numero(invoiceVat.value);
   const ivaImporte = base * (ivaPorcentaje / 100);
@@ -1254,7 +1353,7 @@ window.cerrarEditModalSiFondo = function(event) {
 };
 
 window.editarEntregaFactura = function(id) {
-  const entrega = entregasGlobal.find(e => e.id === id);
+  const entrega = entregasGlobal.find(e => String(e.id) === String(id));
 
   if (!entrega) {
     alert("No se encontró la entrega");
@@ -1291,7 +1390,7 @@ window.guardarCambiosEntregaFactura = async function() {
     return;
   }
 
-  const entregaOriginal = entregasGlobal.find(e => e.id === entregaEditandoId);
+  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(entregaEditandoId));
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega original");
@@ -1306,37 +1405,72 @@ window.guardarCambiosEntregaFactura = async function() {
   try {
     statusEl.innerText = "Guardando cambios...";
 
-    const datosActualizados = {
-      driver_name: editDriverName.value.trim() || null,
-      client_name: editClientName.value.trim() || null,
-      vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
-      pickup_place: editPickupPlace.value.trim() || null,
-      dropoff_place: editDropoffPlace.value.trim() || null,
-      num_entregas: normalizarNumero(editNumEntregas.value),
-      bultos: normalizarNumero(editBultos.value),
-      kg: normalizarNumero(editKg.value),
-      m3: normalizarNumero(editM3.value),
-      price_eur: normalizarNumero(editPriceEur.value),
-      mozo: editMozo.checked,
-      trampilla: editTrampilla.checked,
-      urgente: editUrgente.checked
-    };
+    if (entregaOriginal.source_table === "entregas") {
+      const datosActualizadosNueva = {
+        driver_name: editDriverName.value.trim() || null,
+        cliente: editClientName.value.trim() || null,
+        matricula: editVehiclePlate.value.trim().toUpperCase() || null,
+        lugar_carga: editPickupPlace.value.trim() || null,
+        lugar_descarga: editDropoffPlace.value.trim() || null,
+        num_entregas: normalizarNumero(editNumEntregas.value),
+        bultos: normalizarNumero(editBultos.value),
+        kg: normalizarNumero(editKg.value),
+        m3: normalizarNumero(editM3.value),
+        precio: normalizarNumero(editPriceEur.value),
+        mozo: editMozo.checked,
+        trampilla: editTrampilla.checked,
+        urgente: editUrgente.checked
+      };
 
-    let query = supabase
-      .from("deliveries")
-      .update(datosActualizados)
-      .eq("id", entregaEditandoId);
+      let queryNueva = supabase
+        .from("entregas")
+        .update(datosActualizadosNueva)
+        .eq("id", entregaEditandoId);
 
-    if (sesion.role === "admin_empresa") {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
+      if (sesion.role === "admin_empresa") {
+        queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
+      }
 
-    const { error } = await query;
+      const { error } = await queryNueva;
 
-    if (error) {
-      alert("Error guardando cambios: " + error.message);
-      statusEl.innerText = "Error guardando cambios: " + error.message;
-      return;
+      if (error) {
+        alert("Error guardando cambios: " + error.message);
+        statusEl.innerText = "Error guardando cambios: " + error.message;
+        return;
+      }
+    } else {
+      const datosActualizadosLegacy = {
+        driver_name: editDriverName.value.trim() || null,
+        client_name: editClientName.value.trim() || null,
+        vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
+        pickup_place: editPickupPlace.value.trim() || null,
+        dropoff_place: editDropoffPlace.value.trim() || null,
+        num_entregas: normalizarNumero(editNumEntregas.value),
+        bultos: normalizarNumero(editBultos.value),
+        kg: normalizarNumero(editKg.value),
+        m3: normalizarNumero(editM3.value),
+        price_eur: normalizarNumero(editPriceEur.value),
+        mozo: editMozo.checked,
+        trampilla: editTrampilla.checked,
+        urgente: editUrgente.checked
+      };
+
+      let queryLegacy = supabase
+        .from("deliveries")
+        .update(datosActualizadosLegacy)
+        .eq("id", entregaEditandoId);
+
+      if (sesion.role === "admin_empresa") {
+        queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
+      }
+
+      const { error } = await queryLegacy;
+
+      if (error) {
+        alert("Error guardando cambios: " + error.message);
+        statusEl.innerText = "Error guardando cambios: " + error.message;
+        return;
+      }
     }
 
     cerrarEditModal();
@@ -1348,50 +1482,119 @@ window.guardarCambiosEntregaFactura = async function() {
   }
 };
 
+async function cargarDatosNuevaTabla() {
+  let query = supabase
+    .from("entregas")
+    .select(`
+      id,
+      empresa_id,
+      fecha,
+      created_at,
+      cliente,
+      lugar_carga,
+      lugar_descarga,
+      num_entregas,
+      bultos,
+      kg,
+      m3,
+      mozo,
+      trampilla,
+      urgente,
+      precio,
+      driver_name,
+      conductor_nombre,
+      matricula
+    `)
+    .order("fecha", { ascending: false });
+
+  if (sesion.role === "admin_empresa") {
+    query = query.eq("empresa_id", sesion.empresa_id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.warn("No se pudieron cargar entregas nuevas:", error.message);
+    return [];
+  }
+
+  return (data || []).map(normalizarEntregaNueva);
+}
+
+async function cargarDatosLegacy() {
+  let query = supabase
+    .from("deliveries")
+    .select(`
+      id,
+      empresa_id,
+      created_at,
+      driver_name,
+      vehicle_plate,
+      client_name,
+      pickup_place,
+      dropoff_place,
+      num_entregas,
+      bultos,
+      kg,
+      m3,
+      mozo,
+      trampilla,
+      urgente,
+      price_eur
+    `)
+    .order("created_at", { ascending: false });
+
+  if (sesion.role === "admin_empresa") {
+    query = query.eq("empresa_id", sesion.empresa_id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.warn("No se pudieron cargar deliveries legacy:", error.message);
+    return [];
+  }
+
+  return (data || []).map(normalizarEntregaLegacy);
+}
+
 async function cargarDatos() {
   try {
     statusEl.innerText = "Cargando entregas...";
 
-    let query = supabase
-      .from("deliveries")
-      .select(`
-        id,
-        empresa_id,
-        created_at,
-        driver_name,
-        vehicle_plate,
-        client_name,
-        pickup_place,
-        dropoff_place,
-        num_entregas,
-        bultos,
-        kg,
-        m3,
-        observations,
-        mozo,
-        trampilla,
-        urgente,
-        price_eur
-      `)
-      .order("created_at", { ascending: false });
+    const nuevas = await cargarDatosNuevaTabla();
+    const legacy = await cargarDatosLegacy();
 
-    if (sesion.role === "admin_empresa") {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
+    const mapa = new Map();
 
-    const { data, error } = await query;
+    legacy.forEach(item => {
+      mapa.set("deliveries-" + item.id, item);
+    });
 
-    if (error) {
-      statusEl.innerText = "Error cargando datos: " + error.message;
-      tbodyFactura.innerHTML = `
-        <tr>
-          <td colspan="15">No se pudieron cargar las entregas.</td>
-        </tr>
-      `;
-      return;
-    }
+    nuevas.forEach(item => {
+      const clavePosibleLegacy = Array.from(mapa.keys()).find(k => {
+        const l = mapa.get(k);
+        return String(l.empresa_id || "") === String(item.empresa_id || "")
+          && String(l.client_name || "").trim() === String(item.client_name || "").trim()
+          && String(l.vehicle_plate || "").trim() === String(item.vehicle_plate || "").trim()
+          && String(l.pickup_place || "").trim() === String(item.pickup_place || "").trim()
+          && String(l.dropoff_place || "").trim() === String(item.dropoff_place || "").trim()
+          && String(l.created_at || "").slice(0,10) === String(item.created_at || "").slice(0,10);
+      });
 
-    entregasGlobal = data || [];
+      if (clavePosibleLegacy) {
+        mapa.delete(clavePosibleLegacy);
+      }
+
+      mapa.set("entregas-" + item.id, item);
+    });
+
+    entregasGlobal = Array.from(mapa.values()).sort((a, b) => {
+      const fa = new Date(a.created_at || 0).getTime();
+      const fb = new Date(b.created_at || 0).getTime();
+      return fb - fa;
+    });
+
     rellenarFiltros(entregasGlobal);
     aplicarFiltrosYCalculo();
 
@@ -1400,6 +1603,11 @@ async function cargarDatos() {
       : "Entregas cargadas: " + entregasGlobal.length;
   } catch (e) {
     statusEl.innerText = "Fallo cargando datos: " + e.message;
+    tbodyFactura.innerHTML = `
+      <tr>
+        <td colspan="16">No se pudieron cargar las entregas.</td>
+      </tr>
+    `;
   }
 }
 
@@ -1415,21 +1623,38 @@ async function guardarPreciosCalculados() {
     statusEl.innerText = "Guardando precios calculados...";
 
     for (const entrega of entregasCalculadas) {
-      let query = supabase
-        .from("deliveries")
-        .update({ price_eur: entrega.importe_calculado })
-        .eq("id", entrega.id);
+      if (entrega.source_table === "entregas") {
+        let queryNueva = supabase
+          .from("entregas")
+          .update({ precio: entrega.importe_calculado })
+          .eq("id", entrega.id);
 
-      if (sesion.role === "admin_empresa") {
-        query = query.eq("empresa_id", sesion.empresa_id);
-      }
+        if (sesion.role === "admin_empresa") {
+          queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
+        }
 
-      const { error } = await query;
+        const { error } = await queryNueva;
+        if (error) {
+          alert("Error guardando en una entrega: " + error.message);
+          statusEl.innerText = "Error guardando precios";
+          return;
+        }
+      } else {
+        let queryLegacy = supabase
+          .from("deliveries")
+          .update({ price_eur: entrega.importe_calculado })
+          .eq("id", entrega.id);
 
-      if (error) {
-        alert("Error guardando en una entrega: " + error.message);
-        statusEl.innerText = "Error guardando precios";
-        return;
+        if (sesion.role === "admin_empresa") {
+          queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
+        }
+
+        const { error } = await queryLegacy;
+        if (error) {
+          alert("Error guardando en una entrega: " + error.message);
+          statusEl.innerText = "Error guardando precios";
+          return;
+        }
       }
     }
 
