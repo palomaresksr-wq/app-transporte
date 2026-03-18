@@ -15,9 +15,7 @@
   --muted:#b7c3dd;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
@@ -114,14 +112,21 @@ h1{
   font-weight:bold;
 }
 
-@media (max-width:700px){
-  body{
-    padding:12px;
-  }
+.badgeEmpresa{
+  display:inline-block;
+  margin-top:10px;
+  margin-left:8px;
+  background:rgba(255,255,255,.08);
+  color:#d7e3ff;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
 
-  h1{
-    font-size:24px;
-  }
+@media (max-width:700px){
+  body{padding:12px;}
+  h1{font-size:24px;}
 }
 </style>
 </head>
@@ -132,7 +137,11 @@ h1{
   <div class="topCard">
     <h1>Menú administración</h1>
     <div class="sub">Selecciona el área que quieres gestionar</div>
-    <div class="badge" id="nombreAdmin">Administrador</div>
+
+    <div>
+      <span class="badge" id="nombreAdmin">Administrador</span>
+      <span class="badgeEmpresa" id="empresaAdmin" style="display:none;">Empresa</span>
+    </div>
 
     <div class="actions">
       <button class="btnSec" onclick="cerrarSesion()">Salir</button>
@@ -152,7 +161,7 @@ h1{
 
     <a class="menuBtn" href="admin-fichajes.html">
       <div class="title">Fichajes</div>
-      <div class="desc">Consultar entradas, salidas, ubicación y horas de los conductores.</div>
+      <div class="desc">Consultar entradas, salidas y horas de los conductores.</div>
     </a>
 
     <a class="menuBtn" href="admin-vacaciones.html">
@@ -171,11 +180,22 @@ if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa
 }
 
 const nombreAdminEl = document.getElementById("nombreAdmin");
+const empresaAdminEl = document.getElementById("empresaAdmin");
+
 nombreAdminEl.innerText = sesion?.nombre || sesion?.username || "Administrador";
+
+// 🔥 MOSTRAR EMPRESA (CLAVE PARA ESCALAR)
+if (sesion?.empresa_id) {
+  empresaAdminEl.style.display = "inline-block";
+  empresaAdminEl.innerText = "Empresa ID: " + sesion.empresa_id;
+}
 
 function cerrarSesion(){
   try{
     localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
     sessionStorage.clear();
   }catch(e){
     console.error(e);
