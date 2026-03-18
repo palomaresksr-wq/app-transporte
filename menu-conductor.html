@@ -113,6 +113,18 @@ h1{
   font-weight:bold;
 }
 
+.badgeEmpresa{
+  display:inline-block;
+  margin-top:10px;
+  margin-left:8px;
+  background:rgba(255,255,255,.08);
+  color:#d7e3ff;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
 @media (max-width:700px){
   body{
     padding:12px;
@@ -131,7 +143,10 @@ h1{
   <div class="topCard">
     <h1>Menú conductor</h1>
     <div class="sub">Selecciona la opción que quieras usar</div>
-    <div class="badge" id="nombreUsuario">Usuario</div>
+    <div>
+      <span class="badge" id="nombreUsuario">Usuario</span>
+      <span class="badgeEmpresa" id="empresaUsuario" style="display:none;">Empresa</span>
+    </div>
 
     <div class="actions">
       <button class="btnSec" onclick="cerrarSesion()">Salir</button>
@@ -146,7 +161,7 @@ h1{
 
     <a class="menuBtn" href="selector-cliente.html">
       <div class="title">Albaranes</div>
-      <div class="desc">Entrar al selector de cliente y registrar entregas.</div>
+      <div class="desc">Elegir cliente y registrar entregas en el nuevo formulario único.</div>
     </a>
 
     <a class="menuBtn" href="vacaciones.html">
@@ -165,11 +180,21 @@ if (!sesion || sesion.role !== "driver") {
 }
 
 const nombreUsuarioEl = document.getElementById("nombreUsuario");
+const empresaUsuarioEl = document.getElementById("empresaUsuario");
+
 nombreUsuarioEl.innerText = sesion?.nombre || sesion?.username || "Conductor";
+
+if (sesion?.empresa_id) {
+  empresaUsuarioEl.style.display = "inline-block";
+  empresaUsuarioEl.innerText = "Empresa ID: " + sesion.empresa_id;
+}
 
 function cerrarSesion(){
   try{
     localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
     sessionStorage.clear();
   }catch(e){
     console.error(e);
