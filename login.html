@@ -93,8 +93,21 @@ const forzarLogin = params.get("forzar") === "1";
 
 if (logoutMode) {
   localStorage.removeItem("sesionAppTransporte");
+  localStorage.removeItem("clienteSeleccionado");
+  localStorage.removeItem("cliente_id_actual");
+  localStorage.removeItem("cliente_nombre_actual");
   sessionStorage.clear();
   statusEl.innerText = "Sesión cerrada correctamente";
+}
+
+function limpiarDatosClienteSeleccionado() {
+  localStorage.removeItem("clienteSeleccionado");
+  localStorage.removeItem("cliente_id_actual");
+  localStorage.removeItem("cliente_nombre_actual");
+}
+
+function guardarSesion(data) {
+  localStorage.setItem("sesionAppTransporte", JSON.stringify(data));
 }
 
 function redirigirSegunSesion(sesion){
@@ -175,22 +188,24 @@ async function entrar() {
       return;
     }
 
+    limpiarDatosClienteSeleccionado();
+
     if (username === SUPERADMIN_FIJO.username && password === SUPERADMIN_FIJO.password) {
-      localStorage.setItem("sesionAppTransporte", JSON.stringify({
+      guardarSesion({
         username: SUPERADMIN_FIJO.username,
         role: "superadmin"
-      }));
+      });
       window.location.replace("superadmin.html");
       return;
     }
 
     if (username === ADMIN_FIJO.username && password === ADMIN_FIJO.password) {
-      localStorage.setItem("sesionAppTransporte", JSON.stringify({
+      guardarSesion({
         username: ADMIN_FIJO.username,
         role: "admin_global",
         nombre: "Oficina",
         empresa_id: null
-      }));
+      });
       window.location.replace("menu-admin.html");
       return;
     }
@@ -198,13 +213,13 @@ async function entrar() {
     const adminEmpresa = await buscarAdminEmpresa(username, password);
 
     if (adminEmpresa) {
-      localStorage.setItem("sesionAppTransporte", JSON.stringify({
+      guardarSesion({
         username: adminEmpresa.usuario,
         nombre: adminEmpresa.nombre || "",
         role: "admin_empresa",
         admin_empresa_id: adminEmpresa.id,
         empresa_id: adminEmpresa.empresa_id || null
-      }));
+      });
       window.location.replace("menu-admin.html");
       return;
     }
@@ -216,13 +231,13 @@ async function entrar() {
       return;
     }
 
-    localStorage.setItem("sesionAppTransporte", JSON.stringify({
+    guardarSesion({
       username: conductor.usuario,
       nombre: conductor.nombre || "",
       role: "driver",
       conductor_id: conductor.id,
       empresa_id: conductor.empresa_id || null
-    }));
+    });
 
     window.location.replace("menu-conductor.html");
   } catch (e) {
