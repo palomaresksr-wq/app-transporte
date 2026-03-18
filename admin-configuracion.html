@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Configuración - App Transporte</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --line:rgba(255,255,255,.08);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:var(--text);
+  min-height:100vh;
+  padding:20px;
+}
+
+.wrap{
+  max-width:1400px;
+  margin:0 auto;
+}
+
+.topbar{
+  background:#121b2f;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+}
+
+h2{
+  margin:0 0 14px 0;
+  font-size:22px;
+}
+
+h3{
+  margin:0 0 12px 0;
+  font-size:18px;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:14px;
+}
+
+button, .btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+
+button.sec, .btn.sec{
+  background:#24314f;
+  color:white;
+}
+
+button.danger{
+  background:#8e2f2f;
+  color:#fff;
+}
+
+.card{
+  background:#121b2f;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:700px;
+  background:#121b2f;
+}
+
+th, td{
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:10px;
+  background:rgba(255,122,24,.15);
+  color:#ffb074;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badgeEmpresa{
+  display:inline-block;
+  margin-top:10px;
+  margin-left:8px;
+  background:rgba(255,255,255,.08);
+  color:#d7e3ff;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+#statusGlobal{
+  margin-top:10px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.bloque{
+  background:#18233b;
+  border-radius:12px;
+  padding:14px;
+}
+
+.smallBtn{
+  padding:8px 10px;
+  font-size:12px;
+}
+
+.empty{
+  color:var(--muted);
+  padding:14px 0;
+}
+
+@media (max-width:700px){
+  body{padding:12px}
+  h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1 id="pageTitle">Configuración</h1>
+      <div class="muted" id="pageSubtitle">Gestión de datos de empresa</div>
+      <div>
+        <span class="badge" id="nombreAdmin">Administrador</span>
+        <span class="badgeEmpresa" id="empresaAdmin" style="display:none;">Empresa</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+      <button class="sec" onclick="cargarTodo()">Actualizar</button>
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Altas rápidas</h2>
+    <div class="grid2">
+
+      <div class="bloque">
+        <h3>Nuevo cliente</h3>
+        <div class="grid">
+          <div style="grid-column:1/-1;">
+            <label>Nombre cliente</label>
+            <input id="nuevoClienteNombre" placeholder="Ej: Albepet">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button onclick="crearCliente()">Guardar cliente</button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <h3>Nuevo conductor</h3>
+        <div class="grid">
+          <div>
+            <label>Nombre</label>
+            <input id="nuevoConductorNombre" placeholder="Nombre del conductor">
+          </div>
+          <div>
+            <label>Usuario</label>
+            <input id="nuevoConductorUsuario" placeholder="usuario">
+          </div>
+          <div>
+            <label>Contraseña</label>
+            <input id="nuevoConductorPassword" placeholder="contraseña">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button onclick="crearConductor()">Guardar conductor</button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <h3>Nueva matrícula frecuente</h3>
+        <div class="grid">
+          <div style="grid-column:1/-1;">
+            <label>Matrícula</label>
+            <input id="nuevaMatricula" placeholder="Ej: 1234ABC">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button onclick="crearVehiculoFrecuente()">Guardar matrícula</button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <h3>Nuevo lugar de carga frecuente</h3>
+        <div class="grid">
+          <div style="grid-column:1/-1;">
+            <label>Lugar de carga</label>
+            <input id="nuevoPickup" placeholder="Ej: Coslada">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button onclick="crearPickupFrecuente()">Guardar lugar</button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <h3>Nuevo lugar de descarga frecuente</h3>
+        <div class="grid">
+          <div style="grid-column:1/-1;">
+            <label>Lugar de descarga</label>
+            <input id="nuevoDropoff" placeholder="Ej: Plataforma logística X">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button onclick="crearDropoffFrecuente()">Guardar lugar</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="statusGlobal"></div>
+  </div>
+
+  <div class="grid2">
+
+    <div class="card">
+      <h3>Clientes</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyClientes">
+            <tr><td colspan="2" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Conductores</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyConductores">
+            <tr><td colspan="3" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Matrículas frecuentes</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyVehiculos">
+            <tr><td colspan="2" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Lugares de carga frecuentes</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lugar</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPickups">
+            <tr><td colspan="2" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Lugares de descarga frecuentes</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lugar</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyDropoffs">
+            <tr><td colspan="2" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+  window.location.href = "login.html?logout=1";
+}
+
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
+const nombreAdmin = document.getElementById("nombreAdmin");
+const empresaAdmin = document.getElementById("empresaAdmin");
+const statusGlobal = document.getElementById("statusGlobal");
+
+const tbodyClientes = document.getElementById("tbodyClientes");
+const tbodyConductores = document.getElementById("tbodyConductores");
+const tbodyVehiculos = document.getElementById("tbodyVehiculos");
+const tbodyPickups = document.getElementById("tbodyPickups");
+const tbodyDropoffs = document.getElementById("tbodyDropoffs");
+
+let empresaActual = null;
+
+nombreAdmin.innerText = sesion?.nombre || sesion?.username || "Administrador";
+
+window.cerrarSesion = function(){
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
+    sessionStorage.clear();
+  } catch (e) {
+    console.error(e);
+  }
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
+
+function getEmpresaIdActiva() {
+  if (sesion.role === "admin_empresa") {
+    return sesion.empresa_id || null;
+  }
+  return sesion.empresa_id || null;
+}
+
+function normalizarMatricula(valor) {
+  return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function cargarInfoEmpresaActual() {
+  try {
+    if (sesion.role === "admin_global") {
+      pageTitle.innerText = "Configuración - Admin General";
+      pageSubtitle.innerText = "Usa preferiblemente un admin de empresa para gestionar datos concretos";
+      empresaAdmin.style.display = "none";
+      empresaActual = null;
+      return;
+    }
+
+    if (!sesion.empresa_id) {
+      pageTitle.innerText = "Configuración";
+      pageSubtitle.innerText = "No hay empresa asociada a este usuario";
+      empresaAdmin.style.display = "none";
+      empresaActual = null;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,nombre,email")
+      .eq("id", sesion.empresa_id)
+      .limit(1);
+
+    if (error) {
+      pageTitle.innerText = "Configuración - Admin Empresa";
+      pageSubtitle.innerText = "No se pudo cargar la empresa";
+      empresaAdmin.style.display = "inline-block";
+      empresaAdmin.innerText = "Empresa ID: " + sesion.empresa_id;
+      return;
+    }
+
+    empresaActual = data && data.length ? data[0] : null;
+    pageTitle.innerText = "Configuración - Admin Empresa";
+    pageSubtitle.innerText = empresaActual
+      ? "Gestionando: " + (empresaActual.nombre || "")
+      : "Empresa no encontrada";
+
+    empresaAdmin.style.display = "inline-block";
+    empresaAdmin.innerText = empresaActual?.nombre || ("Empresa ID: " + sesion.empresa_id);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function comprobarEmpresaEditable() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    statusGlobal.innerText = "Este usuario no tiene una empresa asignada";
+    return null;
+  }
+
+  return empresaId;
+}
+
+async function crearCliente() {
+  try {
+    const empresaId = comprobarEmpresaEditable();
+    if (!empresaId) return;
+
+    const nombre = document.getElementById("nuevoClienteNombre").value.trim();
+
+    if (!nombre) {
+      statusGlobal.innerText = "Escribe un nombre de cliente";
+      return;
+    }
+
+    const { data: existe } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .eq("nombre", nombre)
+      .limit(1);
+
+    if (existe && existe.length) {
+      statusGlobal.innerText = "Ese cliente ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("clientes")
+      .insert({
+        empresa_id: empresaId,
+        nombre: nombre
+      });
+
+    if (error) {
+      statusGlobal.innerText = "Error guardando cliente: " + error.message;
+      return;
+    }
+
+    document.getElementById("nuevoClienteNombre").value = "";
+    statusGlobal.innerText = "Cliente guardado correctamente";
+    await cargarClientes();
+  } catch (e) {
+    statusGlobal.innerText = "Fallo guardando cliente: " + e.message;
+  }
+}
+window.crearCliente = crearCliente;
+
+async function crearConductor() {
+  try {
+    const empresaId = comprobarEmpresaEditable();
+    if (!empresaId) return;
+
+    const nombre = document.getElementById("nuevoConductorNombre").value.trim();
+    const usuario = document.getElementById("nuevoConductorUsuario").value.trim();
+    const password = document.getElementById("nuevoConductorPassword").value.trim();
+
+    if (!nombre || !usuario || !password) {
+      statusGlobal.innerText = "Rellena nombre, usuario y contraseña del conductor";
+      return;
+    }
+
+    const { data: existe } = await supabase
+      .from("conductores")
+      .select("id")
+      .eq("usuario", usuario)
+      .limit(1);
+
+    if (existe && existe.length) {
+      statusGlobal.innerText = "Ese usuario de conductor ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("conductores")
+      .insert({
+        empresa_id: empresaId,
+        nombre: nombre,
+        usuario: usuario,
+        password: password
+      });
+
+    if (error) {
+      statusGlobal.innerText = "Error guardando conductor: " + error.message;
+      return;
+    }
+
+    document.getElementById("nuevoConductorNombre").value = "";
+    document.getElementById("nuevoConductorUsuario").value = "";
+    document.getElementById("nuevoConductorPassword").value = "";
+    statusGlobal.innerText = "Conductor guardado correctamente";
+    await cargarConductores();
+  } catch (e) {
+    statusGlobal.innerText = "Fallo guardando conductor: " + e.message;
+  }
+}
+window.crearConductor = crearConductor;
+
+async function crearVehiculoFrecuente() {
+  try {
+    const empresaId = comprobarEmpresaEditable();
+    if (!empresaId) return;
+
+    const nombre = normalizarMatricula(document.getElementById("nuevaMatricula").value);
+
+    if (!nombre) {
+      statusGlobal.innerText = "Escribe una matrícula";
+      return;
+    }
+
+    const { data: existe } = await supabase
+      .from("frequent_vehicles")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .eq("name", nombre)
+      .limit(1);
+
+    if (existe && existe.length) {
+      statusGlobal.innerText = "Esa matrícula ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("frequent_vehicles")
+      .insert({
+        empresa_id: empresaId,
+        name: nombre
+      });
+
+    if (error) {
+      statusGlobal.innerText = "Error guardando matrícula: " + error.message;
+      return;
+    }
+
+    document.getElementById("nuevaMatricula").value = "";
+    statusGlobal.innerText = "Matrícula guardada correctamente";
+    await cargarVehiculos();
+  } catch (e) {
+    statusGlobal.innerText = "Fallo guardando matrícula: " + e.message;
+  }
+}
+window.crearVehiculoFrecuente = crearVehiculoFrecuente;
+
+async function crearPickupFrecuente() {
+  try {
+    const empresaId = comprobarEmpresaEditable();
+    if (!empresaId) return;
+
+    const nombre = document.getElementById("nuevoPickup").value.trim();
+
+    if (!nombre) {
+      statusGlobal.innerText = "Escribe un lugar de carga";
+      return;
+    }
+
+    const { data: existe } = await supabase
+      .from("frequent_pickups")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .eq("name", nombre)
+      .limit(1);
+
+    if (existe && existe.length) {
+      statusGlobal.innerText = "Ese lugar de carga ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("frequent_pickups")
+      .insert({
+        empresa_id: empresaId,
+        name: nombre
+      });
+
+    if (error) {
+      statusGlobal.innerText = "Error guardando lugar de carga: " + error.message;
+      return;
+    }
+
+    document.getElementById("nuevoPickup").value = "";
+    statusGlobal.innerText = "Lugar de carga guardado correctamente";
+    await cargarPickups();
+  } catch (e) {
+    statusGlobal.innerText = "Fallo guardando lugar de carga: " + e.message;
+  }
+}
+window.crearPickupFrecuente = crearPickupFrecuente;
+
+async function crearDropoffFrecuente() {
+  try {
+    const empresaId = comprobarEmpresaEditable();
+    if (!empresaId) return;
+
+    const nombre = document.getElementById("nuevoDropoff").value.trim();
+
+    if (!nombre) {
+      statusGlobal.innerText = "Escribe un lugar de descarga";
+      return;
+    }
+
+    const { data: existe } = await supabase
+      .from("frequent_dropoffs")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .eq("name", nombre)
+      .limit(1);
+
+    if (existe && existe.length) {
+      statusGlobal.innerText = "Ese lugar de descarga ya existe";
+      return;
+    }
+
+    const { error } = await supabase
+      .from("frequent_dropoffs")
+      .insert({
+        empresa_id: empresaId,
+        name: nombre
+      });
+
+    if (error) {
+      statusGlobal.innerText = "Error guardando lugar de descarga: " + error.message;
+      return;
+    }
+
+    document.getElementById("nuevoDropoff").value = "";
+    statusGlobal.innerText = "Lugar de descarga guardado correctamente";
+    await cargarDropoffs();
+  } catch (e) {
+    statusGlobal.innerText = "Fallo guardando lugar de descarga: " + e.message;
+  }
+}
+window.crearDropoffFrecuente = crearDropoffFrecuente;
+
+async function cargarClientes() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    tbodyClientes.innerHTML = `<tr><td colspan="2" class="empty">Sin empresa asignada</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("id,nombre")
+    .eq("empresa_id", empresaId)
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    tbodyClientes.innerHTML = `<tr><td colspan="2" class="empty">Error cargando clientes</td></tr>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    tbodyClientes.innerHTML = `<tr><td colspan="2" class="empty">No hay clientes</td></tr>`;
+    return;
+  }
+
+  tbodyClientes.innerHTML = data.map(item => `
+    <tr>
+      <td>${escapeHtml(item.nombre)}</td>
+      <td>
+        <button class="danger smallBtn" onclick="borrarCliente('${item.id}')">Borrar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function cargarConductores() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    tbodyConductores.innerHTML = `<tr><td colspan="3" class="empty">Sin empresa asignada</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("id,nombre,usuario")
+    .eq("empresa_id", empresaId)
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    tbodyConductores.innerHTML = `<tr><td colspan="3" class="empty">Error cargando conductores</td></tr>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    tbodyConductores.innerHTML = `<tr><td colspan="3" class="empty">No hay conductores</td></tr>`;
+    return;
+  }
+
+  tbodyConductores.innerHTML = data.map(item => `
+    <tr>
+      <td>${escapeHtml(item.nombre)}</td>
+      <td>${escapeHtml(item.usuario)}</td>
+      <td>
+        <button class="danger smallBtn" onclick="borrarConductor('${item.id}')">Borrar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function cargarVehiculos() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    tbodyVehiculos.innerHTML = `<tr><td colspan="2" class="empty">Sin empresa asignada</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("frequent_vehicles")
+    .select("id,name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    tbodyVehiculos.innerHTML = `<tr><td colspan="2" class="empty">Error cargando matrículas</td></tr>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    tbodyVehiculos.innerHTML = `<tr><td colspan="2" class="empty">No hay matrículas</td></tr>`;
+    return;
+  }
+
+  tbodyVehiculos.innerHTML = data.map(item => `
+    <tr>
+      <td>${escapeHtml(item.name)}</td>
+      <td>
+        <button class="danger smallBtn" onclick="borrarVehiculo('${item.id}')">Borrar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function cargarPickups() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    tbodyPickups.innerHTML = `<tr><td colspan="2" class="empty">Sin empresa asignada</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("frequent_pickups")
+    .select("id,name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    tbodyPickups.innerHTML = `<tr><td colspan="2" class="empty">Error cargando lugares</td></tr>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    tbodyPickups.innerHTML = `<tr><td colspan="2" class="empty">No hay lugares de carga</td></tr>`;
+    return;
+  }
+
+  tbodyPickups.innerHTML = data.map(item => `
+    <tr>
+      <td>${escapeHtml(item.name)}</td>
+      <td>
+        <button class="danger smallBtn" onclick="borrarPickup('${item.id}')">Borrar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function cargarDropoffs() {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    tbodyDropoffs.innerHTML = `<tr><td colspan="2" class="empty">Sin empresa asignada</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("frequent_dropoffs")
+    .select("id,name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    tbodyDropoffs.innerHTML = `<tr><td colspan="2" class="empty">Error cargando lugares</td></tr>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    tbodyDropoffs.innerHTML = `<tr><td colspan="2" class="empty">No hay lugares de descarga</td></tr>`;
+    return;
+  }
+
+  tbodyDropoffs.innerHTML = data.map(item => `
+    <tr>
+      <td>${escapeHtml(item.name)}</td>
+      <td>
+        <button class="danger smallBtn" onclick="borrarDropoff('${item.id}')">Borrar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function borrarPorTabla(tabla, id) {
+  const empresaId = getEmpresaIdActiva();
+
+  if (!empresaId) {
+    statusGlobal.innerText = "No hay empresa asignada";
+    return false;
+  }
+
+  let query = supabase.from(tabla).delete().eq("id", id);
+
+  if (tabla !== "conductores") {
+    query = query.eq("empresa_id", empresaId);
+  } else {
+    query = query.eq("empresa_id", empresaId);
+  }
+
+  const { error } = await query;
+
+  if (error) {
+    statusGlobal.innerText = "Error borrando: " + error.message;
+    return false;
+  }
+
+  return true;
+}
+
+window.borrarCliente = async function(id) {
+  if (!confirm("¿Seguro que quieres borrar este cliente?")) return;
+  const ok = await borrarPorTabla("clientes", id);
+  if (ok) {
+    statusGlobal.innerText = "Cliente borrado correctamente";
+    cargarClientes();
+  }
+};
+
+window.borrarConductor = async function(id) {
+  if (!confirm("¿Seguro que quieres borrar este conductor?")) return;
+  const ok = await borrarPorTabla("conductores", id);
+  if (ok) {
+    statusGlobal.innerText = "Conductor borrado correctamente";
+    cargarConductores();
+  }
+};
+
+window.borrarVehiculo = async function(id) {
+  if (!confirm("¿Seguro que quieres borrar esta matrícula?")) return;
+  const ok = await borrarPorTabla("frequent_vehicles", id);
+  if (ok) {
+    statusGlobal.innerText = "Matrícula borrada correctamente";
+    cargarVehiculos();
+  }
+};
+
+window.borrarPickup = async function(id) {
+  if (!confirm("¿Seguro que quieres borrar este lugar de carga?")) return;
+  const ok = await borrarPorTabla("frequent_pickups", id);
+  if (ok) {
+    statusGlobal.innerText = "Lugar de carga borrado correctamente";
+    cargarPickups();
+  }
+};
+
+window.borrarDropoff = async function(id) {
+  if (!confirm("¿Seguro que quieres borrar este lugar de descarga?")) return;
+  const ok = await borrarPorTabla("frequent_dropoffs", id);
+  if (ok) {
+    statusGlobal.innerText = "Lugar de descarga borrado correctamente";
+    cargarDropoffs();
+  }
+};
+
+async function cargarTodo() {
+  statusGlobal.innerText = "Cargando datos...";
+  await cargarClientes();
+  await cargarConductores();
+  await cargarVehiculos();
+  await cargarPickups();
+  await cargarDropoffs();
+  statusGlobal.innerText = "Datos cargados correctamente";
+}
+window.cargarTodo = cargarTodo;
+
+await cargarInfoEmpresaActual();
+await cargarTodo();
+</script>
+
+</body>
+</html>
