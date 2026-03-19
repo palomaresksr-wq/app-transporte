@@ -73,6 +73,10 @@ button.danger{
   background:#ff4d4f;
   color:white;
 }
+button.ok{
+  background:#1f8b4c;
+  color:white;
+}
 .small{
   font-size:13px;
   color:#aab4d6;
@@ -130,6 +134,43 @@ hr{
   font-size:12px;
   font-weight:bold;
   margin-right:6px;
+}
+.badge.warn{
+  background:#7a4b00;
+  color:#ffe1a6;
+}
+.badge.ok{
+  background:#1f8b4c;
+  color:white;
+}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+.modal.open{
+  display:flex;
+}
+.modalContent{
+  background:#121b2f;
+  border-radius:12px;
+  padding:20px;
+  max-width:700px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+}
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:16px;
+  flex-wrap:wrap;
 }
 @media (max-width:700px){
   body{
@@ -203,6 +244,32 @@ hr{
 
 </div>
 
+<div id="editAdminModal" class="modal">
+  <div class="modalContent">
+    <h2>Editar admin de empresa</h2>
+
+    <div class="grid">
+      <div>
+        <label>Nombre</label>
+        <input id="editAdminNombre">
+      </div>
+      <div>
+        <label>Usuario</label>
+        <input id="editAdminUsuario">
+      </div>
+      <div>
+        <label>Nueva contraseña</label>
+        <input id="editAdminPassword" placeholder="Déjala vacía para mantener la actual">
+      </div>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" id="btnCerrarEditAdmin">Cancelar</button>
+      <button id="btnGuardarEditAdmin">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -225,6 +292,15 @@ const adminEmpresaPasswordEl = document.getElementById("adminEmpresaPassword");
 const btnCrearEmpresa = document.getElementById("btnCrearEmpresa");
 const btnCerrarSesion = document.getElementById("btnCerrarSesion");
 const btnRecargar = document.getElementById("btnRecargar");
+
+const editAdminModal = document.getElementById("editAdminModal");
+const editAdminNombre = document.getElementById("editAdminNombre");
+const editAdminUsuario = document.getElementById("editAdminUsuario");
+const editAdminPassword = document.getElementById("editAdminPassword");
+const btnCerrarEditAdmin = document.getElementById("btnCerrarEditAdmin");
+const btnGuardarEditAdmin = document.getElementById("btnGuardarEditAdmin");
+
+let adminEditandoId = null;
 
 function comprobarAcceso() {
   const sesionRaw = localStorage.getItem("sesionAppTransporte");
@@ -340,10 +416,15 @@ function pintarEmpresas(empresas, adminsEmpresa, conductores) {
       ? new Date(empresa.created_at).toLocaleString("es-ES")
       : "-";
 
+    const badgeAdmin = adminsDeEstaEmpresa.length
+      ? `<span class="badge ok">Con admin</span>`
+      : `<span class="badge warn">Sin admin</span>`;
+
     box.innerHTML = `
       <div class="empresa-head">
         <div>
           <h3>${escapeHtml(empresa.nombre || "")}</h3>
+          <div style="margin-bottom:6px;">${badgeAdmin}</div>
           <div class="small">ID: ${escapeHtml(empresa.id || "")}</div>
           <div class="small">CIF: ${escapeHtml(empresa.cif || "-")}</div>
           <div class="small">Email: ${escapeHtml(empresa.email || "-")}</div>
@@ -388,6 +469,8 @@ function pintarEmpresas(empresas, adminsEmpresa, conductores) {
             <div class="small">Alta: ${escapeHtml(alta)}</div>
           </div>
           <div class="actions">
+            <button class="sec" data-admin-id="${admin.id}" data-action="editar-admin-empresa">Editar</button>
+            <button class="ok" data-admin-id="${admin.id}" data-action="reset-pass-admin" data-admin-name="${escapeHtml(admin.nombre || "")}">Poner 1234</button>
             <button class="danger" data-admin-id="${admin.id}" data-action="borrar-admin-empresa">Borrar admin</button>
           </div>
         `;
@@ -439,18 +522,29 @@ function limpiarFormularioEmpresa() {
   adminEmpresaPasswordEl.value = "";
 }
 
-async function existeUsuarioEnAdminsEmpresa(usuario) {
-  const { data, error } = await supabase
+function cerrarEditAdminModal() {
+  editAdminModal.classList.remove("open");
+  adminEditandoId = null;
+  editAdminNombre.value = "";
+  editAdminUsuario.value = "";
+  editAdminPassword.value = "";
+}
+
+async function existeUsuarioEnAdminsEmpresa(usuario, adminIdExcluir = null) {
+  let query = supabase
     .from("admins_empresa")
     .select("id")
     .eq("usuario", usuario)
-    .limit(1);
+    .limit(10);
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error("Error comprobando usuario en admins: " + error.message);
   }
 
-  return !!(data && data.length);
+  const filtrados = (data || []).filter(x => String(x.id) !== String(adminIdExcluir || ""));
+  return filtrados.length > 0;
 }
 
 async function existeUsuarioEnConductores(usuario) {
@@ -571,6 +665,122 @@ async function crearEmpresaConAdmin() {
   }
 }
 
+async function abrirEditorAdmin(id) {
+  try {
+    const { data, error } = await supabase
+      .from("admins_empresa")
+      .select("id,nombre,usuario,password")
+      .eq("id", id)
+      .limit(1);
+
+    if (error) {
+      throw new Error("Error cargando admin: " + error.message);
+    }
+
+    const admin = data && data.length ? data[0] : null;
+
+    if (!admin) {
+      setEstado("No se encontró el admin");
+      return;
+    }
+
+    adminEditandoId = admin.id;
+    editAdminNombre.value = admin.nombre || "";
+    editAdminUsuario.value = admin.usuario || "";
+    editAdminPassword.value = "";
+    editAdminModal.classList.add("open");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function guardarCambiosAdmin() {
+  try {
+    if (!adminEditandoId) {
+      setEstado("No hay admin seleccionado");
+      return;
+    }
+
+    const nombre = editAdminNombre.value.trim();
+    const usuario = editAdminUsuario.value.trim();
+    const password = editAdminPassword.value.trim();
+
+    if (!nombre || !usuario) {
+      setEstado("Nombre y usuario son obligatorios");
+      return;
+    }
+
+    const usuarioEnAdmins = await existeUsuarioEnAdminsEmpresa(usuario, adminEditandoId);
+    if (usuarioEnAdmins) {
+      setEstado("Ese usuario ya lo usa otro admin");
+      return;
+    }
+
+    const usuarioEnConductores = await existeUsuarioEnConductores(usuario);
+    if (usuarioEnConductores) {
+      const { data: adminActual } = await supabase
+        .from("admins_empresa")
+        .select("usuario")
+        .eq("id", adminEditandoId)
+        .limit(1);
+
+      const usuarioAnterior = adminActual && adminActual.length ? adminActual[0].usuario : null;
+      if (usuario !== usuarioAnterior) {
+        setEstado("Ese usuario ya lo usa un conductor");
+        return;
+      }
+    }
+
+    const payload = {
+      nombre,
+      usuario
+    };
+
+    if (password) {
+      payload.password = password;
+    }
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .update(payload)
+      .eq("id", adminEditandoId);
+
+    if (error) {
+      throw new Error("Error guardando cambios del admin: " + error.message);
+    }
+
+    cerrarEditAdminModal();
+    await recargarTodo();
+    setEstado("Admin actualizado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function resetearPasswordAdmin(id) {
+  try {
+    const ok = confirm("¿Poner contraseña 1234 a este admin?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .update({ password: "1234" })
+      .eq("id", id);
+
+    if (error) {
+      throw new Error("Error reseteando contraseña: " + error.message);
+    }
+
+    await recargarTodo();
+    setEstado("Contraseña reseteada a 1234");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
 async function borrarConductor(id) {
   try {
     const ok = confirm("¿Seguro que quieres borrar este conductor?");
@@ -676,6 +886,14 @@ function cerrarSesion() {
 btnCrearEmpresa.addEventListener("click", crearEmpresaConAdmin);
 btnCerrarSesion.addEventListener("click", cerrarSesion);
 btnRecargar.addEventListener("click", recargarTodo);
+btnCerrarEditAdmin.addEventListener("click", cerrarEditAdminModal);
+btnGuardarEditAdmin.addEventListener("click", guardarCambiosAdmin);
+
+editAdminModal.addEventListener("click", function(e) {
+  if (e.target === editAdminModal) {
+    cerrarEditAdminModal();
+  }
+});
 
 listaEmpresasEl.addEventListener("click", async function(e) {
   const action = e.target.getAttribute("data-action");
@@ -689,6 +907,18 @@ listaEmpresasEl.addEventListener("click", async function(e) {
   if (action === "borrar-admin-empresa") {
     const id = e.target.getAttribute("data-admin-id");
     if (id) await borrarAdminEmpresa(id);
+    return;
+  }
+
+  if (action === "editar-admin-empresa") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await abrirEditorAdmin(id);
+    return;
+  }
+
+  if (action === "reset-pass-admin") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await resetearPasswordAdmin(id);
     return;
   }
 
