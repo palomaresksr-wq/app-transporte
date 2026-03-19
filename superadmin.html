@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superadmin</title>
+
+<style>
+body{font-family:Arial;background:#0b1220;color:white;margin:0;padding:20px;}
+.wrap{max-width:1400px;margin:0 auto;}
+.card{background:#121b2f;border-radius:12px;padding:18px;margin-bottom:20px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+input{width:100%;padding:10px;border:none;border-radius:8px;background:#0b1220;color:white;}
+button{padding:10px;border:none;border-radius:8px;background:#ff7a18;font-weight:bold;cursor:pointer;}
+button.sec{background:#24314f;color:white;}
+button.danger{background:#ff4d4f;color:white;}
+button.ok{background:#1f8b4c;color:white;}
+.item{background:#18233b;padding:10px;border-radius:8px;margin-top:8px;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{padding:4px 8px;border-radius:999px;font-size:12px;background:#24314f;}
+.badge.warn{background:#7a4b00;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;}
+.modal.open{display:flex;}
+.modalContent{background:#121b2f;padding:20px;border-radius:12px;width:100%;max-width:500px;}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="card">
+<h2>Crear empresa + admin</h2>
+<div class="grid">
+<input id="empresaNombre" placeholder="Nombre empresa">
+<input id="empresaCif" placeholder="CIF">
+<input id="empresaEmail" placeholder="Email">
+<input id="empresaTelefono" placeholder="Teléfono">
+
+<input id="adminNombre" placeholder="Nombre admin">
+<input id="adminUsuario" placeholder="Usuario">
+<input id="adminPassword" placeholder="Contraseña">
+</div>
+<button onclick="crearEmpresa()">Crear</button>
+</div>
+
+<div class="card">
+<h2>Empresas</h2>
+<div id="estado"></div>
+<div id="lista"></div>
+</div>
+
+</div>
+
+<!-- MODAL EDITAR ADMIN -->
+<div id="modalAdmin" class="modal">
+<div class="modalContent">
+<h3>Editar admin</h3>
+<input id="editAdminNombre">
+<input id="editAdminUsuario">
+<input id="editAdminPassword" placeholder="Nueva contraseña">
+<br><br>
+<button onclick="guardarAdmin()">Guardar</button>
+<button class="sec" onclick="cerrarModal()">Cancelar</button>
+</div>
+</div>
+
+<!-- MODAL EDITAR EMPRESA -->
+<div id="modalEmpresa" class="modal">
+<div class="modalContent">
+<h3>Editar empresa</h3>
+<input id="editEmpresaNombre">
+<input id="editEmpresaCif">
+<input id="editEmpresaEmail">
+<input id="editEmpresaTelefono">
+<br><br>
+<button onclick="guardarEmpresa()">Guardar</button>
+<button class="sec" onclick="cerrarModalEmpresa()">Cancelar</button>
+</div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const supabase = createClient("https://jpnritlcfumjmdpoaytr.supabase.co","sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr");
+
+let adminEditando=null;
+let empresaEditando=null;
+
+async function crearEmpresa(){
+  const nombre=empresaNombre.value.trim();
+  const usuario=adminUsuario.value.trim();
+  const password=adminPassword.value.trim();
+  const adminNom=adminNombre.value.trim();
+
+  if(!nombre||!usuario||!password){alert("Faltan datos");return;}
+
+  const {data:empresa}=await supabase.from("empresas").insert({nombre}).select().limit(1);
+
+  await supabase.from("admins_empresa").insert({
+    empresa_id:empresa[0].id,
+    nombre:adminNom,
+    usuario,
+    password
+  });
+
+  recargar();
+}
+
+async function recargar(){
+  const {data:empresas}=await supabase.from("empresas").select("*");
+  const {data:admins}=await supabase.from("admins_empresa").select("*");
+  const {data:conductores}=await supabase.from("conductores").select("*");
+
+  lista.innerHTML="";
+
+  empresas.forEach(e=>{
+    const adminsE=admins.filter(a=>a.empresa_id==e.id);
+    const condE=conductores.filter(c=>c.empresa_id==e.id);
+
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+    <b>${e.nombre}</b>
+    ${adminsE.length?'<span class="badge">OK</span>':'<span class="badge warn">SIN ADMIN</span>'}
+    <div class="actions">
+      <button onclick="editarEmpresa('${e.id}')">Editar empresa</button>
+      <button class="danger" onclick="borrarEmpresa('${e.id}')">Borrar</button>
+    </div>
+
+    <h4>Admins</h4>
+    ${adminsE.map(a=>`
+      <div class="item">
+        ${a.nombre} (${a.usuario})
+        <div class="actions">
+          <button onclick="editarAdmin('${a.id}')">Editar</button>
+          <button class="ok" onclick="resetPass('${a.id}')">1234</button>
+          <button class="danger" onclick="borrarAdmin('${a.id}')">X</button>
+        </div>
+      </div>
+    `).join("")}
+
+    <h4>Conductores</h4>
+    ${condE.map(c=>`
+      <div class="item">
+        ${c.nombre}
+        <button class="danger" onclick="borrarConductor('${c.id}')">X</button>
+      </div>
+    `).join("")}
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+async function borrarEmpresa(id){
+  if(!confirm("Borrar empresa"))return;
+  await supabase.from("admins_empresa").delete().eq("empresa_id",id);
+  await supabase.from("conductores").delete().eq("empresa_id",id);
+  await supabase.from("empresas").delete().eq("id",id);
+  recargar();
+}
+
+async function borrarAdmin(id){
+  await supabase.from("admins_empresa").delete().eq("id",id);
+  recargar();
+}
+
+async function borrarConductor(id){
+  await supabase.from("conductores").delete().eq("id",id);
+  recargar();
+}
+
+async function editarAdmin(id){
+  const {data}=await supabase.from("admins_empresa").select("*").eq("id",id);
+  adminEditando=id;
+  editAdminNombre.value=data[0].nombre;
+  editAdminUsuario.value=data[0].usuario;
+  modalAdmin.classList.add("open");
+}
+
+async function guardarAdmin(){
+  await supabase.from("admins_empresa").update({
+    nombre:editAdminNombre.value,
+    usuario:editAdminUsuario.value,
+    password:editAdminPassword.value||undefined
+  }).eq("id",adminEditando);
+  cerrarModal();
+  recargar();
+}
+
+async function resetPass(id){
+  await supabase.from("admins_empresa").update({password:"1234"}).eq("id",id);
+  recargar();
+}
+
+function cerrarModal(){modalAdmin.classList.remove("open");}
+
+async function editarEmpresa(id){
+  const {data}=await supabase.from("empresas").select("*").eq("id",id);
+  empresaEditando=id;
+  editEmpresaNombre.value=data[0].nombre;
+  editEmpresaCif.value=data[0].cif||"";
+  editEmpresaEmail.value=data[0].email||"";
+  editEmpresaTelefono.value=data[0].telefono||"";
+  modalEmpresa.classList.add("open");
+}
+
+async function guardarEmpresa(){
+  await supabase.from("empresas").update({
+    nombre:editEmpresaNombre.value,
+    cif:editEmpresaCif.value,
+    email:editEmpresaEmail.value,
+    telefono:editEmpresaTelefono.value
+  }).eq("id",empresaEditando);
+  cerrarModalEmpresa();
+  recargar();
+}
+
+function cerrarModalEmpresa(){modalEmpresa.classList.remove("open");}
+
+recargar();
+</script>
+</body>
+</html>
