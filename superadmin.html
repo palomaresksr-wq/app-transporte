@@ -90,7 +90,13 @@ button.danger{
   gap:12px;
   flex-wrap:wrap;
 }
-.conductor-item{
+.sub-box{
+  background:#121b2f;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+}
+.item{
   background:#18233b;
   padding:10px;
   border-radius:8px;
@@ -115,6 +121,21 @@ hr{
   margin-top:12px;
   white-space:pre-line;
 }
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#24314f;
+  color:#d9e3ff;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+}
+@media (max-width:700px){
+  body{
+    padding:12px;
+  }
+}
 </style>
 </head>
 <body>
@@ -123,7 +144,7 @@ hr{
   <div class="topbar">
     <div>
       <h1>Superadmin</h1>
-      <div class="small">Empresas y conductores con memoria en Supabase</div>
+      <div class="small">Crear empresas con su usuario administrador y gestionar toda la app</div>
     </div>
     <div class="actions">
       <button class="sec" id="btnRecargar">Recargar</button>
@@ -132,7 +153,7 @@ hr{
   </div>
 
   <div class="card">
-    <h2>Crear empresa</h2>
+    <h2>Crear empresa nueva + admin de empresa</h2>
     <div class="grid">
       <div>
         <label>Nombre de la empresa</label>
@@ -150,42 +171,27 @@ hr{
         <label>Teléfono</label>
         <input id="empresaTelefono" placeholder="Ej: 600000000">
       </div>
-    </div>
-    <div style="margin-top:14px;">
-      <button id="btnCrearEmpresa">Guardar empresa</button>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>Crear conductor</h2>
-    <div class="grid">
       <div>
-        <label>Empresa</label>
-        <select id="conductorEmpresa"></select>
+        <label>Nombre del admin de empresa</label>
+        <input id="adminEmpresaNombre" placeholder="Ej: Oficina Dutti">
       </div>
       <div>
-        <label>Nombre del conductor</label>
-        <input id="conductorNombre" placeholder="Ej: Juan Pérez">
+        <label>Usuario del admin</label>
+        <input id="adminEmpresaUsuario" placeholder="Ej: duttitrans">
       </div>
       <div>
-        <label>Usuario</label>
-        <input id="conductorUsuario" placeholder="Ej: juan1">
-      </div>
-      <div>
-        <label>Contraseña</label>
-        <input id="conductorPassword" placeholder="Ej: 1234">
-      </div>
-      <div>
-        <label>Matrícula vehículo</label>
-        <input id="conductorMatricula" placeholder="Ej: 1234ABC">
-      </div>
-      <div>
-        <label>Teléfono</label>
-        <input id="conductorTelefono" placeholder="Ej: 611111111">
+        <label>Contraseña del admin</label>
+        <input id="adminEmpresaPassword" placeholder="Ej: 1234">
       </div>
     </div>
+
     <div style="margin-top:14px;">
-      <button id="btnCrearConductor">Guardar conductor</button>
+      <button id="btnCrearEmpresa">Guardar empresa y crear admin</button>
+    </div>
+
+    <div class="small" style="margin-top:10px;">
+      Después, ese admin de empresa podrá entrar en su panel y crear conductores, clientes y datos frecuentes.
     </div>
   </div>
 
@@ -212,15 +218,11 @@ const empresaCifEl = document.getElementById("empresaCif");
 const empresaEmailEl = document.getElementById("empresaEmail");
 const empresaTelefonoEl = document.getElementById("empresaTelefono");
 
-const conductorEmpresaEl = document.getElementById("conductorEmpresa");
-const conductorNombreEl = document.getElementById("conductorNombre");
-const conductorUsuarioEl = document.getElementById("conductorUsuario");
-const conductorPasswordEl = document.getElementById("conductorPassword");
-const conductorMatriculaEl = document.getElementById("conductorMatricula");
-const conductorTelefonoEl = document.getElementById("conductorTelefono");
+const adminEmpresaNombreEl = document.getElementById("adminEmpresaNombre");
+const adminEmpresaUsuarioEl = document.getElementById("adminEmpresaUsuario");
+const adminEmpresaPasswordEl = document.getElementById("adminEmpresaPassword");
 
 const btnCrearEmpresa = document.getElementById("btnCrearEmpresa");
-const btnCrearConductor = document.getElementById("btnCrearConductor");
 const btnCerrarSesion = document.getElementById("btnCerrarSesion");
 const btnRecargar = document.getElementById("btnRecargar");
 
@@ -249,6 +251,19 @@ if (!comprobarAcceso()) {
   throw new Error("Acceso no autorizado");
 }
 
+function setEstado(texto) {
+  estadoEl.innerText = texto || "";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function cargarEmpresas() {
   const { data, error } = await supabase
     .from("empresas")
@@ -257,6 +272,19 @@ async function cargarEmpresas() {
 
   if (error) {
     throw new Error("Error cargando empresas: " + error.message);
+  }
+
+  return data || [];
+}
+
+async function cargarAdminsEmpresa() {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("*")
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    throw new Error("Error cargando admins de empresa: " + error.message);
   }
 
   return data || [];
@@ -277,34 +305,23 @@ async function cargarConductores() {
 
 async function recargarTodo() {
   try {
-    estadoEl.innerText = "Cargando datos...";
+    setEstado("Cargando datos...");
     listaEmpresasEl.innerHTML = "";
 
     const empresas = await cargarEmpresas();
+    const adminsEmpresa = await cargarAdminsEmpresa();
     const conductores = await cargarConductores();
 
-    pintarSelectEmpresas(empresas);
-    pintarEmpresas(empresas, conductores);
+    pintarEmpresas(empresas, adminsEmpresa, conductores);
 
-    estadoEl.innerText = "Datos cargados correctamente";
+    setEstado("Datos cargados correctamente");
   } catch (e) {
     console.error(e);
-    estadoEl.innerText = "Error: " + e.message;
+    setEstado("Error: " + e.message);
   }
 }
 
-function pintarSelectEmpresas(empresas) {
-  conductorEmpresaEl.innerHTML = '<option value="">Selecciona empresa</option>';
-
-  for (const empresa of empresas) {
-    const option = document.createElement("option");
-    option.value = empresa.id;
-    option.textContent = empresa.nombre;
-    conductorEmpresaEl.appendChild(option);
-  }
-}
-
-function pintarEmpresas(empresas, conductores) {
+function pintarEmpresas(empresas, adminsEmpresa, conductores) {
   listaEmpresasEl.innerHTML = "";
 
   if (!empresas.length) {
@@ -313,6 +330,7 @@ function pintarEmpresas(empresas, conductores) {
   }
 
   for (const empresa of empresas) {
+    const adminsDeEstaEmpresa = adminsEmpresa.filter(a => String(a.empresa_id) === String(empresa.id));
     const conductoresEmpresa = conductores.filter(c => String(c.empresa_id) === String(empresa.id));
 
     const box = document.createElement("div");
@@ -337,20 +355,53 @@ function pintarEmpresas(empresas, conductores) {
         </div>
       </div>
 
-      <hr>
+      <div class="sub-box">
+        <div><strong>Admins de empresa (${adminsDeEstaEmpresa.length})</strong></div>
+        <div class="admins-lista"></div>
+      </div>
 
-      <div><strong>Conductores (${conductoresEmpresa.length})</strong></div>
-      <div class="conductores-lista"></div>
+      <div class="sub-box">
+        <div><strong>Conductores (${conductoresEmpresa.length})</strong></div>
+        <div class="conductores-lista"></div>
+      </div>
     `;
 
-    const lista = box.querySelector(".conductores-lista");
+    const listaAdmins = box.querySelector(".admins-lista");
+    const listaConductores = box.querySelector(".conductores-lista");
+
+    if (!adminsDeEstaEmpresa.length) {
+      listaAdmins.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa no tiene admin asignado.</div>";
+    } else {
+      for (const admin of adminsDeEstaEmpresa) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const alta = admin.created_at
+          ? new Date(admin.created_at).toLocaleString("es-ES")
+          : "-";
+
+        item.innerHTML = `
+          <div>
+            <div><strong>${escapeHtml(admin.nombre || "")}</strong> <span class="badge">Admin empresa</span></div>
+            <div class="small">Usuario: ${escapeHtml(admin.usuario || "-")}</div>
+            <div class="small">Contraseña: ${escapeHtml(admin.password || "-")}</div>
+            <div class="small">Alta: ${escapeHtml(alta)}</div>
+          </div>
+          <div class="actions">
+            <button class="danger" data-admin-id="${admin.id}" data-action="borrar-admin-empresa">Borrar admin</button>
+          </div>
+        `;
+
+        listaAdmins.appendChild(item);
+      }
+    }
 
     if (!conductoresEmpresa.length) {
-      lista.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa todavía no tiene conductores.</div>";
+      listaConductores.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa todavía no tiene conductores.</div>";
     } else {
       for (const c of conductoresEmpresa) {
         const item = document.createElement("div");
-        item.className = "conductor-item";
+        item.className = "item";
 
         const alta = c.created_at
           ? new Date(c.created_at).toLocaleString("es-ES")
@@ -370,7 +421,7 @@ function pintarEmpresas(empresas, conductores) {
           </div>
         `;
 
-        lista.appendChild(item);
+        listaConductores.appendChild(item);
       }
     }
 
@@ -383,125 +434,140 @@ function limpiarFormularioEmpresa() {
   empresaCifEl.value = "";
   empresaEmailEl.value = "";
   empresaTelefonoEl.value = "";
+  adminEmpresaNombreEl.value = "";
+  adminEmpresaUsuarioEl.value = "";
+  adminEmpresaPasswordEl.value = "";
 }
 
-function limpiarFormularioConductor() {
-  conductorEmpresaEl.value = "";
-  conductorNombreEl.value = "";
-  conductorUsuarioEl.value = "";
-  conductorPasswordEl.value = "";
-  conductorMatriculaEl.value = "";
-  conductorTelefonoEl.value = "";
+async function existeUsuarioEnAdminsEmpresa(usuario) {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("id")
+    .eq("usuario", usuario)
+    .limit(1);
+
+  if (error) {
+    throw new Error("Error comprobando usuario en admins: " + error.message);
+  }
+
+  return !!(data && data.length);
 }
 
-async function crearEmpresa() {
+async function existeUsuarioEnConductores(usuario) {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("id")
+    .eq("usuario", usuario)
+    .limit(1);
+
+  if (error) {
+    throw new Error("Error comprobando usuario en conductores: " + error.message);
+  }
+
+  return !!(data && data.length);
+}
+
+async function crearEmpresaConAdmin() {
+  let empresaCreada = null;
+
   try {
     const nombre = empresaNombreEl.value.trim();
     const cif = empresaCifEl.value.trim();
     const email = empresaEmailEl.value.trim();
     const telefono = empresaTelefonoEl.value.trim();
 
+    const adminNombre = adminEmpresaNombreEl.value.trim();
+    const adminUsuario = adminEmpresaUsuarioEl.value.trim();
+    const adminPassword = adminEmpresaPasswordEl.value.trim();
+
     if (!nombre) {
-      estadoEl.innerText = "Pon el nombre de la empresa";
+      setEstado("Pon el nombre de la empresa");
       return;
     }
 
-    estadoEl.innerText = "Guardando empresa...";
+    if (!adminNombre || !adminUsuario || !adminPassword) {
+      setEstado("Completa nombre, usuario y contraseña del admin de empresa");
+      return;
+    }
 
-    const { data: yaExiste, error: errorExiste } = await supabase
+    setEstado("Comprobando datos...");
+
+    const { data: yaExisteEmpresa, error: errorExisteEmpresa } = await supabase
       .from("empresas")
       .select("id,nombre")
       .ilike("nombre", nombre)
       .limit(1);
 
-    if (errorExiste) {
-      throw new Error("Error comprobando empresa: " + errorExiste.message);
+    if (errorExisteEmpresa) {
+      throw new Error("Error comprobando empresa: " + errorExisteEmpresa.message);
     }
 
-    if (yaExiste && yaExiste.length > 0) {
-      estadoEl.innerText = "Esa empresa ya existe";
+    if (yaExisteEmpresa && yaExisteEmpresa.length > 0) {
+      setEstado("Esa empresa ya existe");
       return;
     }
 
-    const { error } = await supabase
+    const usuarioEnAdmins = await existeUsuarioEnAdminsEmpresa(adminUsuario);
+    if (usuarioEnAdmins) {
+      setEstado("Ese usuario de admin ya existe");
+      return;
+    }
+
+    const usuarioEnConductores = await existeUsuarioEnConductores(adminUsuario);
+    if (usuarioEnConductores) {
+      setEstado("Ese usuario ya lo usa un conductor");
+      return;
+    }
+
+    setEstado("Creando empresa...");
+
+    const { data: empresaInsertada, error: errorEmpresa } = await supabase
       .from("empresas")
       .insert([{
         nombre,
         cif: cif || null,
         email: email || null,
         telefono: telefono || null
+      }])
+      .select()
+      .limit(1);
+
+    if (errorEmpresa) {
+      throw new Error("Error guardando empresa: " + errorEmpresa.message);
+    }
+
+    empresaCreada = empresaInsertada && empresaInsertada.length ? empresaInsertada[0] : null;
+
+    if (!empresaCreada?.id) {
+      throw new Error("No se pudo recuperar la empresa creada");
+    }
+
+    setEstado("Creando admin de empresa...");
+
+    const { error: errorAdmin } = await supabase
+      .from("admins_empresa")
+      .insert([{
+        empresa_id: empresaCreada.id,
+        nombre: adminNombre,
+        usuario: adminUsuario,
+        password: adminPassword
       }]);
 
-    if (error) {
-      throw new Error("Error guardando empresa: " + error.message);
+    if (errorAdmin) {
+      try {
+        await supabase.from("empresas").delete().eq("id", empresaCreada.id);
+      } catch (rollbackError) {
+        console.error("Error en rollback:", rollbackError);
+      }
+      throw new Error("Error guardando admin de empresa: " + errorAdmin.message);
     }
 
     limpiarFormularioEmpresa();
     await recargarTodo();
-    estadoEl.innerText = "Empresa creada correctamente";
+    setEstado("Empresa y admin creados correctamente");
   } catch (e) {
     console.error(e);
-    estadoEl.innerText = "Error: " + e.message;
-  }
-}
-
-async function crearConductor() {
-  try {
-    const empresa_id = conductorEmpresaEl.value;
-    const nombre = conductorNombreEl.value.trim();
-    const usuario = conductorUsuarioEl.value.trim();
-    const password = conductorPasswordEl.value.trim();
-    const matricula = conductorMatriculaEl.value.trim();
-    const telefono = conductorTelefonoEl.value.trim();
-
-    if (!empresa_id) {
-      estadoEl.innerText = "Selecciona una empresa";
-      return;
-    }
-
-    if (!nombre || !usuario || !password) {
-      estadoEl.innerText = "Completa nombre, usuario y contraseña";
-      return;
-    }
-
-    estadoEl.innerText = "Guardando conductor...";
-
-    const { data: repetido, error: errorRepetido } = await supabase
-      .from("conductores")
-      .select("id,usuario")
-      .eq("usuario", usuario)
-      .limit(1);
-
-    if (errorRepetido) {
-      throw new Error("Error comprobando usuario: " + errorRepetido.message);
-    }
-
-    if (repetido && repetido.length > 0) {
-      estadoEl.innerText = "Ese usuario ya existe";
-      return;
-    }
-
-    const { error } = await supabase
-      .from("conductores")
-      .insert([{
-        empresa_id,
-        nombre,
-        usuario,
-        password,
-        matricula: matricula || null,
-        telefono: telefono || null
-      }]);
-
-    if (error) {
-      throw new Error("Error guardando conductor: " + error.message);
-    }
-
-    limpiarFormularioConductor();
-    await recargarTodo();
-    estadoEl.innerText = "Conductor creado correctamente";
-  } catch (e) {
-    console.error(e);
-    estadoEl.innerText = "Error: " + e.message;
+    setEstado("Error: " + e.message);
   }
 }
 
@@ -510,7 +576,7 @@ async function borrarConductor(id) {
     const ok = confirm("¿Seguro que quieres borrar este conductor?");
     if (!ok) return;
 
-    estadoEl.innerText = "Borrando conductor...";
+    setEstado("Borrando conductor...");
 
     const { error } = await supabase
       .from("conductores")
@@ -522,30 +588,67 @@ async function borrarConductor(id) {
     }
 
     await recargarTodo();
-    estadoEl.innerText = "Conductor borrado correctamente";
+    setEstado("Conductor borrado correctamente");
   } catch (e) {
     console.error(e);
-    estadoEl.innerText = "Error: " + e.message;
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function borrarAdminEmpresa(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar este admin de empresa?");
+    if (!ok) return;
+
+    setEstado("Borrando admin de empresa...");
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw new Error("Error borrando admin de empresa: " + error.message);
+    }
+
+    await recargarTodo();
+    setEstado("Admin de empresa borrado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
   }
 }
 
 async function borrarEmpresa(id) {
   try {
-    const ok = confirm("¿Seguro que quieres borrar esta empresa? Antes se borrarán sus conductores.");
+    const ok = confirm("¿Seguro que quieres borrar esta empresa? Se borrarán sus admins, conductores, clientes, frecuentes y entregas.");
     if (!ok) return;
 
-    estadoEl.innerText = "Borrando conductores de la empresa...";
+    setEstado("Borrando datos relacionados de la empresa...");
 
-    const { error: errorConductores } = await supabase
-      .from("conductores")
-      .delete()
-      .eq("empresa_id", id);
+    const operaciones = [
+      supabase.from("admins_empresa").delete().eq("empresa_id", id),
+      supabase.from("conductores").delete().eq("empresa_id", id),
+      supabase.from("clientes").delete().eq("empresa_id", id),
+      supabase.from("frequent_vehicles").delete().eq("empresa_id", id),
+      supabase.from("frequent_pickups").delete().eq("empresa_id", id),
+      supabase.from("frequent_dropoffs").delete().eq("empresa_id", id),
+      supabase.from("entregas").delete().eq("empresa_id", id),
+      supabase.from("deliveries").delete().eq("empresa_id", id)
+    ];
 
-    if (errorConductores) {
-      throw new Error("Error borrando conductores: " + errorConductores.message);
+    const resultados = await Promise.allSettled(operaciones);
+
+    for (const r of resultados) {
+      if (r.status === "fulfilled" && r.value?.error) {
+        throw new Error(r.value.error.message);
+      }
+      if (r.status === "rejected") {
+        throw new Error(r.reason?.message || "Error borrando datos relacionados");
+      }
     }
 
-    estadoEl.innerText = "Borrando empresa...";
+    setEstado("Borrando empresa...");
 
     const { error: errorEmpresa } = await supabase
       .from("empresas")
@@ -557,10 +660,10 @@ async function borrarEmpresa(id) {
     }
 
     await recargarTodo();
-    estadoEl.innerText = "Empresa borrada correctamente";
+    setEstado("Empresa borrada correctamente");
   } catch (e) {
     console.error(e);
-    estadoEl.innerText = "Error: " + e.message;
+    setEstado("Error: " + e.message);
   }
 }
 
@@ -570,17 +673,7 @@ function cerrarSesion() {
   window.location.replace("login.html?logout=1");
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-btnCrearEmpresa.addEventListener("click", crearEmpresa);
-btnCrearConductor.addEventListener("click", crearConductor);
+btnCrearEmpresa.addEventListener("click", crearEmpresaConAdmin);
 btnCerrarSesion.addEventListener("click", cerrarSesion);
 btnRecargar.addEventListener("click", recargarTodo);
 
@@ -590,6 +683,12 @@ listaEmpresasEl.addEventListener("click", async function(e) {
   if (action === "borrar-conductor") {
     const id = e.target.getAttribute("data-conductor-id");
     if (id) await borrarConductor(id);
+    return;
+  }
+
+  if (action === "borrar-admin-empresa") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await borrarAdminEmpresa(id);
     return;
   }
 
