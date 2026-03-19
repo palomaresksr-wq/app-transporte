@@ -249,17 +249,22 @@ button, .btn{
         <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
       </div>
 
-      <div>
+      <div id="bloqueNumEntregas" style="display:none;">
+        <label>Nº entregas</label>
+        <input id="numEntregas" type="number">
+      </div>
+
+      <div id="bloqueBultos">
         <label>Bultos</label>
         <input id="bultos" type="number">
       </div>
 
-      <div>
+      <div id="bloqueKg">
         <label>Kg</label>
         <input id="kg" type="number" step="0.01">
       </div>
 
-      <div>
+      <div id="bloqueM3">
         <label>M3</label>
         <input id="m3" type="number" step="0.01">
       </div>
@@ -307,6 +312,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
 const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
+const DUTTITRANS_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
 
 const statusEl = document.getElementById("status");
 const previewFoto = document.getElementById("previewFoto");
@@ -322,6 +328,13 @@ const pickupSelect = document.getElementById("pickupSelect");
 const pickupInput = document.getElementById("pickupPlace");
 const dropoffSelect = document.getElementById("dropoffSelect");
 const dropoffInput = document.getElementById("dropoffPlace");
+
+const numEntregasInput = document.getElementById("numEntregas");
+const bloqueNumEntregas = document.getElementById("bloqueNumEntregas");
+const bloqueBultos = document.getElementById("bloqueBultos");
+const bloqueKg = document.getElementById("bloqueKg");
+const bloqueM3 = document.getElementById("bloqueM3");
+
 const bultosInput = document.getElementById("bultos");
 const kgInput = document.getElementById("kg");
 const m3Input = document.getElementById("m3");
@@ -344,6 +357,37 @@ if (!clienteNombreActual) {
 
 let ultimaPhotoUrl = null;
 let conductorActual = null;
+
+function esEmpresaDuttitrans() {
+  return String(sesion?.empresa_id || "") === DUTTITRANS_EMPRESA_ID;
+}
+
+function esDuttitransAlbepet() {
+  const cliente = String(clienteNombreActual || "").trim().toLowerCase();
+  return esEmpresaDuttitrans() && cliente === "albepet";
+}
+
+function aplicarModoCliente() {
+  const modoAlbepet = esDuttitransAlbepet();
+
+  if (modoAlbepet) {
+    bloqueNumEntregas.style.display = "";
+    bloqueBultos.style.display = "none";
+    bloqueKg.style.display = "none";
+    bloqueM3.style.display = "none";
+
+    bultosInput.value = "";
+    kgInput.value = "";
+    m3Input.value = "";
+  } else {
+    bloqueNumEntregas.style.display = "none";
+    bloqueBultos.style.display = "";
+    bloqueKg.style.display = "";
+    bloqueM3.style.display = "";
+
+    numEntregasInput.value = "";
+  }
+}
 
 function normalizarMatricula(valor) {
   return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
@@ -441,9 +485,15 @@ async function leerFotoAutomatica() {
     if (json.matricula) vehicleInput.value = normalizarMatricula(json.matricula);
     if (json.lugar_carga) pickupInput.value = json.lugar_carga;
     if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
-    if (json.bultos !== undefined && json.bultos !== null) bultosInput.value = json.bultos;
-    if (json.kg !== undefined && json.kg !== null) kgInput.value = json.kg;
-    if (json.m3 !== undefined && json.m3 !== null) m3Input.value = json.m3;
+
+    if (esDuttitransAlbepet()) {
+      if (json.num_entregas !== undefined && json.num_entregas !== null) numEntregasInput.value = json.num_entregas;
+    } else {
+      if (json.bultos !== undefined && json.bultos !== null) bultosInput.value = json.bultos;
+      if (json.kg !== undefined && json.kg !== null) kgInput.value = json.kg;
+      if (json.m3 !== undefined && json.m3 !== null) m3Input.value = json.m3;
+    }
+
     if (json.observaciones) observationsInput.value = json.observaciones;
 
     statusEl.innerText = "Albarán leído correctamente";
@@ -723,6 +773,7 @@ function limpiarFormulario() {
   pickupSelect.value = "";
   dropoffInput.value = "";
   dropoffSelect.value = "";
+  numEntregasInput.value = "";
   bultosInput.value = "";
   kgInput.value = "";
   m3Input.value = "";
@@ -736,6 +787,7 @@ function limpiarFormulario() {
   previewFoto.style.display = "none";
   ultimaPhotoUrl = null;
   statusEl.innerText = "";
+  aplicarModoCliente();
 }
 
 window.guardarEntrega = async function () {
@@ -748,6 +800,7 @@ window.guardarEntrega = async function () {
     const matricula = normalizarMatricula(vehicleInput.value);
     const lugarCarga = pickupInput.value.trim() || null;
     const lugarDescarga = dropoffInput.value.trim() || null;
+    const numEntregas = numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null;
     const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
     const kg = normalizarNumero(kgInput.value);
     const m3 = normalizarNumero(m3Input.value);
@@ -781,6 +834,11 @@ window.guardarEntrega = async function () {
       return;
     }
 
+    if (esDuttitransAlbepet() && !numEntregas) {
+      statusEl.innerText = "Falta nº de entregas";
+      return;
+    }
+
     const photoFile = getSelectedPhotoFile();
     let photo_url = ultimaPhotoUrl;
 
@@ -799,10 +857,10 @@ window.guardarEntrega = async function () {
       cliente_id: clienteIdActual || null,
       lugar_carga: lugarCarga,
       lugar_descarga: lugarDescarga,
-      num_entregas: null,
-      bultos: bultos,
-      kg: kg,
-      m3: m3,
+      num_entregas: esDuttitransAlbepet() ? numEntregas : null,
+      bultos: esDuttitransAlbepet() ? null : bultos,
+      kg: esDuttitransAlbepet() ? null : kg,
+      m3: esDuttitransAlbepet() ? null : m3,
       observaciones: observaciones,
       mozo: mozo,
       trampilla: trampilla,
@@ -823,10 +881,10 @@ window.guardarEntrega = async function () {
       client_name: cliente,
       pickup_place: lugarCarga,
       dropoff_place: lugarDescarga,
-      num_entregas: null,
-      bultos: bultos,
-      kg: kg,
-      m3: m3,
+      num_entregas: esDuttitransAlbepet() ? numEntregas : null,
+      bultos: esDuttitransAlbepet() ? null : bultos,
+      kg: esDuttitransAlbepet() ? null : kg,
+      m3: esDuttitransAlbepet() ? null : m3,
       observations: observaciones,
       mozo: mozo,
       trampilla: trampilla,
@@ -858,6 +916,7 @@ async function init() {
     clientInput.value = clienteNombreActual;
     clienteActivoInfoEl.innerText = "Cliente: " + clienteNombreActual;
     tituloEntregaEl.innerText = "Entrega " + clienteNombreActual;
+    aplicarModoCliente();
     await cargarFrecuentes();
   } catch (e) {
     console.error(e);
