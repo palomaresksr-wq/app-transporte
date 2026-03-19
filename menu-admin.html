@@ -48,11 +48,6 @@ h1{
   font-size:28px;
 }
 
-h2{
-  margin:0 0 10px 0;
-  font-size:24px;
-}
-
 .sub{
   color:var(--muted);
   font-size:14px;
@@ -127,6 +122,27 @@ h2{
   color:#b7c3dd;
 }
 
+.alertaVencimiento{
+  margin-top:16px;
+  border-radius:14px;
+  padding:14px 16px;
+  font-size:14px;
+  line-height:1.5;
+  font-weight:bold;
+}
+
+.alertaVencimiento.warning{
+  background:rgba(255,122,24,.15);
+  color:#ffcf9d;
+  border:1px solid rgba(255,122,24,.28);
+}
+
+.alertaVencimiento.danger{
+  background:rgba(255,107,107,.15);
+  color:#ffb8b8;
+  border:1px solid rgba(255,107,107,.28);
+}
+
 .bloqueadoCard{
   background:var(--card);
   border-radius:18px;
@@ -151,11 +167,6 @@ h2{
 .estadoPill.warn{
   background:rgba(255,122,24,.15);
   color:#ffcf9d;
-}
-
-.estadoPill.ok{
-  background:rgba(47,191,113,.15);
-  color:#9ef0bf;
 }
 
 .mensajeGrande{
@@ -194,27 +205,23 @@ h2{
   padding:16px;
   font-size:14px;
   color:#dfe8ff;
+  line-height:1.6;
 }
 
-.alertaVencimiento{
+.botonPagoWrap{
   margin-top:16px;
-  border-radius:14px;
-  padding:14px 16px;
-  font-size:14px;
-  line-height:1.5;
+}
+
+.botonPago{
+  display:block;
+  text-align:center;
+  background:#25D366;
+  color:white;
+  padding:14px;
+  border-radius:12px;
   font-weight:bold;
-}
-
-.alertaVencimiento.warning{
-  background:rgba(255,122,24,.15);
-  color:#ffcf9d;
-  border:1px solid rgba(255,122,24,.28);
-}
-
-.alertaVencimiento.danger{
-  background:rgba(255,107,107,.15);
-  color:#ffb8b8;
-  border:1px solid rgba(255,107,107,.28);
+  text-decoration:none;
+  font-size:16px;
 }
 
 #menuNormal{
@@ -289,7 +296,7 @@ h2{
 
   <div id="pantallaBloqueo">
     <div class="bloqueadoCard">
-      <div class="estadoPill danger" id="pillEstadoBloqueo">Acceso bloqueado</div>
+      <div class="estadoPill warn" id="pillEstadoBloqueo">Suscripción vencida</div>
       <div class="mensajeGrande" id="tituloBloqueo">Tu acceso está temporalmente desactivado</div>
       <div class="mensajeTexto" id="textoBloqueo">
         No puedes usar el panel de administración en este momento.
@@ -303,8 +310,32 @@ h2{
       </div>
 
       <div class="contactoBox">
-        <strong>Qué hacer ahora</strong><br>
-        Contacta con administración para reactivar la cuenta. Cuando se regularice, recuperarás el acceso al panel con tus datos intactos.
+        <strong>Reactiva tu acceso ahora</strong><br><br>
+
+        Tu empresa sigue operativa, pero el panel de gestión está bloqueado por falta de pago.
+
+        <br><br>
+
+        💼 Todas tus entregas siguen guardándose<br>
+        🔓 Recupera el acceso completo al instante<br>
+        ⚡ Evita retrasos en facturación y control
+
+        <br><br>
+
+        <strong>Precio del servicio:</strong> 49€/mes
+
+        <br><br>
+
+        Pulsa en el botón de abajo para reactivar tu cuenta en menos de 1 minuto.
+      </div>
+
+      <div class="botonPagoWrap">
+        <a
+          href="https://wa.me/34637787830?text=Hola%20quiero%20reactivar%20mi%20cuenta%20de%20transporte"
+          target="_blank"
+          class="botonPago">
+          💬 Reactivar ahora por WhatsApp
+        </a>
       </div>
 
       <div class="actions">
@@ -382,7 +413,6 @@ function diasDiferencia(fechaStr) {
 
 function mostrarAvisoVencimiento(dias, fechaFinPago) {
   if (dias === null) return;
-
   if (dias < 0) return;
 
   if (dias <= 3) {
