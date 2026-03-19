@@ -9,286 +9,101 @@
 :root{
   --bg:#0b1220;
   --card:#121b2f;
-  --soft:#18233b;
   --accent:#ff7a18;
   --text:#ffffff;
   --muted:#b7c3dd;
-  --danger:#ff6b6b;
-  --ok:#2fbf71;
-}
-
-*{
-  box-sizing:border-box;
 }
 
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
-  color:var(--text);
-  min-height:100vh;
+  font-family:Arial;
+  background:linear-gradient(180deg,#0b1220,#121b2f);
+  color:white;
   padding:20px;
 }
 
-.wrap{
-  max-width:560px;
-  margin:0 auto;
-}
+.wrap{max-width:560px;margin:auto;}
 
-.topCard{
-  background:var(--card);
+.card{
+  background:#121b2f;
+  padding:20px;
   border-radius:16px;
-  padding:20px;
   margin-bottom:20px;
-  box-shadow:0 10px 28px rgba(0,0,0,.22);
-}
-
-h1{
-  margin:0 0 8px 0;
-  font-size:28px;
-}
-
-h2{
-  margin:0 0 10px 0;
-  font-size:24px;
-}
-
-.sub{
-  color:var(--muted);
-  font-size:14px;
-}
-
-.menuGrid{
-  display:grid;
-  gap:14px;
 }
 
 .menuBtn{
   display:block;
-  width:100%;
+  background:#121b2f;
+  padding:18px;
+  border-radius:14px;
+  margin-bottom:12px;
   text-decoration:none;
-  background:var(--card);
-  border-radius:16px;
-  padding:20px;
-  color:var(--text);
-  border:1px solid rgba(255,255,255,.06);
-  transition:transform .15s ease, box-shadow .15s ease;
-  box-shadow:0 8px 22px rgba(0,0,0,.22);
-}
-
-.menuBtn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 12px 28px rgba(0,0,0,.28);
-}
-
-.menuBtn .title{
-  font-size:20px;
-  font-weight:800;
-  margin-bottom:6px;
-}
-
-.menuBtn .desc{
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.4;
-}
-
-.actions{
-  margin-top:20px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.btnSec{
-  background:#24314f;
   color:white;
-  border:none;
-  border-radius:10px;
-  padding:12px 14px;
-  font-weight:bold;
-  cursor:pointer;
 }
 
 .badge{
-  display:inline-block;
   margin-top:10px;
-  background:rgba(255,122,24,.15);
-  color:#ffb074;
+  display:inline-block;
   padding:6px 10px;
   border-radius:999px;
   font-size:12px;
-  font-weight:bold;
+  background:rgba(255,122,24,.15);
 }
 
-#estadoCarga{
-  margin-top:12px;
-  font-size:13px;
-  color:#b7c3dd;
-}
-
-.bloqueadoCard{
-  background:var(--card);
-  border-radius:18px;
-  padding:26px;
-  box-shadow:0 12px 32px rgba(0,0,0,.26);
-}
-
-.estadoPill{
-  display:inline-block;
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:bold;
+/* 🔥 AVISOS */
+.alerta{
+  padding:14px;
+  border-radius:12px;
   margin-bottom:14px;
+  font-size:14px;
 }
 
-.estadoPill.danger{
-  background:rgba(255,107,107,.15);
-  color:#ffb8b8;
-}
-
-.estadoPill.warn{
+.alerta.warning{
   background:rgba(255,122,24,.15);
   color:#ffcf9d;
 }
 
-.estadoPill.ok{
-  background:rgba(47,191,113,.15);
-  color:#9ef0bf;
+.alerta.danger{
+  background:rgba(255,80,80,.15);
+  color:#ffb3b3;
 }
 
-.mensajeGrande{
-  font-size:28px;
-  font-weight:800;
-  line-height:1.15;
-  margin-bottom:10px;
-}
-
-.mensajeTexto{
-  color:var(--muted);
-  line-height:1.55;
-  font-size:15px;
-}
-
-.resumenPago{
-  margin-top:18px;
-  background:#0f1a2e;
-  border-radius:14px;
-  padding:16px;
-}
-
-.resumenPago .fila{
-  margin-bottom:8px;
-  font-size:14px;
-}
-
-.resumenPago .fila:last-child{
-  margin-bottom:0;
-}
-
-.contactoBox{
-  margin-top:18px;
-  background:#18233b;
-  border-radius:14px;
-  padding:16px;
-  font-size:14px;
-  color:#dfe8ff;
-}
-
-#menuNormal{
+/* 🔥 BLOQUEO */
+#bloqueo{
   display:none;
+  background:#121b2f;
+  padding:25px;
+  border-radius:18px;
+  text-align:center;
 }
 
-#pantallaBloqueo{
-  display:none;
-}
-
-@media (max-width:700px){
-  body{
-    padding:12px;
-  }
-
-  h1{
-    font-size:24px;
-  }
-
-  .mensajeGrande{
-    font-size:24px;
-  }
-}
+#menu{display:none;}
 </style>
 </head>
+
 <body>
 
 <div class="wrap">
 
-  <div id="menuNormal">
-    <div class="topCard">
-      <h1>Menú administración</h1>
-      <div class="sub">Selecciona el área que quieres gestionar</div>
-      <div class="badge" id="nombreAdmin">Administrador</div>
-      <div id="estadoCarga">Comprobando acceso...</div>
-
-      <div class="actions">
-        <button class="btnSec" onclick="cerrarSesion()">Salir</button>
-      </div>
-    </div>
-
-    <div class="menuGrid" id="menuGrid" style="display:none;">
-
-      <a class="menuBtn" href="admin-albaranes.html">
-        <div class="title">Albaranes</div>
-        <div class="desc">Ver, editar y filtrar entregas registradas por los conductores.</div>
-      </a>
-
-      <a class="menuBtn" href="admin-facturacion.html">
-        <div class="title">Facturación</div>
-        <div class="desc">Calcular importes, filtrar entregas y generar facturas.</div>
-      </a>
-
-      <a class="menuBtn" href="admin-fichajes.html">
-        <div class="title">Fichajes</div>
-        <div class="desc">Consultar entradas, salidas y horas de los conductores.</div>
-      </a>
-
-      <a class="menuBtn" href="admin-vacaciones.html">
-        <div class="title">Vacaciones</div>
-        <div class="desc">Revisar solicitudes y aprobar o rechazar vacaciones.</div>
-      </a>
-
-      <a class="menuBtn" href="admin-configuracion.html">
-        <div class="title">Configuración</div>
-        <div class="desc">Gestionar clientes, conductores, matrículas y lugares frecuentes.</div>
-      </a>
-
-    </div>
+  <div id="bloqueo">
+    <h2>Suscripción caducada</h2>
+    <p id="textoBloqueo"></p>
+    <button onclick="cerrarSesion()">Salir</button>
   </div>
 
-  <div id="pantallaBloqueo">
-    <div class="bloqueadoCard">
-      <div class="estadoPill danger" id="pillEstadoBloqueo">Acceso bloqueado</div>
-      <div class="mensajeGrande" id="tituloBloqueo">Tu acceso está temporalmente desactivado</div>
-      <div class="mensajeTexto" id="textoBloqueo">
-        No puedes usar el panel de administración en este momento.
-      </div>
+  <div id="menu">
 
-      <div class="resumenPago">
-        <div class="fila"><strong>Empresa:</strong> <span id="bloqueoEmpresa">-</span></div>
-        <div class="fila"><strong>Estado de cuenta:</strong> <span id="bloqueoEstadoCuenta">-</span></div>
-        <div class="fila"><strong>Fecha fin de acceso:</strong> <span id="bloqueoFechaFin">-</span></div>
-        <div class="fila"><strong>Situación:</strong> <span id="bloqueoSituacion">-</span></div>
-      </div>
-
-      <div class="contactoBox">
-        <strong>Qué hacer ahora</strong><br>
-        Contacta con administración para reactivar la cuenta. Cuando se regularice, recuperarás el acceso al panel con tus datos intactos.
-      </div>
-
-      <div class="actions">
-        <button class="btnSec" onclick="cerrarSesion()">Salir</button>
-      </div>
+    <div class="card">
+      <h1>Menú administración</h1>
+      <div class="badge" id="nombreAdmin">Admin</div>
     </div>
+
+    <div id="alerta"></div>
+
+    <a class="menuBtn" href="admin-albaranes.html">Albaranes</a>
+    <a class="menuBtn" href="admin-facturacion.html">Facturación</a>
+    <a class="menuBtn" href="admin-configuracion.html">Configuración</a>
+
   </div>
 
 </div>
@@ -296,182 +111,92 @@ h2{
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
 
-const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte"));
 
-const nombreAdminEl = document.getElementById("nombreAdmin");
-const menuNormalEl = document.getElementById("menuNormal");
-const menuGridEl = document.getElementById("menuGrid");
-const estadoCargaEl = document.getElementById("estadoCarga");
+const alertaEl = document.getElementById("alerta");
+const bloqueoEl = document.getElementById("bloqueo");
+const menuEl = document.getElementById("menu");
 
-const pantallaBloqueoEl = document.getElementById("pantallaBloqueo");
-const pillEstadoBloqueoEl = document.getElementById("pillEstadoBloqueo");
-const tituloBloqueoEl = document.getElementById("tituloBloqueo");
-const textoBloqueoEl = document.getElementById("textoBloqueo");
-const bloqueoEmpresaEl = document.getElementById("bloqueoEmpresa");
-const bloqueoEstadoCuentaEl = document.getElementById("bloqueoEstadoCuenta");
-const bloqueoFechaFinEl = document.getElementById("bloqueoFechaFin");
-const bloqueoSituacionEl = document.getElementById("bloqueoSituacion");
-
-function limpiarSesionCompleta(){
-  try{
-    localStorage.removeItem("sesionAppTransporte");
-    localStorage.removeItem("clienteSeleccionadoAppTransporte");
-    localStorage.removeItem("cliente_id_actual");
-    localStorage.removeItem("cliente_nombre_actual");
-    sessionStorage.clear();
-  }catch(e){
-    console.error(e);
-  }
+function cerrarSesion(){
+  localStorage.clear();
+  window.location.href = "login.html";
 }
 
-window.cerrarSesion = function(){
-  limpiarSesionCompleta();
-  window.location.href = "login.html?logout=1&t=" + Date.now();
-};
-
-function irLogin() {
-  window.location.href = "login.html?logout=1&t=" + Date.now();
-}
-
-function formatearFecha(fechaStr) {
-  if (!fechaStr) return "Sin fecha";
-  const fecha = new Date(fechaStr + "T00:00:00");
-  if (isNaN(fecha.getTime())) return fechaStr;
-  return fecha.toLocaleDateString("es-ES");
-}
-
-function diasDiferencia(fechaStr) {
-  if (!fechaStr) return null;
-
+function diasRestantes(fecha){
   const hoy = new Date();
   hoy.setHours(0,0,0,0);
 
-  const fecha = new Date(fechaStr + "T00:00:00");
-  fecha.setHours(0,0,0,0);
+  const fin = new Date(fecha);
+  fin.setHours(0,0,0,0);
 
-  const diffMs = fecha.getTime() - hoy.getTime();
-  return Math.round(diffMs / 86400000);
+  return Math.floor((fin - hoy) / (1000*60*60*24));
 }
 
-function mostrarBloqueoEmpresaSuspendida(nombreEmpresa) {
-  menuNormalEl.style.display = "none";
-  pantallaBloqueoEl.style.display = "block";
+async function init(){
 
-  pillEstadoBloqueoEl.className = "estadoPill danger";
-  pillEstadoBloqueoEl.innerText = "Cuenta suspendida";
-  tituloBloqueoEl.innerText = "Tu empresa está desactivada";
-  textoBloqueoEl.innerText = "El acceso al panel de administración está suspendido temporalmente.";
-  bloqueoEmpresaEl.innerText = nombreEmpresa || "-";
-  bloqueoEstadoCuentaEl.innerText = "Empresa desactivada";
-  bloqueoFechaFinEl.innerText = "No disponible";
-  bloqueoSituacionEl.innerText = "Contacta con administración para reactivar la cuenta";
-}
-
-function mostrarBloqueoPago(nombreEmpresa, fechaFinPago) {
-  const dias = diasDiferencia(fechaFinPago);
-
-  menuNormalEl.style.display = "none";
-  pantallaBloqueoEl.style.display = "block";
-
-  pillEstadoBloqueoEl.className = "estadoPill warn";
-  pillEstadoBloqueoEl.innerText = "Suscripción vencida";
-
-  bloqueoEmpresaEl.innerText = nombreEmpresa || "-";
-  bloqueoEstadoCuentaEl.innerText = "Pago no al día";
-  bloqueoFechaFinEl.innerText = formatearFecha(fechaFinPago);
-
-  if (dias === null) {
-    tituloBloqueoEl.innerText = "Tu acceso está temporalmente desactivado";
-    textoBloqueoEl.innerText = "No hemos podido verificar una fecha de fin de acceso válida.";
-    bloqueoSituacionEl.innerText = "Revisión manual necesaria";
+  if (!sesion || sesion.role !== "admin_empresa"){
+    window.location.href = "login.html";
     return;
   }
 
-  if (dias > 0) {
-    pillEstadoBloqueoEl.className = "estadoPill ok";
-    pillEstadoBloqueoEl.innerText = "Pendiente de revisión";
-    tituloBloqueoEl.innerText = "Tu suscripción sigue dentro de plazo";
-    textoBloqueoEl.innerText = `Tu acceso figura con incidencia, pero la fecha de servicio todavía no ha vencido.`;
-    bloqueoSituacionEl.innerText = `Te quedan ${dias} día${dias === 1 ? "" : "s"} de servicio`;
-    return;
-  }
+  document.getElementById("nombreAdmin").innerText = sesion.nombre || "Admin";
 
-  if (dias === 0) {
-    tituloBloqueoEl.innerText = "Tu suscripción vence hoy";
-    textoBloqueoEl.innerText = "Tu acceso al panel está pendiente de renovación.";
-    bloqueoSituacionEl.innerText = "Último día de acceso contratado";
-    return;
-  }
-
-  const diasCaducado = Math.abs(dias);
-  tituloBloqueoEl.innerText = "Tu suscripción ha caducado";
-  textoBloqueoEl.innerText = `El acceso al panel de administración está bloqueado hasta que se reactive la cuenta.`;
-  bloqueoSituacionEl.innerText = `Caducó hace ${diasCaducado} día${diasCaducado === 1 ? "" : "s"}`;
-}
-
-async function comprobarAccesoYEmpresa() {
-  if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
-    irLogin();
-    return;
-  }
-
-  nombreAdminEl.innerText = sesion?.nombre || sesion?.username || "Administrador";
-  menuNormalEl.style.display = "block";
-
-  if (sesion.role === "admin_global") {
-    estadoCargaEl.innerText = "Acceso admin global correcto";
-    menuGridEl.style.display = "grid";
-    return;
-  }
-
-  if (!sesion.empresa_id) {
-    limpiarSesionCompleta();
-    irLogin();
-    return;
-  }
-
-  estadoCargaEl.innerText = "Comprobando estado de la empresa...";
-
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("empresas")
-    .select("id,nombre,activa,pagado,fecha_fin_pago")
+    .select("*")
     .eq("id", sesion.empresa_id)
-    .limit(1);
+    .single();
 
-  if (error) {
-    console.error(error);
-    limpiarSesionCompleta();
-    irLogin();
+  if (!data){
+    cerrarSesion();
     return;
   }
 
-  const empresa = data && data.length ? data[0] : null;
-
-  if (!empresa) {
-    limpiarSesionCompleta();
-    irLogin();
+  // 🔴 EMPRESA DESACTIVADA
+  if (data.activa === false){
+    bloqueoEl.style.display = "block";
+    bloqueoEl.innerHTML = "<h2>Cuenta desactivada</h2><p>Contacta con administración</p>";
     return;
   }
 
-  if (empresa.activa === false) {
-    mostrarBloqueoEmpresaSuspendida(empresa.nombre);
+  const dias = diasRestantes(data.fecha_fin_pago);
+
+  // 🔴 CADUCADO
+  if (dias < 0){
+    bloqueoEl.style.display = "block";
+    document.getElementById("textoBloqueo").innerText =
+      "Tu suscripción caducó hace " + Math.abs(dias) + " días";
     return;
   }
 
-  if (empresa.pagado === false) {
-    mostrarBloqueoPago(empresa.nombre, empresa.fecha_fin_pago || null);
-    return;
+  // 🟠 AVISO FUERTE
+  if (dias <= 3){
+    alertaEl.innerHTML = `
+      <div class="alerta danger">
+        ⚠️ Tu suscripción vence en ${dias} día${dias==1?"":"s"}
+      </div>
+    `;
   }
 
-  estadoCargaEl.innerText = "Empresa activa y con acceso correcto";
-  menuGridEl.style.display = "grid";
+  // 🟡 AVISO NORMAL
+  else if (dias <= 7){
+    alertaEl.innerHTML = `
+      <div class="alerta warning">
+        ⏳ Tu suscripción vence en ${dias} días
+      </div>
+    `;
+  }
+
+  // ✅ TODO OK
+  menuEl.style.display = "block";
 }
 
-await comprobarAccesoYEmpresa();
+init();
 </script>
 
 </body>
