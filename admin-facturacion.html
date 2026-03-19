@@ -425,12 +425,12 @@ th{
         <input id="tarifaM3" type="number" step="0.01" value="0">
       </div>
 
-      <div>
+      <div id="bloqueTarifaAlbepet" style="display:none;">
         <label>Precio por entrega Albepet (€)</label>
         <input id="tarifaEntregaAlbepet" type="number" step="0.01" value="0">
       </div>
 
-      <div>
+      <div id="bloqueTarifaSotracom" style="display:none;">
         <label>Precio por carga Sotracom (€)</label>
         <input id="tarifaCargaSotracom" type="number" step="0.01" value="0">
       </div>
@@ -664,6 +664,8 @@ const EMPRESA_DEFAULT = {
   logo: "logo-dutti-trans.jpg"
 };
 
+const DUTTITRANS_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
@@ -693,6 +695,9 @@ const tarifaCargaSotracom = document.getElementById("tarifaCargaSotracom");
 const tarifaMozo = document.getElementById("tarifaMozo");
 const tarifaTrampilla = document.getElementById("tarifaTrampilla");
 const tarifaUrgente = document.getElementById("tarifaUrgente");
+
+const bloqueTarifaAlbepet = document.getElementById("bloqueTarifaAlbepet");
+const bloqueTarifaSotracom = document.getElementById("bloqueTarifaSotracom");
 
 const invoiceNumber = document.getElementById("invoiceNumber");
 const invoiceDate = document.getElementById("invoiceDate");
@@ -736,6 +741,22 @@ window.cerrarSesion = function(){
 
   window.location.href = "login.html?logout=1&t=" + Date.now();
 };
+
+function esEmpresaDuttitrans() {
+  return String(sesion?.empresa_id || "") === DUTTITRANS_EMPRESA_ID;
+}
+
+function aplicarModoFacturacionEmpresa() {
+  const esDutti = esEmpresaDuttitrans();
+
+  bloqueTarifaAlbepet.style.display = esDutti ? "" : "none";
+  bloqueTarifaSotracom.style.display = esDutti ? "" : "none";
+
+  if (!esDutti) {
+    tarifaEntregaAlbepet.value = 0;
+    tarifaCargaSotracom.value = 0;
+  }
+}
 
 async function cargarInfoEmpresaActual() {
   try {
@@ -980,8 +1001,9 @@ function normalizarEntregaLegacy(entrega) {
 function calcularImporte(entrega) {
   const tarifas = obtenerTarifas();
   const cliente = String(entrega.client_name || "").trim().toLowerCase();
-  const esAlbepet = cliente === "albepet";
-  const esSotracom = cliente === "sotracom";
+  const esDutti = esEmpresaDuttitrans();
+  const esAlbepet = esDutti && cliente === "albepet";
+  const esSotracom = esDutti && cliente === "sotracom";
 
   let total = 0;
   total += tarifas.base;
@@ -1680,6 +1702,7 @@ dateTo.addEventListener("change", aplicarFiltrosYCalculo);
 invoiceVat.addEventListener("input", aplicarFiltrosYCalculo);
 
 await cargarInfoEmpresaActual();
+aplicarModoFacturacionEmpresa();
 cargarTarifas();
 cargarDatosFacturaGuardados();
 cargarDatos();
