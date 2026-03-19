@@ -6,219 +6,1092 @@
 <title>Superadmin</title>
 
 <style>
-body{font-family:Arial;background:#0b1220;color:white;margin:0;padding:20px;}
-.wrap{max-width:1400px;margin:0 auto;}
-.card{background:#121b2f;border-radius:12px;padding:18px;margin-bottom:20px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
-input{width:100%;padding:10px;border:none;border-radius:8px;background:#0b1220;color:white;}
-button{padding:10px;border:none;border-radius:8px;background:#ff7a18;font-weight:bold;cursor:pointer;}
-button.sec{background:#24314f;color:white;}
-button.danger{background:#ff4d4f;color:white;}
-button.ok{background:#1f8b4c;color:white;}
-.item{background:#18233b;padding:10px;border-radius:8px;margin-top:8px;}
-.actions{display:flex;gap:8px;flex-wrap:wrap;}
-.badge{padding:4px 8px;border-radius:999px;font-size:12px;background:#24314f;}
-.badge.warn{background:#7a4b00;}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;}
-.modal.open{display:flex;}
-.modalContent{background:#121b2f;padding:20px;border-radius:12px;width:100%;max-width:500px;}
+body{
+  font-family: Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+.wrap{
+  max-width:1400px;
+  margin:0 auto;
+}
+.topbar{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+h1,h2,h3{
+  margin:0 0 12px 0;
+}
+.card{
+  background:#121b2f;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:14px;
+  color:#cdd6f4;
+}
+input, select{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#0b1220;
+  color:white;
+}
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.sec{
+  background:#24314f;
+  color:white;
+}
+button.danger{
+  background:#ff4d4f;
+  color:white;
+}
+button.ok{
+  background:#1f8b4c;
+  color:white;
+}
+button.warn{
+  background:#7a4b00;
+  color:#fff;
+}
+.small{
+  font-size:13px;
+  color:#aab4d6;
+}
+.empresa-box{
+  background:#0b1220;
+  border-radius:10px;
+  padding:14px;
+  margin-top:14px;
+}
+.empresa-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sub-box{
+  background:#121b2f;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+}
+.item{
+  background:#18233b;
+  padding:10px;
+  border-radius:8px;
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+hr{
+  border:none;
+  border-top:1px solid rgba(255,255,255,0.08);
+  margin:16px 0;
+}
+#estado{
+  margin-top:12px;
+  white-space:pre-line;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#24314f;
+  color:#d9e3ff;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-top:4px;
+}
+.badge.warn{
+  background:#7a4b00;
+  color:#ffe1a6;
+}
+.badge.ok{
+  background:#1f8b4c;
+  color:white;
+}
+.badge.off{
+  background:#8e2f2f;
+  color:white;
+}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+.modal.open{
+  display:flex;
+}
+.modalContent{
+  background:#121b2f;
+  padding:20px;
+  border-radius:12px;
+  width:100%;
+  max-width:520px;
+}
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:16px;
+  flex-wrap:wrap;
+}
+@media (max-width:700px){
+  body{padding:12px;}
+}
 </style>
 </head>
-
 <body>
 <div class="wrap">
 
-<div class="card">
-<h2>Crear empresa + admin</h2>
-<div class="grid">
-<input id="empresaNombre" placeholder="Nombre empresa">
-<input id="empresaCif" placeholder="CIF">
-<input id="empresaEmail" placeholder="Email">
-<input id="empresaTelefono" placeholder="Teléfono">
+  <div class="topbar">
+    <div>
+      <h1>Superadmin</h1>
+      <div class="small">Crear empresas, gestionar admins y controlar pagos/acceso</div>
+    </div>
+    <div class="actions">
+      <button class="sec" id="btnRecargar">Recargar</button>
+      <button class="sec" id="btnCerrarSesion">Cerrar sesión</button>
+    </div>
+  </div>
 
-<input id="adminNombre" placeholder="Nombre admin">
-<input id="adminUsuario" placeholder="Usuario">
-<input id="adminPassword" placeholder="Contraseña">
-</div>
-<button onclick="crearEmpresa()">Crear</button>
+  <div class="card">
+    <h2>Crear empresa nueva + admin de empresa</h2>
+    <div class="grid">
+      <div>
+        <label>Nombre de la empresa</label>
+        <input id="empresaNombre" placeholder="Ej: Dutti Trans">
+      </div>
+      <div>
+        <label>CIF</label>
+        <input id="empresaCif" placeholder="Ej: B12345678">
+      </div>
+      <div>
+        <label>Email</label>
+        <input id="empresaEmail" placeholder="Ej: info@empresa.com">
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="empresaTelefono" placeholder="Ej: 600000000">
+      </div>
+
+      <div>
+        <label>Nombre del admin de empresa</label>
+        <input id="adminEmpresaNombre" placeholder="Ej: Oficina Dutti">
+      </div>
+      <div>
+        <label>Usuario del admin</label>
+        <input id="adminEmpresaUsuario" placeholder="Ej: duttitrans">
+      </div>
+      <div>
+        <label>Contraseña del admin</label>
+        <input id="adminEmpresaPassword" placeholder="Ej: 1234">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button id="btnCrearEmpresa">Guardar empresa y crear admin</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Empresas registradas</h2>
+    <div id="estado"></div>
+    <div id="listaEmpresas"></div>
+  </div>
+
 </div>
 
-<div class="card">
-<h2>Empresas</h2>
-<div id="estado"></div>
-<div id="lista"></div>
+<div id="editAdminModal" class="modal">
+  <div class="modalContent">
+    <h2>Editar admin de empresa</h2>
+
+    <div class="grid">
+      <div>
+        <label>Nombre</label>
+        <input id="editAdminNombre">
+      </div>
+      <div>
+        <label>Usuario</label>
+        <input id="editAdminUsuario">
+      </div>
+      <div>
+        <label>Nueva contraseña</label>
+        <input id="editAdminPassword" placeholder="Déjala vacía para mantener la actual">
+      </div>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" id="btnCerrarEditAdmin">Cancelar</button>
+      <button id="btnGuardarEditAdmin">Guardar cambios</button>
+    </div>
+  </div>
 </div>
 
-</div>
+<div id="editEmpresaModal" class="modal">
+  <div class="modalContent">
+    <h2>Editar empresa</h2>
 
-<!-- MODAL EDITAR ADMIN -->
-<div id="modalAdmin" class="modal">
-<div class="modalContent">
-<h3>Editar admin</h3>
-<input id="editAdminNombre">
-<input id="editAdminUsuario">
-<input id="editAdminPassword" placeholder="Nueva contraseña">
-<br><br>
-<button onclick="guardarAdmin()">Guardar</button>
-<button class="sec" onclick="cerrarModal()">Cancelar</button>
-</div>
-</div>
+    <div class="grid">
+      <div>
+        <label>Nombre</label>
+        <input id="editEmpresaNombre">
+      </div>
+      <div>
+        <label>CIF</label>
+        <input id="editEmpresaCif">
+      </div>
+      <div>
+        <label>Email</label>
+        <input id="editEmpresaEmail">
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="editEmpresaTelefono">
+      </div>
+      <div>
+        <label>Fecha fin pago</label>
+        <input id="editEmpresaFechaFinPago" type="date">
+      </div>
+    </div>
 
-<!-- MODAL EDITAR EMPRESA -->
-<div id="modalEmpresa" class="modal">
-<div class="modalContent">
-<h3>Editar empresa</h3>
-<input id="editEmpresaNombre">
-<input id="editEmpresaCif">
-<input id="editEmpresaEmail">
-<input id="editEmpresaTelefono">
-<br><br>
-<button onclick="guardarEmpresa()">Guardar</button>
-<button class="sec" onclick="cerrarModalEmpresa()">Cancelar</button>
-</div>
+    <div class="modalActions">
+      <button class="sec" id="btnCerrarEditEmpresa">Cancelar</button>
+      <button id="btnGuardarEditEmpresa">Guardar cambios</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const supabase = createClient("https://jpnritlcfumjmdpoaytr.supabase.co","sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr");
 
-let adminEditando=null;
-let empresaEditando=null;
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function crearEmpresa(){
-  const nombre=empresaNombre.value.trim();
-  const usuario=adminUsuario.value.trim();
-  const password=adminPassword.value.trim();
-  const adminNom=adminNombre.value.trim();
+const estadoEl = document.getElementById("estado");
+const listaEmpresasEl = document.getElementById("listaEmpresas");
 
-  if(!nombre||!usuario||!password){alert("Faltan datos");return;}
+const empresaNombreEl = document.getElementById("empresaNombre");
+const empresaCifEl = document.getElementById("empresaCif");
+const empresaEmailEl = document.getElementById("empresaEmail");
+const empresaTelefonoEl = document.getElementById("empresaTelefono");
+const adminEmpresaNombreEl = document.getElementById("adminEmpresaNombre");
+const adminEmpresaUsuarioEl = document.getElementById("adminEmpresaUsuario");
+const adminEmpresaPasswordEl = document.getElementById("adminEmpresaPassword");
 
-  const {data:empresa}=await supabase.from("empresas").insert({nombre}).select().limit(1);
+const btnCrearEmpresa = document.getElementById("btnCrearEmpresa");
+const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const btnRecargar = document.getElementById("btnRecargar");
 
-  await supabase.from("admins_empresa").insert({
-    empresa_id:empresa[0].id,
-    nombre:adminNom,
-    usuario,
-    password
-  });
+const editAdminModal = document.getElementById("editAdminModal");
+const editAdminNombre = document.getElementById("editAdminNombre");
+const editAdminUsuario = document.getElementById("editAdminUsuario");
+const editAdminPassword = document.getElementById("editAdminPassword");
+const btnCerrarEditAdmin = document.getElementById("btnCerrarEditAdmin");
+const btnGuardarEditAdmin = document.getElementById("btnGuardarEditAdmin");
 
-  recargar();
+const editEmpresaModal = document.getElementById("editEmpresaModal");
+const editEmpresaNombre = document.getElementById("editEmpresaNombre");
+const editEmpresaCif = document.getElementById("editEmpresaCif");
+const editEmpresaEmail = document.getElementById("editEmpresaEmail");
+const editEmpresaTelefono = document.getElementById("editEmpresaTelefono");
+const editEmpresaFechaFinPago = document.getElementById("editEmpresaFechaFinPago");
+const btnCerrarEditEmpresa = document.getElementById("btnCerrarEditEmpresa");
+const btnGuardarEditEmpresa = document.getElementById("btnGuardarEditEmpresa");
+
+let adminEditandoId = null;
+let empresaEditandoId = null;
+
+function comprobarAcceso() {
+  const sesionRaw = localStorage.getItem("sesionAppTransporte");
+  if (!sesionRaw) {
+    window.location.href = "login.html?logout=1";
+    return false;
+  }
+
+  try {
+    const sesion = JSON.parse(sesionRaw);
+    if (sesion.role !== "superadmin") {
+      window.location.href = "login.html?logout=1";
+      return false;
+    }
+    return true;
+  } catch (e) {
+    localStorage.removeItem("sesionAppTransporte");
+    window.location.href = "login.html?logout=1";
+    return false;
+  }
 }
 
-async function recargar(){
-  const {data:empresas}=await supabase.from("empresas").select("*");
-  const {data:admins}=await supabase.from("admins_empresa").select("*");
-  const {data:conductores}=await supabase.from("conductores").select("*");
+if (!comprobarAcceso()) {
+  throw new Error("Acceso no autorizado");
+}
 
-  lista.innerHTML="";
+function setEstado(texto) {
+  estadoEl.innerText = texto || "";
+}
 
-  empresas.forEach(e=>{
-    const adminsE=admins.filter(a=>a.empresa_id==e.id);
-    const condE=conductores.filter(c=>c.empresa_id==e.id);
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-    const div=document.createElement("div");
-    div.className="card";
+function formatearFecha(fecha) {
+  if (!fecha) return "-";
+  const d = new Date(fecha);
+  if (isNaN(d.getTime())) return fecha;
+  return d.toLocaleDateString("es-ES");
+}
 
-    div.innerHTML=`
-    <b>${e.nombre}</b>
-    ${adminsE.length?'<span class="badge">OK</span>':'<span class="badge warn">SIN ADMIN</span>'}
-    <div class="actions">
-      <button onclick="editarEmpresa('${e.id}')">Editar empresa</button>
-      <button class="danger" onclick="borrarEmpresa('${e.id}')">Borrar</button>
-    </div>
+function cerrarSesion() {
+  localStorage.removeItem("sesionAppTransporte");
+  sessionStorage.clear();
+  window.location.replace("login.html?logout=1");
+}
 
-    <h4>Admins</h4>
-    ${adminsE.map(a=>`
-      <div class="item">
-        ${a.nombre} (${a.usuario})
+function limpiarFormularioEmpresa() {
+  empresaNombreEl.value = "";
+  empresaCifEl.value = "";
+  empresaEmailEl.value = "";
+  empresaTelefonoEl.value = "";
+  adminEmpresaNombreEl.value = "";
+  adminEmpresaUsuarioEl.value = "";
+  adminEmpresaPasswordEl.value = "";
+}
+
+function cerrarEditAdminModal() {
+  editAdminModal.classList.remove("open");
+  adminEditandoId = null;
+  editAdminNombre.value = "";
+  editAdminUsuario.value = "";
+  editAdminPassword.value = "";
+}
+
+function cerrarEditEmpresaModal() {
+  editEmpresaModal.classList.remove("open");
+  empresaEditandoId = null;
+  editEmpresaNombre.value = "";
+  editEmpresaCif.value = "";
+  editEmpresaEmail.value = "";
+  editEmpresaTelefono.value = "";
+  editEmpresaFechaFinPago.value = "";
+}
+
+async function cargarEmpresas() {
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("*")
+    .order("nombre", { ascending: true });
+
+  if (error) throw new Error("Error cargando empresas: " + error.message);
+  return data || [];
+}
+
+async function cargarAdminsEmpresa() {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("*")
+    .order("nombre", { ascending: true });
+
+  if (error) throw new Error("Error cargando admins de empresa: " + error.message);
+  return data || [];
+}
+
+async function cargarConductores() {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("*")
+    .order("nombre", { ascending: true });
+
+  if (error) throw new Error("Error cargando conductores: " + error.message);
+  return data || [];
+}
+
+async function existeUsuarioEnAdminsEmpresa(usuario, adminIdExcluir = null) {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("id")
+    .eq("usuario", usuario)
+    .limit(20);
+
+  if (error) throw new Error("Error comprobando usuario en admins: " + error.message);
+
+  return (data || []).some(x => String(x.id) !== String(adminIdExcluir || ""));
+}
+
+async function existeUsuarioEnConductores(usuario) {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("id")
+    .eq("usuario", usuario)
+    .limit(1);
+
+  if (error) throw new Error("Error comprobando usuario en conductores: " + error.message);
+
+  return !!(data && data.length);
+}
+
+async function crearEmpresaConAdmin() {
+  let empresaCreada = null;
+
+  try {
+    const nombre = empresaNombreEl.value.trim();
+    const cif = empresaCifEl.value.trim();
+    const email = empresaEmailEl.value.trim();
+    const telefono = empresaTelefonoEl.value.trim();
+    const adminNombre = adminEmpresaNombreEl.value.trim();
+    const adminUsuario = adminEmpresaUsuarioEl.value.trim();
+    const adminPassword = adminEmpresaPasswordEl.value.trim();
+
+    if (!nombre) {
+      setEstado("Pon el nombre de la empresa");
+      return;
+    }
+
+    if (!adminNombre || !adminUsuario || !adminPassword) {
+      setEstado("Completa nombre, usuario y contraseña del admin de empresa");
+      return;
+    }
+
+    const { data: yaExisteEmpresa, error: errorExisteEmpresa } = await supabase
+      .from("empresas")
+      .select("id,nombre")
+      .ilike("nombre", nombre)
+      .limit(1);
+
+    if (errorExisteEmpresa) throw new Error("Error comprobando empresa: " + errorExisteEmpresa.message);
+    if (yaExisteEmpresa && yaExisteEmpresa.length > 0) {
+      setEstado("Esa empresa ya existe");
+      return;
+    }
+
+    if (await existeUsuarioEnAdminsEmpresa(adminUsuario)) {
+      setEstado("Ese usuario de admin ya existe");
+      return;
+    }
+
+    if (await existeUsuarioEnConductores(adminUsuario)) {
+      setEstado("Ese usuario ya lo usa un conductor");
+      return;
+    }
+
+    setEstado("Creando empresa...");
+
+    const { data: empresaInsertada, error: errorEmpresa } = await supabase
+      .from("empresas")
+      .insert([{
+        nombre,
+        cif: cif || null,
+        email: email || null,
+        telefono: telefono || null,
+        activa: true,
+        pagado: false,
+        fecha_fin_pago: null
+      }])
+      .select()
+      .limit(1);
+
+    if (errorEmpresa) throw new Error("Error guardando empresa: " + errorEmpresa.message);
+
+    empresaCreada = empresaInsertada && empresaInsertada.length ? empresaInsertada[0] : null;
+    if (!empresaCreada?.id) throw new Error("No se pudo recuperar la empresa creada");
+
+    const { error: errorAdmin } = await supabase
+      .from("admins_empresa")
+      .insert([{
+        empresa_id: empresaCreada.id,
+        nombre: adminNombre,
+        usuario: adminUsuario,
+        password: adminPassword
+      }]);
+
+    if (errorAdmin) {
+      await supabase.from("empresas").delete().eq("id", empresaCreada.id);
+      throw new Error("Error guardando admin de empresa: " + errorAdmin.message);
+    }
+
+    limpiarFormularioEmpresa();
+    await recargarTodo();
+    setEstado("Empresa y admin creados correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+function pintarEmpresas(empresas, adminsEmpresa, conductores) {
+  listaEmpresasEl.innerHTML = "";
+
+  if (!empresas.length) {
+    listaEmpresasEl.innerHTML = "<div class='small'>No hay empresas creadas todavía.</div>";
+    return;
+  }
+
+  for (const empresa of empresas) {
+    const adminsDeEstaEmpresa = adminsEmpresa.filter(a => String(a.empresa_id) === String(empresa.id));
+    const conductoresEmpresa = conductores.filter(c => String(c.empresa_id) === String(empresa.id));
+
+    const badgeAdmin = adminsDeEstaEmpresa.length
+      ? `<span class="badge ok">Con admin</span>`
+      : `<span class="badge warn">Sin admin</span>`;
+
+    const badgeActiva = empresa.activa === false
+      ? `<span class="badge off">Desactivada</span>`
+      : `<span class="badge ok">Activa</span>`;
+
+    const badgePagado = empresa.pagado === true
+      ? `<span class="badge ok">Pagado</span>`
+      : `<span class="badge warn">No pagado</span>`;
+
+    const box = document.createElement("div");
+    box.className = "empresa-box";
+
+    box.innerHTML = `
+      <div class="empresa-head">
+        <div>
+          <h3>${escapeHtml(empresa.nombre || "")}</h3>
+          <div style="margin-bottom:6px;">
+            ${badgeAdmin}
+            ${badgeActiva}
+            ${badgePagado}
+          </div>
+          <div class="small">ID: ${escapeHtml(empresa.id || "")}</div>
+          <div class="small">CIF: ${escapeHtml(empresa.cif || "-")}</div>
+          <div class="small">Email: ${escapeHtml(empresa.email || "-")}</div>
+          <div class="small">Teléfono: ${escapeHtml(empresa.telefono || "-")}</div>
+          <div class="small">Fecha fin pago: ${escapeHtml(formatearFecha(empresa.fecha_fin_pago))}</div>
+        </div>
+
         <div class="actions">
-          <button onclick="editarAdmin('${a.id}')">Editar</button>
-          <button class="ok" onclick="resetPass('${a.id}')">1234</button>
-          <button class="danger" onclick="borrarAdmin('${a.id}')">X</button>
+          <button class="sec" data-empresa-id="${empresa.id}" data-action="editar-empresa">Editar empresa</button>
+          <button class="${empresa.activa === false ? "ok" : "warn"}" data-empresa-id="${empresa.id}" data-action="toggle-activa">
+            ${empresa.activa === false ? "Activar" : "Desactivar"}
+          </button>
+          <button class="${empresa.pagado === true ? "warn" : "ok"}" data-empresa-id="${empresa.id}" data-action="toggle-pagado">
+            ${empresa.pagado === true ? "Marcar NO pagado" : "Marcar pagado"}
+          </button>
+          <button class="danger" data-empresa-id="${empresa.id}" data-action="borrar-empresa">Borrar empresa</button>
         </div>
       </div>
-    `).join("")}
 
-    <h4>Conductores</h4>
-    ${condE.map(c=>`
-      <div class="item">
-        ${c.nombre}
-        <button class="danger" onclick="borrarConductor('${c.id}')">X</button>
+      <div class="sub-box">
+        <div><strong>Admins de empresa (${adminsDeEstaEmpresa.length})</strong></div>
+        <div class="admins-lista"></div>
       </div>
-    `).join("")}
+
+      <div class="sub-box">
+        <div><strong>Conductores (${conductoresEmpresa.length})</strong></div>
+        <div class="conductores-lista"></div>
+      </div>
     `;
 
-    lista.appendChild(div);
-  });
+    const listaAdmins = box.querySelector(".admins-lista");
+    const listaConductores = box.querySelector(".conductores-lista");
+
+    if (!adminsDeEstaEmpresa.length) {
+      listaAdmins.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa no tiene admin asignado.</div>";
+    } else {
+      for (const admin of adminsDeEstaEmpresa) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        item.innerHTML = `
+          <div>
+            <div><strong>${escapeHtml(admin.nombre || "")}</strong> <span class="badge">Admin empresa</span></div>
+            <div class="small">Usuario: ${escapeHtml(admin.usuario || "-")}</div>
+            <div class="small">Contraseña: ${escapeHtml(admin.password || "-")}</div>
+          </div>
+          <div class="actions">
+            <button class="sec" data-admin-id="${admin.id}" data-action="editar-admin-empresa">Editar</button>
+            <button class="ok" data-admin-id="${admin.id}" data-action="reset-pass-admin">Poner 1234</button>
+            <button class="danger" data-admin-id="${admin.id}" data-action="borrar-admin-empresa">Borrar admin</button>
+          </div>
+        `;
+
+        listaAdmins.appendChild(item);
+      }
+    }
+
+    if (!conductoresEmpresa.length) {
+      listaConductores.innerHTML = "<div class='small' style='margin-top:8px;'>Esta empresa todavía no tiene conductores.</div>";
+    } else {
+      for (const c of conductoresEmpresa) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        item.innerHTML = `
+          <div>
+            <div><strong>${escapeHtml(c.nombre || "")}</strong></div>
+            <div class="small">Usuario: ${escapeHtml(c.usuario || "-")}</div>
+            <div class="small">Contraseña: ${escapeHtml(c.password || "-")}</div>
+            <div class="small">Matrícula: ${escapeHtml(c.matricula || "-")}</div>
+            <div class="small">Teléfono: ${escapeHtml(c.telefono || "-")}</div>
+          </div>
+          <div class="actions">
+            <button class="danger" data-conductor-id="${c.id}" data-action="borrar-conductor">Borrar conductor</button>
+          </div>
+        `;
+
+        listaConductores.appendChild(item);
+      }
+    }
+
+    listaEmpresasEl.appendChild(box);
+  }
 }
 
-async function borrarEmpresa(id){
-  if(!confirm("Borrar empresa"))return;
-  await supabase.from("admins_empresa").delete().eq("empresa_id",id);
-  await supabase.from("conductores").delete().eq("empresa_id",id);
-  await supabase.from("empresas").delete().eq("id",id);
-  recargar();
+async function recargarTodo() {
+  try {
+    setEstado("Cargando datos...");
+    listaEmpresasEl.innerHTML = "";
+
+    const empresas = await cargarEmpresas();
+    const adminsEmpresa = await cargarAdminsEmpresa();
+    const conductores = await cargarConductores();
+
+    pintarEmpresas(empresas, adminsEmpresa, conductores);
+    setEstado("Datos cargados correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function borrarAdmin(id){
-  await supabase.from("admins_empresa").delete().eq("id",id);
-  recargar();
+async function abrirEditorAdmin(id) {
+  try {
+    const { data, error } = await supabase
+      .from("admins_empresa")
+      .select("id,nombre,usuario")
+      .eq("id", id)
+      .limit(1);
+
+    if (error) throw new Error("Error cargando admin: " + error.message);
+
+    const admin = data && data.length ? data[0] : null;
+    if (!admin) {
+      setEstado("No se encontró el admin");
+      return;
+    }
+
+    adminEditandoId = admin.id;
+    editAdminNombre.value = admin.nombre || "";
+    editAdminUsuario.value = admin.usuario || "";
+    editAdminPassword.value = "";
+    editAdminModal.classList.add("open");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function borrarConductor(id){
-  await supabase.from("conductores").delete().eq("id",id);
-  recargar();
+async function guardarCambiosAdmin() {
+  try {
+    if (!adminEditandoId) {
+      setEstado("No hay admin seleccionado");
+      return;
+    }
+
+    const nombre = editAdminNombre.value.trim();
+    const usuario = editAdminUsuario.value.trim();
+    const password = editAdminPassword.value.trim();
+
+    if (!nombre || !usuario) {
+      setEstado("Nombre y usuario son obligatorios");
+      return;
+    }
+
+    if (await existeUsuarioEnAdminsEmpresa(usuario, adminEditandoId)) {
+      setEstado("Ese usuario ya lo usa otro admin");
+      return;
+    }
+
+    const usuarioEnConductores = await existeUsuarioEnConductores(usuario);
+    if (usuarioEnConductores) {
+      const { data: adminActual } = await supabase
+        .from("admins_empresa")
+        .select("usuario")
+        .eq("id", adminEditandoId)
+        .limit(1);
+
+      const usuarioAnterior = adminActual && adminActual.length ? adminActual[0].usuario : null;
+      if (usuario !== usuarioAnterior) {
+        setEstado("Ese usuario ya lo usa un conductor");
+        return;
+      }
+    }
+
+    const payload = { nombre, usuario };
+    if (password) payload.password = password;
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .update(payload)
+      .eq("id", adminEditandoId);
+
+    if (error) throw new Error("Error guardando cambios del admin: " + error.message);
+
+    cerrarEditAdminModal();
+    await recargarTodo();
+    setEstado("Admin actualizado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function editarAdmin(id){
-  const {data}=await supabase.from("admins_empresa").select("*").eq("id",id);
-  adminEditando=id;
-  editAdminNombre.value=data[0].nombre;
-  editAdminUsuario.value=data[0].usuario;
-  modalAdmin.classList.add("open");
+async function resetearPasswordAdmin(id) {
+  try {
+    const ok = confirm("¿Poner contraseña 1234 a este admin?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .update({ password: "1234" })
+      .eq("id", id);
+
+    if (error) throw new Error("Error reseteando contraseña: " + error.message);
+
+    await recargarTodo();
+    setEstado("Contraseña reseteada a 1234");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function guardarAdmin(){
-  await supabase.from("admins_empresa").update({
-    nombre:editAdminNombre.value,
-    usuario:editAdminUsuario.value,
-    password:editAdminPassword.value||undefined
-  }).eq("id",adminEditando);
-  cerrarModal();
-  recargar();
+async function abrirEditorEmpresa(id) {
+  try {
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("*")
+      .eq("id", id)
+      .limit(1);
+
+    if (error) throw new Error("Error cargando empresa: " + error.message);
+
+    const empresa = data && data.length ? data[0] : null;
+    if (!empresa) {
+      setEstado("No se encontró la empresa");
+      return;
+    }
+
+    empresaEditandoId = empresa.id;
+    editEmpresaNombre.value = empresa.nombre || "";
+    editEmpresaCif.value = empresa.cif || "";
+    editEmpresaEmail.value = empresa.email || "";
+    editEmpresaTelefono.value = empresa.telefono || "";
+    editEmpresaFechaFinPago.value = empresa.fecha_fin_pago || "";
+    editEmpresaModal.classList.add("open");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function resetPass(id){
-  await supabase.from("admins_empresa").update({password:"1234"}).eq("id",id);
-  recargar();
+async function guardarCambiosEmpresa() {
+  try {
+    if (!empresaEditandoId) {
+      setEstado("No hay empresa seleccionada");
+      return;
+    }
+
+    const payload = {
+      nombre: editEmpresaNombre.value.trim() || null,
+      cif: editEmpresaCif.value.trim() || null,
+      email: editEmpresaEmail.value.trim() || null,
+      telefono: editEmpresaTelefono.value.trim() || null,
+      fecha_fin_pago: editEmpresaFechaFinPago.value || null
+    };
+
+    const { error } = await supabase
+      .from("empresas")
+      .update(payload)
+      .eq("id", empresaEditandoId);
+
+    if (error) throw new Error("Error guardando empresa: " + error.message);
+
+    cerrarEditEmpresaModal();
+    await recargarTodo();
+    setEstado("Empresa actualizada correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-function cerrarModal(){modalAdmin.classList.remove("open");}
+async function toggleEmpresaActiva(id) {
+  try {
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,activa,nombre")
+      .eq("id", id)
+      .limit(1);
 
-async function editarEmpresa(id){
-  const {data}=await supabase.from("empresas").select("*").eq("id",id);
-  empresaEditando=id;
-  editEmpresaNombre.value=data[0].nombre;
-  editEmpresaCif.value=data[0].cif||"";
-  editEmpresaEmail.value=data[0].email||"";
-  editEmpresaTelefono.value=data[0].telefono||"";
-  modalEmpresa.classList.add("open");
+    if (error) throw new Error("Error leyendo empresa: " + error.message);
+
+    const empresa = data && data.length ? data[0] : null;
+    if (!empresa) {
+      setEstado("No se encontró la empresa");
+      return;
+    }
+
+    const nuevoEstado = empresa.activa === false ? true : false;
+
+    const { error: errorUpdate } = await supabase
+      .from("empresas")
+      .update({ activa: nuevoEstado })
+      .eq("id", id);
+
+    if (errorUpdate) throw new Error("Error actualizando estado: " + errorUpdate.message);
+
+    await recargarTodo();
+    setEstado(`Empresa ${empresa.nombre} ${nuevoEstado ? "activada" : "desactivada"} correctamente`);
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-async function guardarEmpresa(){
-  await supabase.from("empresas").update({
-    nombre:editEmpresaNombre.value,
-    cif:editEmpresaCif.value,
-    email:editEmpresaEmail.value,
-    telefono:editEmpresaTelefono.value
-  }).eq("id",empresaEditando);
-  cerrarModalEmpresa();
-  recargar();
+async function toggleEmpresaPagado(id) {
+  try {
+    const { data, error } = await supabase
+      .from("empresas")
+      .select("id,pagado,nombre")
+      .eq("id", id)
+      .limit(1);
+
+    if (error) throw new Error("Error leyendo empresa: " + error.message);
+
+    const empresa = data && data.length ? data[0] : null;
+    if (!empresa) {
+      setEstado("No se encontró la empresa");
+      return;
+    }
+
+    const nuevoEstado = empresa.pagado === true ? false : true;
+    let payload = { pagado: nuevoEstado };
+
+    if (nuevoEstado === false) {
+      payload.activa = false;
+    }
+
+    const { error: errorUpdate } = await supabase
+      .from("empresas")
+      .update(payload)
+      .eq("id", id);
+
+    if (errorUpdate) throw new Error("Error actualizando pago: " + errorUpdate.message);
+
+    await recargarTodo();
+    setEstado(`Pago de ${empresa.nombre}: ${nuevoEstado ? "marcado como PAGADO" : "marcado como NO PAGADO"}`);
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
-function cerrarModalEmpresa(){modalEmpresa.classList.remove("open");}
+async function borrarConductor(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar este conductor?");
+    if (!ok) return;
 
-recargar();
+    const { error } = await supabase
+      .from("conductores")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw new Error("Error borrando conductor: " + error.message);
+
+    await recargarTodo();
+    setEstado("Conductor borrado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function borrarAdminEmpresa(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar este admin de empresa?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("admins_empresa")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw new Error("Error borrando admin de empresa: " + error.message);
+
+    await recargarTodo();
+    setEstado("Admin de empresa borrado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function borrarEmpresa(id) {
+  try {
+    const ok = confirm("¿Seguro que quieres borrar esta empresa? Se borrarán sus admins, conductores, clientes, frecuentes y entregas.");
+    if (!ok) return;
+
+    const operaciones = [
+      supabase.from("admins_empresa").delete().eq("empresa_id", id),
+      supabase.from("conductores").delete().eq("empresa_id", id),
+      supabase.from("clientes").delete().eq("empresa_id", id),
+      supabase.from("frequent_vehicles").delete().eq("empresa_id", id),
+      supabase.from("frequent_pickups").delete().eq("empresa_id", id),
+      supabase.from("frequent_dropoffs").delete().eq("empresa_id", id),
+      supabase.from("entregas").delete().eq("empresa_id", id),
+      supabase.from("deliveries").delete().eq("empresa_id", id)
+    ];
+
+    const resultados = await Promise.allSettled(operaciones);
+
+    for (const r of resultados) {
+      if (r.status === "fulfilled" && r.value?.error) {
+        throw new Error(r.value.error.message);
+      }
+      if (r.status === "rejected") {
+        throw new Error(r.reason?.message || "Error borrando datos relacionados");
+      }
+    }
+
+    const { error: errorEmpresa } = await supabase
+      .from("empresas")
+      .delete()
+      .eq("id", id);
+
+    if (errorEmpresa) throw new Error("Error borrando empresa: " + errorEmpresa.message);
+
+    await recargarTodo();
+    setEstado("Empresa borrada correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+btnCrearEmpresa.addEventListener("click", crearEmpresaConAdmin);
+btnCerrarSesion.addEventListener("click", cerrarSesion);
+btnRecargar.addEventListener("click", recargarTodo);
+
+btnCerrarEditAdmin.addEventListener("click", cerrarEditAdminModal);
+btnGuardarEditAdmin.addEventListener("click", guardarCambiosAdmin);
+
+btnCerrarEditEmpresa.addEventListener("click", cerrarEditEmpresaModal);
+btnGuardarEditEmpresa.addEventListener("click", guardarCambiosEmpresa);
+
+editAdminModal.addEventListener("click", function(e) {
+  if (e.target === editAdminModal) cerrarEditAdminModal();
+});
+
+editEmpresaModal.addEventListener("click", function(e) {
+  if (e.target === editEmpresaModal) cerrarEditEmpresaModal();
+});
+
+listaEmpresasEl.addEventListener("click", async function(e) {
+  const action = e.target.getAttribute("data-action");
+  if (!action) return;
+
+  if (action === "borrar-conductor") {
+    const id = e.target.getAttribute("data-conductor-id");
+    if (id) await borrarConductor(id);
+    return;
+  }
+
+  if (action === "borrar-admin-empresa") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await borrarAdminEmpresa(id);
+    return;
+  }
+
+  if (action === "editar-admin-empresa") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await abrirEditorAdmin(id);
+    return;
+  }
+
+  if (action === "reset-pass-admin") {
+    const id = e.target.getAttribute("data-admin-id");
+    if (id) await resetearPasswordAdmin(id);
+    return;
+  }
+
+  if (action === "editar-empresa") {
+    const id = e.target.getAttribute("data-empresa-id");
+    if (id) await abrirEditorEmpresa(id);
+    return;
+  }
+
+  if (action === "toggle-activa") {
+    const id = e.target.getAttribute("data-empresa-id");
+    if (id) await toggleEmpresaActiva(id);
+    return;
+  }
+
+  if (action === "toggle-pagado") {
+    const id = e.target.getAttribute("data-empresa-id");
+    if (id) await toggleEmpresaPagado(id);
+    return;
+  }
+
+  if (action === "borrar-empresa") {
+    const id = e.target.getAttribute("data-empresa-id");
+    if (id) await borrarEmpresa(id);
+  }
+});
+
+recargarTodo();
 </script>
 </body>
 </html>
