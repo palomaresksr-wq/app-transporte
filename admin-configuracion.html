@@ -171,6 +171,18 @@ th{
   font-weight:bold;
 }
 
+.badgeBloqueo{
+  display:none;
+  margin-top:10px;
+  margin-left:8px;
+  background:rgba(255,77,79,.15);
+  color:#ffb3b4;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
 #statusGlobal{
   margin-top:10px;
   font-weight:bold;
@@ -210,7 +222,9 @@ th{
       <div>
         <span class="badge" id="nombreAdmin">Administrador</span>
         <span class="badgeEmpresa" id="empresaAdmin" style="display:none;">Empresa</span>
+        <span class="badgeBloqueo" id="badgeBloqueo">Acceso bloqueado</span>
       </div>
+      <div class="muted" id="estadoAcceso" style="margin-top:10px;">Comprobando acceso...</div>
     </div>
 
     <div class="actions">
@@ -220,174 +234,178 @@ th{
     </div>
   </div>
 
-  <div class="card">
-    <h2>Altas rápidas</h2>
+  <div id="contenidoProtegido" style="display:none;">
+
+    <div class="card">
+      <h2>Altas rápidas</h2>
+      <div class="grid2">
+
+        <div class="bloque">
+          <h3>Nuevo cliente</h3>
+          <div class="grid">
+            <div style="grid-column:1/-1;">
+              <label>Nombre cliente</label>
+              <input id="nuevoClienteNombre" placeholder="Ej: Albepet">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button onclick="crearCliente()">Guardar cliente</button>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h3>Nuevo conductor</h3>
+          <div class="grid">
+            <div>
+              <label>Nombre</label>
+              <input id="nuevoConductorNombre" placeholder="Nombre del conductor">
+            </div>
+            <div>
+              <label>Usuario</label>
+              <input id="nuevoConductorUsuario" placeholder="usuario">
+            </div>
+            <div>
+              <label>Contraseña</label>
+              <input id="nuevoConductorPassword" placeholder="contraseña">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button onclick="crearConductor()">Guardar conductor</button>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h3>Nueva matrícula frecuente</h3>
+          <div class="grid">
+            <div style="grid-column:1/-1;">
+              <label>Matrícula</label>
+              <input id="nuevaMatricula" placeholder="Ej: 1234ABC">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button onclick="crearVehiculoFrecuente()">Guardar matrícula</button>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h3>Nuevo lugar de carga frecuente</h3>
+          <div class="grid">
+            <div style="grid-column:1/-1;">
+              <label>Lugar de carga</label>
+              <input id="nuevoPickup" placeholder="Ej: Coslada">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button onclick="crearPickupFrecuente()">Guardar lugar</button>
+          </div>
+        </div>
+
+        <div class="bloque">
+          <h3>Nuevo lugar de descarga frecuente</h3>
+          <div class="grid">
+            <div style="grid-column:1/-1;">
+              <label>Lugar de descarga</label>
+              <input id="nuevoDropoff" placeholder="Ej: Plataforma logística X">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button onclick="crearDropoffFrecuente()">Guardar lugar</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="statusGlobal"></div>
+    </div>
+
     <div class="grid2">
 
-      <div class="bloque">
-        <h3>Nuevo cliente</h3>
-        <div class="grid">
-          <div style="grid-column:1/-1;">
-            <label>Nombre cliente</label>
-            <input id="nuevoClienteNombre" placeholder="Ej: Albepet">
-          </div>
-        </div>
-        <div class="actions" style="margin-top:12px;">
-          <button onclick="crearCliente()">Guardar cliente</button>
-        </div>
-      </div>
-
-      <div class="bloque">
-        <h3>Nuevo conductor</h3>
-        <div class="grid">
-          <div>
-            <label>Nombre</label>
-            <input id="nuevoConductorNombre" placeholder="Nombre del conductor">
-          </div>
-          <div>
-            <label>Usuario</label>
-            <input id="nuevoConductorUsuario" placeholder="usuario">
-          </div>
-          <div>
-            <label>Contraseña</label>
-            <input id="nuevoConductorPassword" placeholder="contraseña">
-          </div>
-        </div>
-        <div class="actions" style="margin-top:12px;">
-          <button onclick="crearConductor()">Guardar conductor</button>
+      <div class="card">
+        <h3>Clientes</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyClientes">
+              <tr><td colspan="2" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="bloque">
-        <h3>Nueva matrícula frecuente</h3>
-        <div class="grid">
-          <div style="grid-column:1/-1;">
-            <label>Matrícula</label>
-            <input id="nuevaMatricula" placeholder="Ej: 1234ABC">
-          </div>
-        </div>
-        <div class="actions" style="margin-top:12px;">
-          <button onclick="crearVehiculoFrecuente()">Guardar matrícula</button>
-        </div>
-      </div>
-
-      <div class="bloque">
-        <h3>Nuevo lugar de carga frecuente</h3>
-        <div class="grid">
-          <div style="grid-column:1/-1;">
-            <label>Lugar de carga</label>
-            <input id="nuevoPickup" placeholder="Ej: Coslada">
-          </div>
-        </div>
-        <div class="actions" style="margin-top:12px;">
-          <button onclick="crearPickupFrecuente()">Guardar lugar</button>
+      <div class="card">
+        <h3>Conductores</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyConductores">
+              <tr><td colspan="3" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="bloque">
-        <h3>Nuevo lugar de descarga frecuente</h3>
-        <div class="grid">
-          <div style="grid-column:1/-1;">
-            <label>Lugar de descarga</label>
-            <input id="nuevoDropoff" placeholder="Ej: Plataforma logística X">
-          </div>
+      <div class="card">
+        <h3>Matrículas frecuentes</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Matrícula</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyVehiculos">
+              <tr><td colspan="2" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="actions" style="margin-top:12px;">
-          <button onclick="crearDropoffFrecuente()">Guardar lugar</button>
+      </div>
+
+      <div class="card">
+        <h3>Lugares de carga frecuentes</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Lugar</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPickups">
+              <tr><td colspan="2" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-    </div>
-
-    <div id="statusGlobal"></div>
-  </div>
-
-  <div class="grid2">
-
-    <div class="card">
-      <h3>Clientes</h3>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyClientes">
-            <tr><td colspan="2" class="empty">Cargando...</td></tr>
-          </tbody>
-        </table>
+      <div class="card">
+        <h3>Lugares de descarga frecuentes</h3>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Lugar</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDropoffs">
+              <tr><td colspan="2" class="empty">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <h3>Conductores</h3>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Usuario</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyConductores">
-            <tr><td colspan="3" class="empty">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Matrículas frecuentes</h3>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Matrícula</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyVehiculos">
-            <tr><td colspan="2" class="empty">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Lugares de carga frecuentes</h3>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Lugar</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyPickups">
-            <tr><td colspan="2" class="empty">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Lugares de descarga frecuentes</h3>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Lugar</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyDropoffs">
-            <tr><td colspan="2" class="empty">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
 
   </div>
@@ -404,14 +422,13 @@ const supabase = createClient(
 
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
-if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
-  window.location.href = "login.html?logout=1";
-}
-
 const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 const nombreAdmin = document.getElementById("nombreAdmin");
 const empresaAdmin = document.getElementById("empresaAdmin");
+const badgeBloqueo = document.getElementById("badgeBloqueo");
+const estadoAcceso = document.getElementById("estadoAcceso");
+const contenidoProtegido = document.getElementById("contenidoProtegido");
 const statusGlobal = document.getElementById("statusGlobal");
 
 const tbodyClientes = document.getElementById("tbodyClientes");
@@ -422,9 +439,7 @@ const tbodyDropoffs = document.getElementById("tbodyDropoffs");
 
 let empresaActual = null;
 
-nombreAdmin.innerText = sesion?.nombre || sesion?.username || "Administrador";
-
-window.cerrarSesion = function(){
+function limpiarSesionCompleta() {
   try {
     localStorage.removeItem("sesionAppTransporte");
     localStorage.removeItem("clienteSeleccionadoAppTransporte");
@@ -434,8 +449,19 @@ window.cerrarSesion = function(){
   } catch (e) {
     console.error(e);
   }
+}
+
+window.cerrarSesion = function(){
+  limpiarSesionCompleta();
   window.location.href = "login.html?logout=1&t=" + Date.now();
 };
+
+function bloquearYSalir(mensaje) {
+  badgeBloqueo.style.display = "inline-block";
+  alert(mensaje);
+  limpiarSesionCompleta();
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+}
 
 function getEmpresaIdActiva() {
   if (sesion.role === "admin_empresa") {
@@ -457,49 +483,65 @@ function escapeHtml(valor) {
     .replaceAll("'", "&#039;");
 }
 
-async function cargarInfoEmpresaActual() {
-  try {
-    if (sesion.role === "admin_global") {
-      pageTitle.innerText = "Configuración - Admin General";
-      pageSubtitle.innerText = "Usa preferiblemente un admin de empresa para gestionar datos concretos";
-      empresaAdmin.style.display = "none";
-      empresaActual = null;
-      return;
-    }
-
-    if (!sesion.empresa_id) {
-      pageTitle.innerText = "Configuración";
-      pageSubtitle.innerText = "No hay empresa asociada a este usuario";
-      empresaAdmin.style.display = "none";
-      empresaActual = null;
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("empresas")
-      .select("id,nombre,email")
-      .eq("id", sesion.empresa_id)
-      .limit(1);
-
-    if (error) {
-      pageTitle.innerText = "Configuración - Admin Empresa";
-      pageSubtitle.innerText = "No se pudo cargar la empresa";
-      empresaAdmin.style.display = "inline-block";
-      empresaAdmin.innerText = "Empresa ID: " + sesion.empresa_id;
-      return;
-    }
-
-    empresaActual = data && data.length ? data[0] : null;
-    pageTitle.innerText = "Configuración - Admin Empresa";
-    pageSubtitle.innerText = empresaActual
-      ? "Gestionando: " + (empresaActual.nombre || "")
-      : "Empresa no encontrada";
-
-    empresaAdmin.style.display = "inline-block";
-    empresaAdmin.innerText = empresaActual?.nombre || ("Empresa ID: " + sesion.empresa_id);
-  } catch (e) {
-    console.error(e);
+async function comprobarAccesoYEmpresa() {
+  if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+    window.location.href = "login.html?logout=1";
+    return false;
   }
+
+  nombreAdmin.innerText = sesion?.nombre || sesion?.username || "Administrador";
+
+  if (sesion.role === "admin_global") {
+    pageTitle.innerText = "Configuración - Admin General";
+    pageSubtitle.innerText = "Usa preferiblemente un admin de empresa para gestionar datos concretos";
+    empresaAdmin.style.display = "none";
+    estadoAcceso.innerText = "Acceso admin global correcto";
+    contenidoProtegido.style.display = "block";
+    return true;
+  }
+
+  if (!sesion.empresa_id) {
+    bloquearYSalir("Tu usuario no tiene empresa asignada.");
+    return false;
+  }
+
+  estadoAcceso.innerText = "Comprobando estado de la empresa...";
+
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("id,nombre,email,activa,pagado")
+    .eq("id", sesion.empresa_id)
+    .limit(1);
+
+  if (error) {
+    bloquearYSalir("No se ha podido comprobar tu empresa: " + error.message);
+    return false;
+  }
+
+  empresaActual = data && data.length ? data[0] : null;
+
+  if (!empresaActual) {
+    bloquearYSalir("La empresa asociada a este usuario no existe.");
+    return false;
+  }
+
+  if (empresaActual.activa === false) {
+    bloquearYSalir("Tu empresa está desactivada. Contacta con administración.");
+    return false;
+  }
+
+  if (empresaActual.pagado === false) {
+    bloquearYSalir("Tu empresa no tiene el pago al día. Contacta con administración.");
+    return false;
+  }
+
+  pageTitle.innerText = "Configuración - Admin Empresa";
+  pageSubtitle.innerText = "Gestionando: " + (empresaActual.nombre || "");
+  empresaAdmin.style.display = "inline-block";
+  empresaAdmin.innerText = empresaActual.nombre || ("Empresa ID: " + sesion.empresa_id);
+  estadoAcceso.innerText = "Empresa activa y pagada";
+  contenidoProtegido.style.display = "block";
+  return true;
 }
 
 function comprobarEmpresaEditable() {
@@ -922,13 +964,7 @@ async function borrarPorTabla(tabla, id) {
     return false;
   }
 
-  let query = supabase.from(tabla).delete().eq("id", id);
-
-  if (tabla !== "conductores") {
-    query = query.eq("empresa_id", empresaId);
-  } else {
-    query = query.eq("empresa_id", empresaId);
-  }
+  let query = supabase.from(tabla).delete().eq("id", id).eq("empresa_id", empresaId);
 
   const { error } = await query;
 
@@ -996,8 +1032,10 @@ async function cargarTodo() {
 }
 window.cargarTodo = cargarTodo;
 
-await cargarInfoEmpresaActual();
-await cargarTodo();
+const accesoOk = await comprobarAccesoYEmpresa();
+if (accesoOk) {
+  await cargarTodo();
+}
 </script>
 
 </body>
