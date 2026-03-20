@@ -57,6 +57,9 @@ input, select{
   background:#0b1220;
   color:white;
 }
+input[type="checkbox"]{
+  width:auto;
+}
 button{
   padding:10px 14px;
   border:none;
@@ -180,6 +183,23 @@ hr{
   margin-top:16px;
   flex-wrap:wrap;
 }
+.featuresGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:10px;
+}
+.featureItem{
+  background:#0b1220;
+  border-radius:10px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.featureItem span{
+  font-size:14px;
+}
 @media (max-width:700px){
   body{padding:12px;}
 }
@@ -196,6 +216,20 @@ hr{
     <div class="actions">
       <button class="sec" id="btnRecargar">Recargar</button>
       <button class="sec" id="btnCerrarSesion">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Módulos del sistema</h2>
+    <div class="small" style="margin-bottom:12px;">
+      Activa o desactiva funciones globales de la app. Lo que apagues aquí dejará de mostrarse o ejecutarse en conductor, admin y facturación.
+    </div>
+
+    <div id="featuresPanel" class="featuresGrid"></div>
+
+    <div class="actions" style="margin-top:14px;">
+      <button id="btnGuardarModulos">Guardar configuración</button>
+      <button class="sec" id="btnRestaurarModulos">Restaurar valores por defecto</button>
     </div>
   </div>
 
@@ -306,6 +340,9 @@ hr{
   </div>
 </div>
 
+<script src="features.js"></script>
+<script src="app-utils.js"></script>
+
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -315,6 +352,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const estadoEl = document.getElementById("estado");
 const listaEmpresasEl = document.getElementById("listaEmpresas");
+const featuresPanel = document.getElementById("featuresPanel");
+const btnGuardarModulos = document.getElementById("btnGuardarModulos");
+const btnRestaurarModulos = document.getElementById("btnRestaurarModulos");
 
 const empresaNombreEl = document.getElementById("empresaNombre");
 const empresaCifEl = document.getElementById("empresaCif");
@@ -347,6 +387,42 @@ const btnGuardarEditEmpresa = document.getElementById("btnGuardarEditEmpresa");
 let adminEditandoId = null;
 let empresaEditandoId = null;
 
+const FEATURE_DEFAULTS_LOCAL = {
+  dashboard: true,
+  estadosEntrega: true,
+  facturacionPdf: true,
+  exportarCsv: true,
+  tiemposEspera: true,
+  firmaDigital: false,
+  fotoObligatoria: false,
+  entregasRecurrentes: false,
+  controlMargenes: false,
+  rankingClientes: false,
+  portalCliente: false,
+  envioEmail: false,
+  notificaciones: false,
+  geolocalizacion: false,
+  lecturaIA: true
+};
+
+const FEATURE_LABELS_LOCAL = {
+  dashboard: "Dashboard",
+  estadosEntrega: "Estados de entrega",
+  facturacionPdf: "Facturación PDF",
+  exportarCsv: "Exportar CSV",
+  tiemposEspera: "Tiempos de espera",
+  firmaDigital: "Firma digital",
+  fotoObligatoria: "Foto obligatoria",
+  entregasRecurrentes: "Entregas recurrentes",
+  controlMargenes: "Control de márgenes",
+  rankingClientes: "Ranking de clientes",
+  portalCliente: "Portal cliente",
+  envioEmail: "Envío por email",
+  notificaciones: "Notificaciones",
+  geolocalizacion: "Geolocalización",
+  lecturaIA: "Lectura IA de albaranes"
+};
+
 function comprobarAcceso() {
   const sesionRaw = localStorage.getItem("sesionAppTransporte");
   if (!sesionRaw) {
@@ -370,6 +446,59 @@ function comprobarAcceso() {
 
 if (!comprobarAcceso()) {
   throw new Error("Acceso no autorizado");
+}
+
+function getFeaturesLocal() {
+  try {
+    if (typeof getFeatures === "function") {
+      return getFeatures();
+    }
+  } catch (e) {}
+  try {
+    const saved = JSON.parse(localStorage.getItem("app_features")) || {};
+    return { ...FEATURE_DEFAULTS_LOCAL, ...saved };
+  } catch (e) {
+    return { ...FEATURE_DEFAULTS_LOCAL };
+  }
+}
+
+function saveFeaturesLocal(features) {
+  try {
+    if (typeof saveFeatures === "function") {
+      saveFeatures(features);
+      return;
+    }
+  } catch (e) {}
+  localStorage.setItem("app_features", JSON.stringify(features));
+}
+
+function renderFeaturesPanel() {
+  const features = getFeaturesLocal();
+
+  featuresPanel.innerHTML = Object.keys(FEATURE_LABELS_LOCAL).map(key => `
+    <label class="featureItem">
+      <span>${FEATURE_LABELS_LOCAL[key]}</span>
+      <input type="checkbox" id="feature_${key}" ${features[key] ? "checked" : ""}>
+    </label>
+  `).join("");
+}
+
+function guardarModulos() {
+  const updated = {};
+
+  Object.keys(FEATURE_LABELS_LOCAL).forEach(key => {
+    const checkbox = document.getElementById("feature_" + key);
+    updated[key] = checkbox ? checkbox.checked : false;
+  });
+
+  saveFeaturesLocal(updated);
+  setEstado("Configuración de módulos guardada correctamente");
+}
+
+function restaurarModulosPorDefecto() {
+  saveFeaturesLocal({ ...FEATURE_DEFAULTS_LOCAL });
+  renderFeaturesPanel();
+  setEstado("Módulos restaurados a los valores por defecto");
 }
 
 function setEstado(texto) {
@@ -691,6 +820,7 @@ function pintarEmpresas(empresas, adminsEmpresa, conductores) {
 
 async function recargarTodo() {
   try {
+    renderFeaturesPanel();
     setEstado("Cargando datos...");
     listaEmpresasEl.innerHTML = "";
 
@@ -1024,6 +1154,8 @@ async function borrarEmpresa(id) {
 btnCrearEmpresa.addEventListener("click", crearEmpresaConAdmin);
 btnCerrarSesion.addEventListener("click", cerrarSesion);
 btnRecargar.addEventListener("click", recargarTodo);
+btnGuardarModulos.addEventListener("click", guardarModulos);
+btnRestaurarModulos.addEventListener("click", restaurarModulosPorDefecto);
 
 btnCerrarEditAdmin.addEventListener("click", cerrarEditAdminModal);
 btnGuardarEditAdmin.addEventListener("click", guardarCambiosAdmin);
@@ -1091,11 +1223,9 @@ listaEmpresasEl.addEventListener("click", async function(e) {
   }
 });
 
+renderFeaturesPanel();
 recargarTodo();
 </script>
 
-<script src="features.js"></script>
-<script src="app-utils.js"></script>
-  
 </body>
 </html>
