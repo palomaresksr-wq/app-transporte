@@ -15,7 +15,7 @@ body{
 }
 
 .wrap{
-  max-width:1400px;
+  max-width:1450px;
   margin:0 auto;
 }
 
@@ -73,7 +73,7 @@ button.sec, .btn.sec{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1700px;
+  min-width:2200px;
   background:#121b2f;
 }
 
@@ -114,6 +114,36 @@ th{
 
 .info{
   background:#274d8a;
+  color:white;
+}
+
+.warn{
+  background:#a86d16;
+  color:white;
+}
+
+.danger{
+  background:#a83232;
+  color:white;
+}
+
+.estadoPendiente{
+  background:#5a647c;
+  color:white;
+}
+
+.estadoRuta{
+  background:#255fa8;
+  color:white;
+}
+
+.estadoEntregado{
+  background:#1f8b4c;
+  color:white;
+}
+
+.estadoFacturado{
+  background:#7a4db4;
   color:white;
 }
 
@@ -292,6 +322,52 @@ input[type="checkbox"]{
   line-height:1.45;
 }
 
+.dashboardGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:#0b1220;
+  border-radius:10px;
+  padding:12px;
+}
+
+.kpi .kpiTitle{
+  font-size:13px;
+  color:#c9d5f0;
+  margin-bottom:6px;
+}
+
+.kpi .kpiValue{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.rankingItem{
+  background:#0b1220;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.estadoSelect{
+  min-width:140px;
+}
+
+@media (max-width: 900px){
+  .grid2{
+    grid-template-columns:1fr;
+  }
+}
+
 @media (max-width: 700px){
   body{
     padding:12px;
@@ -320,11 +396,34 @@ input[type="checkbox"]{
     </div>
   </div>
 
+  <div id="dashboardSection" class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0;">Dashboard</h3>
+      <div id="dashboardResumen" class="dashboardGrid"></div>
+    </div>
+
+    <div id="rankingSection" class="card" style="display:none;">
+      <h3 style="margin-top:0;">Ranking de clientes</h3>
+      <div id="rankingClientesBox"></div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="filters">
       <div>
         <label>Buscar</label>
         <input id="searchInput" placeholder="Conductor, cliente, matrícula, carga, descarga...">
+      </div>
+
+      <div>
+        <label>Estado</label>
+        <select id="estadoFilter">
+          <option value="">Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_ruta">En ruta</option>
+          <option value="entregado">Entregado</option>
+          <option value="facturado">Facturado</option>
+        </select>
       </div>
 
       <div>
@@ -364,6 +463,7 @@ input[type="checkbox"]{
         <thead>
           <tr>
             <th>Fecha</th>
+            <th>Estado</th>
             <th>Conductor</th>
             <th>Matrícula</th>
             <th>Cliente</th>
@@ -383,7 +483,7 @@ input[type="checkbox"]{
         </thead>
         <tbody id="tbodyEntregas">
           <tr>
-            <td colspan="16" class="empty">Cargando entregas...</td>
+            <td colspan="17" class="empty">Cargando entregas...</td>
           </tr>
         </tbody>
       </table>
@@ -540,6 +640,9 @@ input[type="checkbox"]{
   </div>
 </div>
 
+<script src="features.js"></script>
+<script src="app-utils.js"></script>
+
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -551,6 +654,7 @@ const supabase = createClient(
 const statusEl = document.getElementById("status");
 const tbodyEntregas = document.getElementById("tbodyEntregas");
 const searchInput = document.getElementById("searchInput");
+const estadoFilter = document.getElementById("estadoFilter");
 const urgenteFilter = document.getElementById("urgenteFilter");
 const mozoFilter = document.getElementById("mozoFilter");
 const trampillaFilter = document.getElementById("trampillaFilter");
@@ -558,6 +662,11 @@ const photoModal = document.getElementById("photoModal");
 const modalImg = document.getElementById("modalImg");
 const panelTitle = document.getElementById("panelTitle");
 const panelSubtitle = document.getElementById("panelSubtitle");
+
+const dashboardSection = document.getElementById("dashboardSection");
+const dashboardResumen = document.getElementById("dashboardResumen");
+const rankingSection = document.getElementById("rankingSection");
+const rankingClientesBox = document.getElementById("rankingClientesBox");
 
 const editModal = document.getElementById("editModal");
 const editDriverName = document.getElementById("edit_driver_name");
@@ -591,6 +700,22 @@ if (
   (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
 ) {
   window.location.href = "login.html";
+}
+
+function moduloActivo(nombre, valorPorDefecto = false) {
+  try {
+    if (typeof isFeatureEnabled === "function") {
+      return !!isFeatureEnabled(nombre);
+    }
+  } catch (e) {}
+  return valorPorDefecto;
+}
+
+function formatEurosLocal(valor) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR"
+  }).format(Number(valor || 0));
 }
 
 window.cerrarSesion = function(){
@@ -652,6 +777,18 @@ async function cargarInfoEmpresaActual() {
   }
 }
 
+function aplicarVisibilidadModulosAdmin() {
+  if (!moduloActivo("dashboard", true)) {
+    dashboardSection.style.display = "none";
+  }
+
+  if (moduloActivo("rankingClientes", false)) {
+    rankingSection.style.display = "block";
+  } else {
+    rankingSection.style.display = "none";
+  }
+}
+
 function formatearFecha(fechaIso) {
   if (!fechaIso) return "";
   const fecha = new Date(fechaIso);
@@ -670,6 +807,14 @@ function escapeHtml(valor) {
 
 function badgeBooleano(activo, texto) {
   return `<span class="badge ${activo ? "si" : "no"}">${texto}: ${activo ? "Sí" : "No"}</span>`;
+}
+
+function badgeEstado(estado) {
+  const e = String(estado || "pendiente").toLowerCase();
+  if (e === "en_ruta") return `<span class="badge estadoRuta">En ruta</span>`;
+  if (e === "entregado") return `<span class="badge estadoEntregado">Entregado</span>`;
+  if (e === "facturado") return `<span class="badge estadoFacturado">Facturado</span>`;
+  return `<span class="badge estadoPendiente">Pendiente</span>`;
 }
 
 function cumpleFiltroBooleano(valorReal, filtro) {
@@ -789,6 +934,91 @@ function parsearObservacionesInditex(observations) {
   };
 }
 
+function parsearExtrasApp(observations) {
+  const texto = String(observations || "");
+  const marca = "[APP_EXTRAS]";
+
+  if (!texto.includes(marca)) {
+    return {
+      tiempoEsperaMin: null,
+      esperaCobrable: null,
+      extraEsperaEuros: null,
+      precioCliente: null,
+      costeEstimado: null,
+      margen: null,
+      firmaRecogida: null,
+      plantillaUsada: ""
+    };
+  }
+
+  const bloque = texto.split(marca).slice(1).join(marca).trim();
+
+  const salida = {
+    tiempoEsperaMin: null,
+    esperaCobrable: null,
+    extraEsperaEuros: null,
+    precioCliente: null,
+    costeEstimado: null,
+    margen: null,
+    firmaRecogida: null,
+    plantillaUsada: ""
+  };
+
+  bloque.split("\n").forEach(linea => {
+    const l = linea.trim();
+    if (!l) return;
+
+    if (l.startsWith("tiempo_espera_min=")) {
+      salida.tiempoEsperaMin = normalizarNumero(l.substring("tiempo_espera_min=".length).trim());
+      return;
+    }
+
+    if (l.startsWith("espera_cobrable=")) {
+      const v = l.substring("espera_cobrable=".length).trim().toLowerCase();
+      salida.esperaCobrable = v === "si";
+      return;
+    }
+
+    if (l.startsWith("extra_espera_eur=")) {
+      salida.extraEsperaEuros = normalizarNumero(l.substring("extra_espera_eur=".length).trim());
+      return;
+    }
+
+    if (l.startsWith("precio_cliente=")) {
+      salida.precioCliente = normalizarNumero(l.substring("precio_cliente=".length).trim());
+      return;
+    }
+
+    if (l.startsWith("coste_estimado=")) {
+      salida.costeEstimado = normalizarNumero(l.substring("coste_estimado=".length).trim());
+      return;
+    }
+
+    if (l.startsWith("margen_estimado=")) {
+      salida.margen = normalizarNumero(l.substring("margen_estimado=".length).trim());
+      return;
+    }
+
+    if (l.startsWith("firma_recogida=")) {
+      const v = l.substring("firma_recogida=".length).trim().toLowerCase();
+      salida.firmaRecogida = v === "si";
+      return;
+    }
+
+    if (l.startsWith("plantilla_usada=")) {
+      salida.plantillaUsada = l.substring("plantilla_usada=".length).trim();
+    }
+  });
+
+  return salida;
+}
+
+function limpiarObservacionesDeExtras(observations) {
+  const texto = String(observations || "");
+  const sinExtras = texto.split("[APP_EXTRAS]")[0].trim();
+  return sinExtras;
+}
+
 function totalizarLineasMercancia(lineas) {
   const totalBultos = (lineas || []).reduce((acc, item) => {
     const n = parseInt(item?.bultos ?? 0, 10);
@@ -855,24 +1085,67 @@ function renderLineasInditexTabla(datos) {
   `;
 }
 
+function renderExtrasEntrega(entrega, extrasApp) {
+  const bloques = [
+    badgeBooleano(entrega.mozo, "Mozo"),
+    badgeBooleano(entrega.trampilla, "Trampilla"),
+    badgeBooleano(entrega.urgente, "Urgente")
+  ];
+
+  if (moduloActivo("tiemposEspera", true)) {
+    bloques.push(`<span class="badge info">Espera: ${extrasApp.tiempoEsperaMin ?? 0} min</span>`);
+    bloques.push(`<span class="badge ${extrasApp.esperaCobrable ? "warn" : "no"}">Espera cobrable: ${extrasApp.esperaCobrable ? "Sí" : "No"}</span>`);
+    bloques.push(`<span class="badge info">Extra espera: ${formatEurosLocal(extrasApp.extraEsperaEuros ?? 0)}</span>`);
+  }
+
+  if (moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false)) {
+    bloques.push(`<span class="badge info">Precio cliente: ${formatEurosLocal(extrasApp.precioCliente ?? entrega.price_eur ?? 0)}</span>`);
+    bloques.push(`<span class="badge info">Coste estimado: ${formatEurosLocal(extrasApp.costeEstimado ?? 0)}</span>`);
+    bloques.push(`<span class="badge ${(Number(extrasApp.margen || 0) >= 0) ? "si" : "danger"}">Margen: ${formatEurosLocal(extrasApp.margen ?? 0)}</span>`);
+  }
+
+  if (moduloActivo("firmaDigital", false)) {
+    bloques.push(`<span class="badge ${extrasApp.firmaRecogida ? "si" : "no"}">Firma: ${extrasApp.firmaRecogida ? "Sí" : "No"}</span>`);
+  }
+
+  if (moduloActivo("entregasRecurrentes", false) && extrasApp.plantillaUsada) {
+    bloques.push(`<span class="badge info">Plantilla: ${escapeHtml(extrasApp.plantillaUsada)}</span>`);
+  }
+
+  return bloques.join(" ");
+}
+
+function renderSelectEstado(entrega) {
+  const deshabilitado = !moduloActivo("estadosEntrega", true) || !puedeEditarEntrega(entrega);
+
+  return `
+    <div>
+      ${badgeEstado(entrega.estado)}
+      <div style="margin-top:8px;">
+        <select class="estadoSelect" onchange="cambiarEstadoEntrega('${entrega.id}', this.value)" ${deshabilitado ? "disabled" : ""}>
+          <option value="pendiente" ${String(entrega.estado || "pendiente") === "pendiente" ? "selected" : ""}>Pendiente</option>
+          <option value="en_ruta" ${String(entrega.estado || "") === "en_ruta" ? "selected" : ""}>En ruta</option>
+          <option value="entregado" ${String(entrega.estado || "") === "entregado" ? "selected" : ""}>Entregado</option>
+          <option value="facturado" ${String(entrega.estado || "") === "facturado" ? "selected" : ""}>Facturado</option>
+        </select>
+      </div>
+    </div>
+  `;
+}
+
 function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="16" class="empty">No hay entregas que coincidan con el filtro.</td>
+        <td colspan="17" class="empty">No hay entregas que coincidan con el filtro.</td>
       </tr>
     `;
     return;
   }
 
   tbodyEntregas.innerHTML = lista.map(entrega => {
-    const extras = `
-      ${badgeBooleano(entrega.mozo, "Mozo")}
-      ${badgeBooleano(entrega.trampilla, "Trampilla")}
-      ${badgeBooleano(entrega.urgente, "Urgente")}
-    `;
-
     const datosInditex = parsearObservacionesInditex(entrega.observations);
+    const extrasApp = parsearExtrasApp(entrega.observations);
 
     const fotoHtml = entrega.photo_url
       ? `
@@ -891,9 +1164,12 @@ function renderEntregas(lista) {
       `
       : `<span class="muted">Sin permiso</span>`;
 
+    const precioMostrar = extrasApp.precioCliente ?? entrega.price_eur ?? null;
+
     return `
       <tr>
         <td>${formatearFecha(entrega.created_at)}</td>
+        <td>${renderSelectEstado(entrega)}</td>
         <td>${escapeHtml(entrega.driver_name)}</td>
         <td>${escapeHtml(entrega.vehicle_plate)}</td>
         <td>${escapeHtml(entrega.client_name)}</td>
@@ -903,14 +1179,14 @@ function renderEntregas(lista) {
         <td>${escapeHtml(entrega.bultos)}</td>
         <td>${escapeHtml(entrega.kg)}</td>
         <td>${escapeHtml(entrega.m3)}</td>
-        <td>${escapeHtml(datosInditex.observacionesLimpias)}</td>
+        <td>${escapeHtml(limpiarObservacionesDeExtras(datosInditex.observacionesLimpias))}</td>
         <td>
           ${renderDetalleInditexCompacto(datosInditex)}
           ${renderLineasInditexTabla(datosInditex)}
         </td>
-        <td>${extras}</td>
+        <td>${renderExtrasEntrega(entrega, extrasApp)}</td>
         <td>${fotoHtml}</td>
-        <td>${entrega.price_eur != null ? Number(entrega.price_eur).toFixed(2) + " €" : ""}</td>
+        <td>${precioMostrar != null ? formatEurosLocal(precioMostrar) : ""}</td>
         <td>${acciones}</td>
       </tr>
     `;
@@ -922,6 +1198,7 @@ function aplicarFiltros() {
 
   const filtradas = entregasGlobal.filter(entrega => {
     const datosInditex = parsearObservacionesInditex(entrega.observations);
+    const extrasApp = parsearExtrasApp(entrega.observations);
 
     const bloqueLineas = (datosInditex.lineasMercancia || [])
       .map(linea => [
@@ -943,20 +1220,142 @@ function aplicarFiltros() {
       datosInditex.fechaAlbaran,
       datosInditex.destinatario,
       datosInditex.direccionDescarga,
-      bloqueLineas
+      bloqueLineas,
+      extrasApp.plantillaUsada,
+      entrega.estado
     ]
     .map(v => (v || "").toString().toLowerCase())
     .join(" ");
 
     const pasaTexto = !texto || bloqueTexto.includes(texto);
+    const pasaEstado = !estadoFilter.value || String(entrega.estado || "pendiente") === estadoFilter.value;
     const pasaUrgente = cumpleFiltroBooleano(entrega.urgente, urgenteFilter.value);
     const pasaMozo = cumpleFiltroBooleano(entrega.mozo, mozoFilter.value);
     const pasaTrampilla = cumpleFiltroBooleano(entrega.trampilla, trampillaFilter.value);
 
-    return pasaTexto && pasaUrgente && pasaMozo && pasaTrampilla;
+    return pasaTexto && pasaEstado && pasaUrgente && pasaMozo && pasaTrampilla;
   });
 
   renderEntregas(filtradas);
+  renderDashboard(filtradas);
+  renderRankingClientes(filtradas);
+}
+
+function renderDashboard(lista) {
+  if (!moduloActivo("dashboard", true) || !dashboardResumen) return;
+
+  const datos = Array.isArray(lista) ? lista : [];
+  const hoy = new Date().toISOString().slice(0, 10);
+  const mes = hoy.slice(0, 7);
+
+  const extrasLista = datos.map(e => parsearExtrasApp(e.observations));
+
+  const entregasHoy = datos.filter(e => String(e.created_at || "").slice(0, 10) === hoy).length;
+  const entregasMes = datos.filter(e => String(e.created_at || "").slice(0, 7) === mes).length;
+  const pendientes = datos.filter(e => String(e.estado || "pendiente") === "pendiente").length;
+  const enRuta = datos.filter(e => String(e.estado || "") === "en_ruta").length;
+  const entregados = datos.filter(e => String(e.estado || "") === "entregado").length;
+  const facturados = datos.filter(e => String(e.estado || "") === "facturado").length;
+
+  const totalKg = datos.reduce((acc, e) => acc + Number(e.kg || 0), 0);
+  const totalBultos = datos.reduce((acc, e) => acc + Number(e.bultos || 0), 0);
+  const totalM3 = datos.reduce((acc, e) => acc + Number(e.m3 || 0), 0);
+
+  const totalPrecio = datos.reduce((acc, e, i) => {
+    const extras = extrasLista[i];
+    return acc + Number(extras.precioCliente ?? e.price_eur ?? 0);
+  }, 0);
+
+  const totalMargen = datos.reduce((acc, e, i) => {
+    const extras = extrasLista[i];
+    return acc + Number(extras.margen ?? 0);
+  }, 0);
+
+  dashboardResumen.innerHTML = `
+    <div class="kpi">
+      <div class="kpiTitle">Entregas hoy</div>
+      <div class="kpiValue">${entregasHoy}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Entregas este mes</div>
+      <div class="kpiValue">${entregasMes}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Pendientes</div>
+      <div class="kpiValue">${pendientes}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">En ruta</div>
+      <div class="kpiValue">${enRuta}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Entregados</div>
+      <div class="kpiValue">${entregados}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Facturados</div>
+      <div class="kpiValue">${facturados}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Total facturable</div>
+      <div class="kpiValue" style="font-size:20px;">${formatEurosLocal(totalPrecio)}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Margen estimado</div>
+      <div class="kpiValue" style="font-size:20px;">${formatEurosLocal(totalMargen)}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">KG totales</div>
+      <div class="kpiValue">${Number(totalKg.toFixed(2))}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">Bultos totales</div>
+      <div class="kpiValue">${totalBultos}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpiTitle">M3 totales</div>
+      <div class="kpiValue">${Number(totalM3.toFixed(2))}</div>
+    </div>
+  `;
+}
+
+function renderRankingClientes(lista) {
+  if (!moduloActivo("rankingClientes", false) || !rankingClientesBox) return;
+
+  const resumen = {};
+
+  (lista || []).forEach(entrega => {
+    const cliente = entrega.client_name || "Sin cliente";
+    const extras = parsearExtrasApp(entrega.observations);
+    const precio = Number(extras.precioCliente ?? entrega.price_eur ?? 0);
+    const margen = Number(extras.margen ?? 0);
+
+    if (!resumen[cliente]) {
+      resumen[cliente] = { entregas: 0, total: 0, margen: 0 };
+    }
+
+    resumen[cliente].entregas += 1;
+    resumen[cliente].total += precio;
+    resumen[cliente].margen += margen;
+  });
+
+  const ranking = Object.entries(resumen)
+    .sort((a, b) => b[1].margen - a[1].margen)
+    .slice(0, 10);
+
+  if (!ranking.length) {
+    rankingClientesBox.innerHTML = `<div class="muted">No hay datos suficientes para ranking.</div>`;
+    return;
+  }
+
+  rankingClientesBox.innerHTML = ranking.map(([cliente, datos], index) => `
+    <div class="rankingItem">
+      <strong>${index + 1}. ${escapeHtml(cliente)}</strong><br>
+      Entregas: ${datos.entregas}<br>
+      Total: ${formatEurosLocal(datos.total)}<br>
+      Margen: ${formatEurosLocal(datos.margen)}
+    </div>
+  `).join("");
 }
 
 async function cargarEntregas() {
@@ -984,7 +1383,8 @@ async function cargarEntregas() {
         urgente,
         distance_km,
         price_eur,
-        photo_url
+        photo_url,
+        estado
       `)
       .order("created_at", { ascending: false });
 
@@ -998,13 +1398,17 @@ async function cargarEntregas() {
       statusEl.innerText = "Error cargando entregas: " + error.message;
       tbodyEntregas.innerHTML = `
         <tr>
-          <td colspan="16" class="empty">No se pudieron cargar las entregas.</td>
+          <td colspan="17" class="empty">No se pudieron cargar las entregas.</td>
         </tr>
       `;
       return;
     }
 
-    entregasGlobal = data || [];
+    entregasGlobal = (data || []).map(item => ({
+      ...item,
+      estado: item.estado || "pendiente"
+    }));
+
     aplicarFiltros();
 
     if (sesion.role === "admin_empresa") {
@@ -1016,7 +1420,7 @@ async function cargarEntregas() {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
     tbodyEntregas.innerHTML = `
       <tr>
-        <td colspan="16" class="empty">Error inesperado al cargar entregas.</td>
+        <td colspan="17" class="empty">Error inesperado al cargar entregas.</td>
       </tr>
     `;
   }
@@ -1094,7 +1498,7 @@ window.editarEntrega = function(id) {
   editM3.value = entrega.m3 ?? "";
   editDistanceKm.value = entrega.distance_km ?? "";
   editPriceEur.value = entrega.price_eur ?? "";
-  editObservations.value = datosInditex.observacionesLimpias || "";
+  editObservations.value = limpiarObservacionesDeExtras(datosInditex.observacionesLimpias || "");
   editMozo.checked = !!entrega.mozo;
   editTrampilla.checked = !!entrega.trampilla;
   editUrgente.checked = !!entrega.urgente;
@@ -1104,22 +1508,50 @@ window.editarEntrega = function(id) {
   editModal.classList.add("open");
 };
 
-function reconstruirObservacionesConInditex(observacionesLimpias, datosInditex) {
+function reconstruirObservacionesConInditexYExtras(observacionesLimpias, datosInditex, entregaOriginal) {
   const base = String(observacionesLimpias || "").trim();
+  let resultado = base;
 
-  if (!datosInditex?.esInditex) {
-    return base || null;
+  if (datosInditex?.esInditex) {
+    const bloque = [
+      "[INDITEX]",
+      `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
+      `destinatario=${datosInditex.destinatario || ""}`,
+      `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
+      `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
+    ].join("\n");
+
+    resultado = `${resultado ? resultado + "\n" : ""}${bloque}`.trim();
   }
 
-  const bloque = [
-    "[INDITEX]",
-    `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
-    `destinatario=${datosInditex.destinatario || ""}`,
-    `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
-    `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
-  ].join("\n");
+  const extrasExistentes = parsearExtrasApp(entregaOriginal?.observations || "");
+  const lineasExtras = [];
 
-  return `${base ? base + "\n" : ""}${bloque}`.trim();
+  if (moduloActivo("tiemposEspera", true)) {
+    lineasExtras.push(`tiempo_espera_min=${extrasExistentes.tiempoEsperaMin ?? 0}`);
+    lineasExtras.push(`espera_cobrable=${extrasExistentes.esperaCobrable ? "si" : "no"}`);
+    lineasExtras.push(`extra_espera_eur=${extrasExistentes.extraEsperaEuros ?? 0}`);
+  }
+
+  if (moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false)) {
+    lineasExtras.push(`precio_cliente=${extrasExistentes.precioCliente ?? entregaOriginal?.price_eur ?? 0}`);
+    lineasExtras.push(`coste_estimado=${extrasExistentes.costeEstimado ?? 0}`);
+    lineasExtras.push(`margen_estimado=${extrasExistentes.margen ?? 0}`);
+  }
+
+  if (moduloActivo("firmaDigital", false)) {
+    lineasExtras.push(`firma_recogida=${extrasExistentes.firmaRecogida ? "si" : "no"}`);
+  }
+
+  if (moduloActivo("entregasRecurrentes", false) && extrasExistentes.plantillaUsada) {
+    lineasExtras.push(`plantilla_usada=${extrasExistentes.plantillaUsada}`);
+  }
+
+  if (lineasExtras.length) {
+    resultado = `${resultado ? resultado + "\n" : ""}[APP_EXTRAS]\n${lineasExtras.join("\n")}`.trim();
+  }
+
+  return resultado || null;
 }
 
 window.guardarCambiosEntrega = async function() {
@@ -1143,9 +1575,10 @@ window.guardarCambiosEntrega = async function() {
   try {
     statusEl.innerText = "Guardando cambios...";
 
-    const observationsFinal = reconstruirObservacionesConInditex(
+    const observationsFinal = reconstruirObservacionesConInditexYExtras(
       editObservations.value.trim() || null,
-      datosInditexEditando
+      datosInditexEditando,
+      entregaOriginal
     );
 
     const datosActualizados = {
@@ -1189,6 +1622,52 @@ window.guardarCambiosEntrega = async function() {
   } catch (e) {
     alert("Fallo guardando cambios: " + e.message);
     statusEl.innerText = "Fallo guardando cambios: " + e.message;
+  }
+};
+
+window.cambiarEstadoEntrega = async function(id, nuevoEstado) {
+  const entregaOriginal = entregasGlobal.find(e => e.id === id);
+
+  if (!entregaOriginal) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  if (!moduloActivo("estadosEntrega", true)) {
+    alert("Los estados de entrega están desactivados");
+    return;
+  }
+
+  if (!puedeEditarEntrega(entregaOriginal)) {
+    alert("No tienes permiso para cambiar el estado");
+    return;
+  }
+
+  try {
+    statusEl.innerText = "Cambiando estado...";
+
+    let query = supabase
+      .from("deliveries")
+      .update({ estado: nuevoEstado })
+      .eq("id", id);
+
+    if (sesion.role === "admin_empresa") {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      alert("Error cambiando estado: " + error.message);
+      statusEl.innerText = "Error cambiando estado: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = "Estado actualizado";
+    await cargarEntregas();
+  } catch (e) {
+    alert("Fallo cambiando estado: " + e.message);
+    statusEl.innerText = "Fallo cambiando estado: " + e.message;
   }
 };
 
@@ -1239,16 +1718,15 @@ async function borrarEntrega(id) {
 window.borrarEntrega = borrarEntrega;
 
 searchInput.addEventListener("input", aplicarFiltros);
+estadoFilter.addEventListener("change", aplicarFiltros);
 urgenteFilter.addEventListener("change", aplicarFiltros);
 mozoFilter.addEventListener("change", aplicarFiltros);
 trampillaFilter.addEventListener("change", aplicarFiltros);
 
+aplicarVisibilidadModulosAdmin();
 await cargarInfoEmpresaActual();
 cargarEntregas();
 </script>
 
-<script src="features.js"></script>
-<script src="app-utils.js"></script>
-  
 </body>
 </html>
