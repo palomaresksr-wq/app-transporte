@@ -18,7 +18,7 @@ body{
   background:#121b2f;
   padding:20px;
   border-radius:10px;
-  max-width:500px;
+  max-width:560px;
   margin:auto;
 }
 
@@ -113,6 +113,44 @@ button{
   border-radius:8px;
   font-size:14px;
 }
+
+.moduloBox{
+  margin-top:15px;
+  padding:14px;
+  background:#0f1a2e;
+  border-radius:8px;
+}
+
+.fila2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.canvasFirma{
+  width:100%;
+  height:180px;
+  background:#fff;
+  border-radius:8px;
+  border:1px solid #cfcfcf;
+  touch-action:none;
+  display:block;
+}
+
+.textoMini{
+  font-size:13px;
+  opacity:.9;
+  margin-top:6px;
+}
+
+.totalMargen{
+  margin-top:10px;
+  padding:10px;
+  border-radius:8px;
+  background:#0b1220;
+  font-size:15px;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -126,6 +164,22 @@ button{
   </div>
 
   <h2>Nueva entrega</h2>
+
+  <div id="plantillasBloque" class="moduloBox" style="display:none;">
+    <div class="inditexTitulo">Entregas recurrentes</div>
+
+    <label>Plantilla guardada</label>
+    <select id="templateSelect" class="selectorSecundario">
+      <option value="">Seleccionar plantilla</option>
+    </select>
+
+    <button type="button" id="btnAplicarPlantilla" class="btnMini">Aplicar plantilla</button>
+
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+      <input id="guardarComoPlantilla" type="checkbox">
+      Guardar esta entrega como plantilla
+    </label>
+  </div>
 
   <div id="vehicleBloque">
     <label>Matrícula frecuente</label>
@@ -203,6 +257,45 @@ button{
   <label>M3</label>
   <input id="m3" type="number">
 
+  <div id="tiemposEsperaBloque" class="moduloBox" style="display:none;">
+    <div class="inditexTitulo">Tiempo de espera</div>
+
+    <div class="fila2">
+      <div>
+        <label>Minutos de espera</label>
+        <input id="tiempoEsperaMin" type="number" min="0" value="0">
+      </div>
+      <div>
+        <label>Extra espera (€)</label>
+        <input id="extraEsperaEuros" type="number" min="0" step="0.01" value="0">
+      </div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;">
+      <input id="esperaCobrable" type="checkbox">
+      Espera cobrable
+    </label>
+  </div>
+
+  <div id="margenesBloque" class="moduloBox" style="display:none;">
+    <div class="inditexTitulo">Importes</div>
+
+    <div class="fila2">
+      <div>
+        <label>Precio cliente (€)</label>
+        <input id="precioCliente" type="number" min="0" step="0.01" value="0">
+      </div>
+      <div>
+        <label>Coste estimado (€)</label>
+        <input id="costeEstimado" type="number" min="0" step="0.01" value="0">
+      </div>
+    </div>
+
+    <div class="totalMargen">
+      Margen estimado: <span id="margenCalculado">0,00 €</span>
+    </div>
+  </div>
+
   <label>Observaciones</label>
   <textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
 
@@ -221,6 +314,13 @@ button{
       <input id="urgente" type="checkbox">
       Urgente
     </label>
+  </div>
+
+  <div id="firmaBloque" class="moduloBox" style="display:none;">
+    <div class="inditexTitulo">Firma digital</div>
+    <canvas id="signatureCanvas" class="canvasFirma" width="520" height="180"></canvas>
+    <div class="textoMini">Firma del cliente con el dedo sobre el recuadro blanco.</div>
+    <button type="button" id="btnLimpiarFirma" class="btnMini">Limpiar firma</button>
   </div>
 
   <label>Foto albarán</label>
@@ -243,6 +343,9 @@ button{
   <div id="status"></div>
 
 </div>
+
+<script src="features.js"></script>
+<script src="app-utils.js"></script>
 
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -296,6 +399,25 @@ const btnAgregarLinea = document.getElementById("btnAgregarLinea");
 const inditexTotalBultosEl = document.getElementById("inditexTotalBultos");
 const inditexTotalKilosEl = document.getElementById("inditexTotalKilos");
 
+const tiemposEsperaBloque = document.getElementById("tiemposEsperaBloque");
+const tiempoEsperaMinInput = document.getElementById("tiempoEsperaMin");
+const esperaCobrableInput = document.getElementById("esperaCobrable");
+const extraEsperaEurosInput = document.getElementById("extraEsperaEuros");
+
+const margenesBloque = document.getElementById("margenesBloque");
+const precioClienteInput = document.getElementById("precioCliente");
+const costeEstimadoInput = document.getElementById("costeEstimado");
+const margenCalculadoEl = document.getElementById("margenCalculado");
+
+const firmaBloque = document.getElementById("firmaBloque");
+const signatureCanvas = document.getElementById("signatureCanvas");
+const btnLimpiarFirma = document.getElementById("btnLimpiarFirma");
+
+const plantillasBloque = document.getElementById("plantillasBloque");
+const templateSelect = document.getElementById("templateSelect");
+const btnAplicarPlantilla = document.getElementById("btnAplicarPlantilla");
+const guardarComoPlantillaInput = document.getElementById("guardarComoPlantilla");
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "driver") {
@@ -318,6 +440,54 @@ window.cerrarSesion = function () {
 
 let ultimaPhotoUrl = null;
 let conductorActual = null;
+let firmaInicializada = false;
+let signaturePadCtx = null;
+let drawing = false;
+let haFirmado = false;
+
+function moduloActivo(nombre, valorPorDefecto = false) {
+  try {
+    if (typeof isFeatureEnabled === "function") {
+      return !!isFeatureEnabled(nombre);
+    }
+  } catch (e) {}
+  return valorPorDefecto;
+}
+
+function formatEurosLocal(valor) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR"
+  }).format(Number(valor || 0));
+}
+
+function calcularMargen() {
+  const precio = Number(precioClienteInput?.value || 0);
+  const coste = Number(costeEstimadoInput?.value || 0);
+  const margen = precio - coste;
+  if (margenCalculadoEl) {
+    margenCalculadoEl.innerText = formatEurosLocal(margen);
+  }
+}
+
+function aplicarVisibilidadModulos() {
+  if (tiemposEsperaBloque) {
+    tiemposEsperaBloque.style.display = moduloActivo("tiemposEspera", true) ? "block" : "none";
+  }
+
+  if (margenesBloque) {
+    const visible = moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false);
+    margenesBloque.style.display = visible ? "block" : "none";
+  }
+
+  if (firmaBloque) {
+    firmaBloque.style.display = moduloActivo("firmaDigital", false) ? "block" : "none";
+  }
+
+  if (plantillasBloque) {
+    plantillasBloque.style.display = moduloActivo("entregasRecurrentes", false) ? "block" : "none";
+  }
+}
 
 function esAlbepet(cliente) {
   return String(cliente || "").trim().toLowerCase() === "albepet";
@@ -521,7 +691,7 @@ function extraerLineasDesdeJson(json) {
   return [];
 }
 
-function construirObservacionesFinales(observacionesBase, datosInditex) {
+function construirObservacionesFinales(observacionesBase, datosInditex, extras = {}) {
   let resultado = (observacionesBase || "").trim();
 
   if (datosInditex && datosInditex.esInditex) {
@@ -535,6 +705,33 @@ function construirObservacionesFinales(observacionesBase, datosInditex) {
     ].join("\n");
 
     resultado = `${resultado}${bloque}`.trim();
+  }
+
+  const extrasLineas = [];
+
+  if (moduloActivo("tiemposEspera", true)) {
+    extrasLineas.push(`tiempo_espera_min=${extras.tiempoEsperaMin ?? 0}`);
+    extrasLineas.push(`espera_cobrable=${extras.esperaCobrable ? "si" : "no"}`);
+    extrasLineas.push(`extra_espera_eur=${extras.extraEsperaEuros ?? 0}`);
+  }
+
+  if (moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false)) {
+    extrasLineas.push(`precio_cliente=${extras.precioCliente ?? 0}`);
+    extrasLineas.push(`coste_estimado=${extras.costeEstimado ?? 0}`);
+    extrasLineas.push(`margen_estimado=${extras.margen ?? 0}`);
+  }
+
+  if (moduloActivo("firmaDigital", false)) {
+    extrasLineas.push(`firma_recogida=${extras.haFirmado ? "si" : "no"}`);
+  }
+
+  if (extras.templateName) {
+    extrasLineas.push(`plantilla_usada=${extras.templateName}`);
+  }
+
+  if (extrasLineas.length > 0) {
+    const bloqueExtras = ["", "[APP_EXTRAS]", ...extrasLineas].join("\n");
+    resultado = `${resultado}${bloqueExtras}`.trim();
   }
 
   return resultado || null;
@@ -568,6 +765,11 @@ async function subirFoto(photoFile, prefix = "") {
 
 async function leerFotoAutomatica() {
   try {
+    if (!moduloActivo("lecturaIA", true)) {
+      statusEl.innerText = "La lectura IA está desactivada por superadmin";
+      return;
+    }
+
     const file = getSelectedPhotoFile();
 
     if (!file) {
@@ -996,6 +1198,162 @@ async function guardarEnTablaViejaSinRomper(datosLegacy) {
   }
 }
 
+function getPlantillasLocales() {
+  try {
+    return JSON.parse(localStorage.getItem("plantillas_entregas_driver") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function savePlantillasLocales(data) {
+  localStorage.setItem("plantillas_entregas_driver", JSON.stringify(data || []));
+}
+
+function renderPlantillas() {
+  if (!moduloActivo("entregasRecurrentes", false)) return;
+
+  const plantillas = getPlantillasLocales();
+  templateSelect.innerHTML = `<option value="">Seleccionar plantilla</option>`;
+
+  plantillas.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = item.nombre;
+    templateSelect.appendChild(option);
+  });
+}
+
+function guardarPlantillaLocal() {
+  if (!moduloActivo("entregasRecurrentes", false)) return;
+  if (!guardarComoPlantillaInput.checked) return;
+
+  const cliente = clientInput.value.trim();
+  const pickup = pickupInput.value.trim();
+  const dropoff = dropoffInput.value.trim();
+  const matricula = vehicleInput.value.trim().toUpperCase();
+  const observaciones = observationsInput.value.trim();
+
+  if (!cliente) return;
+
+  const plantillas = getPlantillasLocales();
+  const nombre = `${cliente}${pickup ? " | " + pickup : ""}${dropoff ? " | " + dropoff : ""}`;
+
+  plantillas.push({
+    id: "tpl_" + Date.now(),
+    nombre,
+    cliente,
+    pickup,
+    dropoff,
+    matricula,
+    observaciones,
+    mozo: mozoInput.checked,
+    trampilla: trampillaInput.checked,
+    urgente: urgenteInput.checked
+  });
+
+  savePlantillasLocales(plantillas);
+  renderPlantillas();
+}
+
+function aplicarPlantillaSeleccionada() {
+  const id = templateSelect.value;
+  if (!id) return;
+
+  const plantillas = getPlantillasLocales();
+  const plantilla = plantillas.find(p => p.id === id);
+  if (!plantilla) return;
+
+  clientInput.value = plantilla.cliente || "";
+  pickupInput.value = plantilla.pickup || "";
+  dropoffInput.value = plantilla.dropoff || "";
+  vehicleInput.value = plantilla.matricula || "";
+  observationsInput.value = plantilla.observaciones || "";
+  mozoInput.checked = !!plantilla.mozo;
+  trampillaInput.checked = !!plantilla.trampilla;
+  urgenteInput.checked = !!plantilla.urgente;
+
+  actualizarCamposCliente();
+}
+
+btnAplicarPlantilla.addEventListener("click", aplicarPlantillaSeleccionada);
+
+function initFirma() {
+  if (!moduloActivo("firmaDigital", false)) return;
+  if (firmaInicializada) return;
+  if (!signatureCanvas) return;
+
+  firmaInicializada = true;
+  signaturePadCtx = signatureCanvas.getContext("2d");
+  signaturePadCtx.lineWidth = 2;
+  signaturePadCtx.lineCap = "round";
+  signaturePadCtx.strokeStyle = "#111";
+
+  const getPos = (event) => {
+    const rect = signatureCanvas.getBoundingClientRect();
+
+    if (event.touches && event.touches[0]) {
+      return {
+        x: event.touches[0].clientX - rect.left,
+        y: event.touches[0].clientY - rect.top
+      };
+    }
+
+    return {
+      x: event.offsetX,
+      y: event.offsetY
+    };
+  };
+
+  const startDraw = (event) => {
+    const pos = getPos(event);
+    drawing = true;
+    haFirmado = true;
+    signaturePadCtx.beginPath();
+    signaturePadCtx.moveTo(pos.x, pos.y);
+  };
+
+  const moveDraw = (event) => {
+    if (!drawing) return;
+    event.preventDefault();
+    const pos = getPos(event);
+    signaturePadCtx.lineTo(pos.x, pos.y);
+    signaturePadCtx.stroke();
+  };
+
+  const stopDraw = () => {
+    drawing = false;
+  };
+
+  signatureCanvas.addEventListener("mousedown", startDraw);
+  signatureCanvas.addEventListener("mousemove", moveDraw);
+  signatureCanvas.addEventListener("mouseup", stopDraw);
+  signatureCanvas.addEventListener("mouseleave", stopDraw);
+
+  signatureCanvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    startDraw(e);
+  }, { passive: false });
+
+  signatureCanvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    moveDraw(e);
+  }, { passive: false });
+
+  signatureCanvas.addEventListener("touchend", stopDraw);
+
+  btnLimpiarFirma.addEventListener("click", () => {
+    signaturePadCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    haFirmado = false;
+  });
+}
+
+function limpiarFirma() {
+  if (!signaturePadCtx || !signatureCanvas) return;
+  signaturePadCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  haFirmado = false;
+}
+
 function limpiarFormulario() {
   vehicleInput.value = "";
   vehicleSelect.value = "";
@@ -1013,6 +1371,12 @@ function limpiarFormulario() {
   mozoInput.checked = false;
   trampillaInput.checked = false;
   urgenteInput.checked = false;
+  tiempoEsperaMinInput.value = 0;
+  esperaCobrableInput.checked = false;
+  extraEsperaEurosInput.value = 0;
+  precioClienteInput.value = 0;
+  costeEstimadoInput.value = 0;
+  guardarComoPlantillaInput.checked = false;
   cameraInput.value = "";
   galleryInput.value = "";
   preview.style.display = "none";
@@ -1020,6 +1384,8 @@ function limpiarFormulario() {
   ultimaPhotoUrl = null;
   limpiarCamposInditex(true);
   actualizarCamposCliente();
+  calcularMargen();
+  limpiarFirma();
 }
 
 window.guardarEntrega = async function () {
@@ -1063,12 +1429,47 @@ window.guardarEntrega = async function () {
     const trampilla = trampillaInput.checked;
     const urgente = urgenteInput.checked;
 
+    const tiempoEsperaMin = moduloActivo("tiemposEspera", true)
+      ? Number(tiempoEsperaMinInput.value || 0)
+      : 0;
+
+    const esperaCobrable = moduloActivo("tiemposEspera", true)
+      ? !!esperaCobrableInput.checked
+      : false;
+
+    const extraEsperaEuros = moduloActivo("tiemposEspera", true)
+      ? Number(extraEsperaEurosInput.value || 0)
+      : 0;
+
+    const precioCliente = (moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false))
+      ? Number(precioClienteInput.value || 0)
+      : 0;
+
+    const costeEstimado = (moduloActivo("controlMargenes", false) || moduloActivo("rankingClientes", false))
+      ? Number(costeEstimadoInput.value || 0)
+      : 0;
+
+    const margen = precioCliente - costeEstimado;
+
+    const templateName = moduloActivo("entregasRecurrentes", false) && templateSelect.value
+      ? (templateSelect.options[templateSelect.selectedIndex]?.text || "")
+      : "";
+
     const observaciones = construirObservacionesFinales(observacionesBase, {
       esInditex: inditex,
       fechaAlbaran: fechaAlbaranInditex,
       destinatario: destinatarioInditex,
       direccionDescarga: direccionDescargaInditex,
       lineasMercancia
+    }, {
+      tiempoEsperaMin,
+      esperaCobrable,
+      extraEsperaEuros,
+      precioCliente,
+      costeEstimado,
+      margen,
+      haFirmado,
+      templateName
     });
 
     if (!conductor?.id || !conductor?.empresa_id) {
@@ -1102,6 +1503,12 @@ window.guardarEntrega = async function () {
     }
 
     const photoFile = getSelectedPhotoFile();
+
+    if (moduloActivo("fotoObligatoria", false) && !photoFile && !ultimaPhotoUrl) {
+      statusEl.innerText = "Debes subir una foto del albarán para guardar la entrega";
+      return;
+    }
+
     let photo_url = ultimaPhotoUrl;
 
     if (photoFile && !photo_url) {
@@ -1160,11 +1567,13 @@ window.guardarEntrega = async function () {
       trampilla: trampilla,
       urgente: urgente,
       distance_km: 0,
-      price_eur: 0,
+      price_eur: precioCliente || 0,
       photo_url: photo_url || null
     };
 
     await guardarEnTablaViejaSinRomper(datosTablaVieja);
+
+    guardarPlantillaLocal();
 
     await cargarFrecuentes();
     statusEl.innerText = "Entrega guardada correctamente";
@@ -1179,6 +1588,10 @@ window.guardarEntrega = async function () {
 async function initApp() {
   try {
     statusEl.innerText = "Cargando datos...";
+    aplicarVisibilidadModulos();
+    calcularMargen();
+    initFirma();
+    renderPlantillas();
     await obtenerConductorActual();
     await cargarFrecuentes();
     limpiarCamposInditex(true);
@@ -1190,11 +1603,11 @@ async function initApp() {
   }
 }
 
+precioClienteInput.addEventListener("input", calcularMargen);
+costeEstimadoInput.addEventListener("input", calcularMargen);
+
 initApp();
 </script>
-
-<script src="features.js"></script>  
-<script src="app-utils.js"></script>  
 
 </body>
 </html>
