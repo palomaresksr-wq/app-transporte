@@ -1,1 +1,804 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar entrega v2</title>
 
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:20px;
+}
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+}
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+}
+h1{
+  margin:0 0 8px 0;
+  font-size:28px;
+}
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+h3{
+  margin:0 0 12px 0;
+}
+label{
+  display:block;
+  margin-top:10px;
+  font-weight:bold;
+  font-size:14px;
+}
+input, textarea, select{
+  width:100%;
+  margin-top:6px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  font-size:14px;
+}
+input[readonly]{
+  background:#e9edf5;
+  color:#333;
+  font-weight:bold;
+}
+textarea{
+  resize:vertical;
+  min-height:90px;
+}
+button, .btn{
+  border:none;
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.btnPrimary{
+  background:var(--accent);
+  color:#1b0c02;
+}
+.btnSec{
+  background:#24314f;
+  color:white;
+}
+.topActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.rowChecks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:14px;
+}
+.rowChecks label{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:normal;
+}
+.rowChecks input{
+  width:auto;
+  margin:0;
+}
+.photoButtons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.preview{
+  width:100%;
+  max-width:340px;
+  margin-top:14px;
+  border-radius:12px;
+  display:none;
+}
+.status{
+  margin-top:12px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+.footerActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.selectorSecundario{
+  background:#0f1a2e;
+  color:#fff;
+}
+.infoCliente{
+  margin-top:10px;
+  display:inline-block;
+  background:#0f1a2e;
+  color:#fff;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:14px;
+}
+@media (max-width:700px){
+  body{padding:12px}
+  h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="card">
+    <h1 id="tituloEntrega">Registrar entrega</h1>
+    <div class="sub" id="subtituloEntrega">Formulario general de entregas</div>
+
+    <div class="infoCliente" id="clienteActivoInfo">Cliente: ...</div>
+
+    <div class="topActions" style="margin-top:16px;">
+      <a href="selector-cliente.html" class="btn btnSec">← Cambiar cliente</a>
+      <button type="button" class="btn btnSec" id="btnSalir">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Datos principales</h3>
+
+    <div class="grid">
+      <div>
+        <label>Cliente</label>
+        <input id="client" readonly>
+      </div>
+
+      <div>
+        <label>Matrícula frecuente</label>
+        <select id="vehicleSelect" class="selectorSecundario">
+          <option value="">Seleccionar matrícula frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="vehicle" placeholder="Ej: 1234ABC">
+      </div>
+
+      <div>
+        <label>Lugar de carga frecuente</label>
+        <select id="pickupSelect" class="selectorSecundario">
+          <option value="">Seleccionar lugar de carga frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="pickupPlace" placeholder="Ej: Coslada">
+      </div>
+
+      <div>
+        <label>Lugar de descarga frecuente</label>
+        <select id="dropoffSelect" class="selectorSecundario">
+          <option value="">Seleccionar lugar de descarga frecuente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
+      </div>
+
+      <div id="bloqueNumEntregas" style="display:none;">
+        <label>Nº entregas</label>
+        <input id="numEntregas" type="number">
+      </div>
+
+      <div id="bloqueBultos">
+        <label>Bultos</label>
+        <input id="bultos" type="number">
+      </div>
+
+      <div id="bloqueKg">
+        <label>Kg</label>
+        <input id="kg" type="number" step="0.01">
+      </div>
+
+      <div id="bloqueM3">
+        <label>M3</label>
+        <input id="m3" type="number" step="0.01">
+      </div>
+    </div>
+
+    <label>Observaciones</label>
+    <textarea id="observations" placeholder="Tiempo de espera, incidencias, nº bultos, etc."></textarea>
+
+    <div class="rowChecks">
+      <label><input id="mozo" type="checkbox"> Mozo</label>
+      <label><input id="trampilla" type="checkbox"> Trampilla</label>
+      <label><input id="urgente" type="checkbox"> Urgente</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Foto albarán</h3>
+
+    <div class="photoButtons">
+      <button type="button" class="btnPrimary" onclick="document.getElementById('cameraInput').click()">📷 Hacer foto</button>
+      <button type="button" class="btnSec" onclick="document.getElementById('galleryInput').click()">🖼 Elegir de galería</button>
+    </div>
+
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+    <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+    <img id="previewFoto" class="preview" alt="Vista previa del albarán">
+
+    <div id="status" class="status"></div>
+
+    <div class="footerActions">
+      <button type="button" class="btnPrimary" id="btnGuardarEntrega">Guardar entrega</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  supabase,
+  requireRole,
+  logoutApp
+} from "./app-utils-v2.js";
+
+const session = requireRole(["conductor", "admin", "superadmin"]);
+if (!session) throw new Error("Sesión no válida");
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const DUTTITRANS_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+
+const statusEl = document.getElementById("status");
+const previewFoto = document.getElementById("previewFoto");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+
+const tituloEntregaEl = document.getElementById("tituloEntrega");
+const subtituloEntregaEl = document.getElementById("subtituloEntrega");
+const clienteActivoInfoEl = document.getElementById("clienteActivoInfo");
+const clientInput = document.getElementById("client");
+const vehicleSelect = document.getElementById("vehicleSelect");
+const vehicleInput = document.getElementById("vehicle");
+const pickupSelect = document.getElementById("pickupSelect");
+const pickupInput = document.getElementById("pickupPlace");
+const dropoffSelect = document.getElementById("dropoffSelect");
+const dropoffInput = document.getElementById("dropoffPlace");
+
+const numEntregasInput = document.getElementById("numEntregas");
+const bloqueNumEntregas = document.getElementById("bloqueNumEntregas");
+const bloqueBultos = document.getElementById("bloqueBultos");
+const bloqueKg = document.getElementById("bloqueKg");
+const bloqueM3 = document.getElementById("bloqueM3");
+
+const bultosInput = document.getElementById("bultos");
+const kgInput = document.getElementById("kg");
+const m3Input = document.getElementById("m3");
+const observationsInput = document.getElementById("observations");
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
+
+const btnGuardarEntrega = document.getElementById("btnGuardarEntrega");
+const btnSalir = document.getElementById("btnSalir");
+
+const clienteIdActual = localStorage.getItem("cliente_id_actual");
+const clienteNombreActual =
+  localStorage.getItem("cliente_nombre_actual") ||
+  localStorage.getItem("clienteSeleccionadoAppTransporte") ||
+  "";
+
+if (!clienteNombreActual) {
+  window.location.href = "selector-cliente.html";
+}
+
+let ultimaPhotoUrl = null;
+let conductorLegacy = null;
+
+function esEmpresaDuttitrans() {
+  return String(session?.empresa_id || "") === DUTTITRANS_EMPRESA_ID;
+}
+
+function esDuttitransAlbepet() {
+  const cliente = String(clienteNombreActual || "").trim().toLowerCase();
+  return esEmpresaDuttitrans() && cliente === "albepet";
+}
+
+function aplicarModoCliente() {
+  const modoAlbepet = esDuttitransAlbepet();
+
+  if (modoAlbepet) {
+    bloqueNumEntregas.style.display = "";
+    bloqueBultos.style.display = "none";
+    bloqueKg.style.display = "none";
+    bloqueM3.style.display = "none";
+
+    bultosInput.value = "";
+    kgInput.value = "";
+    m3Input.value = "";
+  } else {
+    bloqueNumEntregas.style.display = "none";
+    bloqueBultos.style.display = "";
+    bloqueKg.style.display = "";
+    bloqueM3.style.display = "";
+
+    numEntregasInput.value = "";
+  }
+}
+
+function normalizarMatricula(valor) {
+  return String(valor || "").replace(/\s+/g, "").toUpperCase().trim();
+}
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = parseFloat(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+function getSelectedPhotoFile() {
+  return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+async function mostrarPreviewFoto() {
+  const file = getSelectedPhotoFile();
+  if (!file) return;
+
+  previewFoto.src = URL.createObjectURL(file);
+  previewFoto.style.display = "block";
+}
+
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const fileName = `${prefix}${Date.now()}.${safeExt}`;
+
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
+
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
+}
+
+async function leerFotoAutomatica() {
+  try {
+    const file = getSelectedPhotoFile();
+
+    if (!file) {
+      statusEl.innerText = "No se ha seleccionado ninguna foto";
+      return;
+    }
+
+    await mostrarPreviewFoto();
+    statusEl.innerText = "Subiendo foto...";
+
+    const clienteSlug = String(clienteNombreActual || "cliente")
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-_]/g, "");
+
+    ultimaPhotoUrl = await subirFoto(file, `preview-${clienteSlug}-`);
+    statusEl.innerText = "Leyendo albarán...";
+
+    const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: ultimaPhotoUrl })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      statusEl.innerText = "Error leyendo albarán";
+      return;
+    }
+
+    if (!data.result) {
+      statusEl.innerText = "La IA no devolvió datos";
+      return;
+    }
+
+    let texto = String(data.result).trim();
+    texto = texto
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+
+    const json = JSON.parse(texto);
+
+    if (json.matricula) vehicleInput.value = normalizarMatricula(json.matricula);
+    if (json.lugar_carga) pickupInput.value = json.lugar_carga;
+    if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
+
+    if (esDuttitransAlbepet()) {
+      if (json.num_entregas !== undefined && json.num_entregas !== null) {
+        numEntregasInput.value = json.num_entregas;
+      }
+    } else {
+      if (json.bultos !== undefined && json.bultos !== null) bultosInput.value = json.bultos;
+      if (json.kg !== undefined && json.kg !== null) kgInput.value = json.kg;
+      if (json.m3 !== undefined && json.m3 !== null) m3Input.value = json.m3;
+    }
+
+    if (json.observaciones) observationsInput.value = json.observaciones;
+
+    statusEl.innerText = "Albarán leído correctamente";
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = "Error leyendo albarán con la foto";
+  }
+}
+
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
+
+async function obtenerConductorLegacy() {
+  if (conductorLegacy) return conductorLegacy;
+
+  const usuario = session.username || "";
+
+  if (usuario) {
+    const { data, error } = await supabase
+      .from("conductores")
+      .select("id, empresa_id, nombre, usuario")
+      .eq("usuario", usuario)
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      conductorLegacy = data[0];
+      return conductorLegacy;
+    }
+  }
+
+  conductorLegacy = {
+    id: null,
+    empresa_id: session.empresa_id || null,
+    nombre: session.nombre || null,
+    usuario: session.username || null
+  };
+
+  return conductorLegacy;
+}
+
+function rellenarSelect(selectEl, primerTexto, valores) {
+  const unicos = [...new Set(
+    (valores || [])
+      .map(v => String(v || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "es"));
+
+  selectEl.innerHTML = `<option value="">${primerTexto}</option>`;
+
+  unicos.forEach(valor => {
+    const option = document.createElement("option");
+    option.value = valor;
+    option.textContent = valor;
+    selectEl.appendChild(option);
+  });
+}
+
+async function cargarPickupsFrecuentes() {
+  const empresaId = session.empresa_id;
+  if (!empresaId) return [];
+
+  const { data, error } = await supabase
+    .from("frequent_pickups")
+    .select("name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) return [];
+  return data || [];
+}
+
+async function cargarDropoffsFrecuentes() {
+  const empresaId = session.empresa_id;
+  if (!empresaId) return [];
+
+  const { data, error } = await supabase
+    .from("frequent_dropoffs")
+    .select("name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) return [];
+  return data || [];
+}
+
+async function cargarVehiculosFrecuentes() {
+  const empresaId = session.empresa_id;
+  if (!empresaId) return [];
+
+  const { data, error } = await supabase
+    .from("frequent_vehicles")
+    .select("name")
+    .eq("empresa_id", empresaId)
+    .order("name", { ascending: true });
+
+  if (error) return [];
+  return data || [];
+}
+
+async function cargarFrecuentes() {
+  const pickups = await cargarPickupsFrecuentes();
+  const dropoffs = await cargarDropoffsFrecuentes();
+  const vehicles = await cargarVehiculosFrecuentes();
+
+  rellenarSelect(pickupSelect, "Seleccionar lugar de carga frecuente", pickups.map(p => p.name));
+  rellenarSelect(dropoffSelect, "Seleccionar lugar de descarga frecuente", dropoffs.map(d => d.name));
+  rellenarSelect(vehicleSelect, "Seleccionar matrícula frecuente", vehicles.map(v => v.name));
+}
+
+vehicleSelect.addEventListener("change", () => {
+  vehicleInput.value = vehicleSelect.value || "";
+});
+
+pickupSelect.addEventListener("change", () => {
+  pickupInput.value = pickupSelect.value || "";
+});
+
+dropoffSelect.addEventListener("change", () => {
+  dropoffInput.value = dropoffSelect.value || "";
+});
+
+async function guardarClienteFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio || !session.empresa_id) return;
+
+  const { data: existe } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("empresa_id", session.empresa_id)
+    .eq("nombre", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase.from("clientes").insert({
+    empresa_id: session.empresa_id,
+    nombre: limpio
+  });
+}
+
+async function guardarPickupFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio || !session.empresa_id) return;
+
+  const { data: existe } = await supabase
+    .from("frequent_pickups")
+    .select("id")
+    .eq("empresa_id", session.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase.from("frequent_pickups").insert({
+    empresa_id: session.empresa_id,
+    name: limpio
+  });
+}
+
+async function guardarDropoffFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio || !session.empresa_id) return;
+
+  const { data: existe } = await supabase
+    .from("frequent_dropoffs")
+    .select("id")
+    .eq("empresa_id", session.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase.from("frequent_dropoffs").insert({
+    empresa_id: session.empresa_id,
+    name: limpio
+  });
+}
+
+async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
+  const limpio = normalizarMatricula(nombre);
+  if (!limpio || !session.empresa_id) return;
+
+  const { data: existe } = await supabase
+    .from("frequent_vehicles")
+    .select("id")
+    .eq("empresa_id", session.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (existe && existe.length > 0) return;
+
+  await supabase.from("frequent_vehicles").insert({
+    empresa_id: session.empresa_id,
+    name: limpio
+  });
+}
+
+function limpiarFormulario() {
+  clientInput.value = clienteNombreActual;
+  vehicleInput.value = "";
+  vehicleSelect.value = "";
+  pickupInput.value = "";
+  pickupSelect.value = "";
+  dropoffInput.value = "";
+  dropoffSelect.value = "";
+  numEntregasInput.value = "";
+  bultosInput.value = "";
+  kgInput.value = "";
+  m3Input.value = "";
+  observationsInput.value = "";
+  mozoInput.checked = false;
+  trampillaInput.checked = false;
+  urgenteInput.checked = false;
+  cameraInput.value = "";
+  galleryInput.value = "";
+  previewFoto.src = "";
+  previewFoto.style.display = "none";
+  ultimaPhotoUrl = null;
+  statusEl.innerText = "";
+  aplicarModoCliente();
+}
+
+async function guardarEntrega() {
+  try {
+    statusEl.innerText = "Guardando...";
+
+    const conductor = await obtenerConductorLegacy();
+
+    const cliente = clienteNombreActual;
+    const matricula = normalizarMatricula(vehicleInput.value);
+    const lugarCarga = pickupInput.value.trim() || null;
+    const lugarDescarga = dropoffInput.value.trim() || null;
+    const numEntregas = numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null;
+    const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
+    const kg = normalizarNumero(kgInput.value);
+    const m3 = normalizarNumero(m3Input.value);
+    const observaciones = observationsInput.value.trim() || null;
+    const mozo = mozoInput.checked;
+    const trampilla = trampillaInput.checked;
+    const urgente = urgenteInput.checked;
+
+    if (!session.empresa_id) {
+      statusEl.innerText = "No se ha encontrado la empresa del usuario";
+      return;
+    }
+
+    if (!cliente) {
+      statusEl.innerText = "Falta cliente";
+      return;
+    }
+
+    if (!matricula) {
+      statusEl.innerText = "Falta matrícula";
+      return;
+    }
+
+    if (!lugarCarga) {
+      statusEl.innerText = "Falta lugar de carga";
+      return;
+    }
+
+    if (!lugarDescarga) {
+      statusEl.innerText = "Falta lugar de descarga";
+      return;
+    }
+
+    if (esDuttitransAlbepet() && !numEntregas) {
+      statusEl.innerText = "Falta nº de entregas";
+      return;
+    }
+
+    const photoFile = getSelectedPhotoFile();
+    let foto_url = ultimaPhotoUrl;
+
+    if (photoFile && !foto_url) {
+      const clienteSlug = String(cliente || "cliente")
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "");
+
+      foto_url = await subirFoto(photoFile, `entrega-${clienteSlug}-`);
+    }
+
+    const payload = {
+      fecha: new Date().toISOString().split("T")[0],
+      cliente: cliente,
+      cliente_id: clienteIdActual || null,
+      lugar_carga: lugarCarga,
+      lugar_descarga: lugarDescarga,
+      num_entregas: esDuttitransAlbepet() ? numEntregas : null,
+      bultos: esDuttitransAlbepet() ? null : bultos,
+      kg: esDuttitransAlbepet() ? null : kg,
+      m3: esDuttitransAlbepet() ? null : m3,
+      observaciones: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      matricula: matricula,
+      estado: "pendiente",
+      foto_url: foto_url || null,
+      empresa_id: session.empresa_id,
+      conductor_id: conductor.id || null
+    };
+
+    const { error } = await supabase.from("entregas").insert(payload);
+
+    if (error) {
+      throw new Error("Error guardando entrega: " + error.message);
+    }
+
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    await guardarVehiculoFrecuenteSiNoExiste(matricula);
+
+    statusEl.innerText = "Entrega guardada correctamente";
+    await cargarFrecuentes();
+    limpiarFormulario();
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+    alert("Fallo al guardar: " + e.message);
+  }
+}
+
+btnGuardarEntrega.addEventListener("click", guardarEntrega);
+btnSalir.addEventListener("click", logoutApp);
+
+async function init() {
+  clientInput.value = clienteNombreActual;
+  clienteActivoInfoEl.innerText = "Cliente: " + clienteNombreActual;
+  tituloEntregaEl.innerText = "Entrega " + clienteNombreActual;
+  subtituloEntregaEl.innerText = "Usuario: " + (session.nombre || session.username || "");
+  aplicarModoCliente();
+  await cargarFrecuentes();
+}
+
+init();
+</script>
+
+</body>
+</html>
