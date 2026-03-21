@@ -938,7 +938,7 @@ window.cambiarEstadoEntrega = async function(id, nuevoEstado) {
     statusEl.innerText = "Cambiando estado...";
 
     let query = supabase
-      .from("deliveries")
+      .from("entregas")
       .update({ estado: nuevoEstado })
       .eq("id", id);
 
@@ -970,7 +970,7 @@ window.borrarEntrega = async function(id) {
     statusEl.innerText = "Borrando entrega...";
 
     let query = supabase
-      .from("deliveries")
+      .from("entregas")
       .delete()
       .eq("id", id);
 
