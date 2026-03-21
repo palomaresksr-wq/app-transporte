@@ -13,12 +13,10 @@ body{
   margin:0;
   padding:20px;
 }
-
 .wrap{
   max-width:1450px;
   margin:0 auto;
 }
-
 .topbar{
   background:#121b2f;
   border-radius:12px;
@@ -30,12 +28,10 @@ body{
   gap:10px;
   flex-wrap:wrap;
 }
-
 h1{
   margin:0;
   font-size:28px;
 }
-
 button, .btn{
   padding:10px 14px;
   border:none;
@@ -47,36 +43,30 @@ button, .btn{
   text-decoration:none;
   display:inline-block;
 }
-
 button.sec, .btn.sec{
   background:#24314f;
   color:white;
 }
-
 .card{
   background:#121b2f;
   border-radius:12px;
   padding:15px;
   margin-bottom:20px;
 }
-
 #status{
   margin-top:10px;
   font-weight:bold;
 }
-
 .tableWrap{
   overflow:auto;
   border-radius:12px;
 }
-
 table{
   width:100%;
   border-collapse:collapse;
   min-width:1800px;
   background:#121b2f;
 }
-
 th, td{
   border-bottom:1px solid rgba(255,255,255,.08);
   padding:10px;
@@ -84,14 +74,12 @@ th, td{
   vertical-align:top;
   font-size:14px;
 }
-
 th{
   background:#18233b;
   position:sticky;
   top:0;
   z-index:1;
 }
-
 .badge{
   display:inline-block;
   padding:4px 8px;
@@ -101,56 +89,45 @@ th{
   margin-right:6px;
   margin-bottom:4px;
 }
-
 .si{
   background:#1f8b4c;
   color:white;
 }
-
 .no{
   background:#3a445f;
   color:#cfd8f0;
 }
-
 .info{
   background:#274d8a;
   color:white;
 }
-
 .warn{
   background:#a86d16;
   color:white;
 }
-
 .danger{
   background:#a83232;
   color:white;
 }
-
 .estadoPendiente{
   background:#5a647c;
   color:white;
 }
-
 .estadoRuta{
   background:#255fa8;
   color:white;
 }
-
 .estadoEntregado{
   background:#1f8b4c;
   color:white;
 }
-
 .estadoFacturado{
   background:#7a4db4;
   color:white;
 }
-
 a{
   color:#7db4ff;
 }
-
 img.thumb{
   width:90px;
   max-width:90px;
@@ -158,29 +135,24 @@ img.thumb{
   display:block;
   cursor:pointer;
 }
-
 .actions{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
 }
-
 .smallBtn{
   padding:8px 10px;
   font-size:12px;
 }
-
 .empty{
   opacity:.8;
   padding:20px;
 }
-
 .filters{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap:10px;
 }
-
 input, select, textarea{
   width:100%;
   padding:10px;
@@ -188,11 +160,9 @@ input, select, textarea{
   border-radius:8px;
   box-sizing:border-box;
 }
-
 input[type="checkbox"]{
   width:auto;
 }
-
 .modal{
   position:fixed;
   inset:0;
@@ -203,11 +173,9 @@ input[type="checkbox"]{
   padding:20px;
   z-index:1000;
 }
-
 .modal.open{
   display:flex;
 }
-
 .modalContent{
   background:#121b2f;
   border-radius:12px;
@@ -217,36 +185,30 @@ input[type="checkbox"]{
   max-height:90vh;
   overflow:auto;
 }
-
 .modalContent img{
   width:100%;
   border-radius:10px;
 }
-
 .muted{
   color:#b7c3dd;
   font-size:13px;
 }
-
 .formGrid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap:12px;
 }
-
 .checkboxRow{
   display:flex;
   gap:20px;
   flex-wrap:wrap;
   margin-top:10px;
 }
-
 .checkboxRow label{
   display:flex;
   align-items:center;
   gap:8px;
 }
-
 .modalActions{
   display:flex;
   justify-content:flex-end;
@@ -254,39 +216,32 @@ input[type="checkbox"]{
   margin-top:15px;
   flex-wrap:wrap;
 }
-
 .dashboardGrid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap:12px;
 }
-
 .kpi{
   background:#0b1220;
   border-radius:10px;
   padding:12px;
 }
-
 .kpi .kpiTitle{
   font-size:13px;
   color:#c9d5f0;
   margin-bottom:6px;
 }
-
 .kpi .kpiValue{
   font-size:24px;
   font-weight:bold;
 }
-
 .estadoSelect{
   min-width:140px;
 }
-
 @media (max-width: 900px){
   body{
     padding:12px;
   }
-
   h1{
     font-size:22px;
   }
@@ -319,7 +274,7 @@ input[type="checkbox"]{
     <div class="filters">
       <div>
         <label>Buscar</label>
-        <input id="searchInput" placeholder="Conductor, cliente, matrícula, carga, descarga...">
+        <input id="searchInput" placeholder="Cliente, carga, descarga, conductor, matrícula...">
       </div>
 
       <div>
@@ -418,27 +373,27 @@ input[type="checkbox"]{
     <div class="formGrid">
       <div>
         <label>Conductor</label>
-        <input id="edit_driver_name">
+        <input id="edit_conductor">
       </div>
 
       <div>
         <label>Matrícula</label>
-        <input id="edit_vehicle_plate">
+        <input id="edit_matricula">
       </div>
 
       <div>
         <label>Cliente</label>
-        <input id="edit_client_name">
+        <input id="edit_cliente">
       </div>
 
       <div>
         <label>Lugar de carga</label>
-        <input id="edit_pickup_place">
+        <input id="edit_lugar_carga">
       </div>
 
       <div>
         <label>Lugar de descarga</label>
-        <input id="edit_dropoff_place">
+        <input id="edit_lugar_descarga">
       </div>
 
       <div>
@@ -463,18 +418,18 @@ input[type="checkbox"]{
 
       <div>
         <label>Km</label>
-        <input id="edit_distance_km" type="number" step="0.01">
+        <input id="edit_km" type="number" step="0.01">
       </div>
 
       <div>
         <label>Precio (€)</label>
-        <input id="edit_price_eur" type="number" step="0.01">
+        <input id="edit_precio" type="number" step="0.01">
       </div>
     </div>
 
     <div style="margin-top:12px;">
       <label>Observaciones</label>
-      <textarea id="edit_observations" rows="4"></textarea>
+      <textarea id="edit_observaciones" rows="4"></textarea>
     </div>
 
     <div class="checkboxRow">
@@ -493,15 +448,12 @@ input[type="checkbox"]{
 <script type="module">
 import {
   supabase,
-  getSession,
   requireRole,
   logoutApp
 } from "./app-utils-v2.js";
 
 const session = requireRole(["superadmin", "admin"]);
-if (!session) {
-  throw new Error("Sesión no válida");
-}
+if (!session) throw new Error("Sesión no válida");
 
 const statusEl = document.getElementById("status");
 const tbodyEntregas = document.getElementById("tbodyEntregas");
@@ -525,18 +477,18 @@ const cerrarEditBtn = document.getElementById("cerrarEditBtn");
 const cancelarEditBtn = document.getElementById("cancelarEditBtn");
 const guardarEntregaBtn = document.getElementById("guardarEntregaBtn");
 
-const editDriverName = document.getElementById("edit_driver_name");
-const editVehiclePlate = document.getElementById("edit_vehicle_plate");
-const editClientName = document.getElementById("edit_client_name");
-const editPickupPlace = document.getElementById("edit_pickup_place");
-const editDropoffPlace = document.getElementById("edit_dropoff_place");
+const editConductor = document.getElementById("edit_conductor");
+const editMatricula = document.getElementById("edit_matricula");
+const editCliente = document.getElementById("edit_cliente");
+const editLugarCarga = document.getElementById("edit_lugar_carga");
+const editLugarDescarga = document.getElementById("edit_lugar_descarga");
 const editNumEntregas = document.getElementById("edit_num_entregas");
 const editBultos = document.getElementById("edit_bultos");
 const editKg = document.getElementById("edit_kg");
 const editM3 = document.getElementById("edit_m3");
-const editDistanceKm = document.getElementById("edit_distance_km");
-const editPriceEur = document.getElementById("edit_price_eur");
-const editObservations = document.getElementById("edit_observations");
+const editKm = document.getElementById("edit_km");
+const editPrecio = document.getElementById("edit_precio");
+const editObservaciones = document.getElementById("edit_observaciones");
 const editMozo = document.getElementById("edit_mozo");
 const editTrampilla = document.getElementById("edit_trampilla");
 const editUrgente = document.getElementById("edit_urgente");
@@ -547,19 +499,8 @@ const btnSalir = document.getElementById("btnSalir");
 let entregasGlobal = [];
 let entregaEditandoId = null;
 
-function moduloActivo(nombre, porDefecto = true) {
-  if (session.rol === "superadmin") return true;
-  if (!session.modulos) return porDefecto;
-  if (session.modulos[nombre] === undefined || session.modulos[nombre] === null) {
-    return porDefecto;
-  }
-  return !!session.modulos[nombre];
-}
-
 function aplicarColorEmpresa() {
   const color = session.empresa_color || "#ff7a18";
-  document.documentElement.style.setProperty("--empresa-color", color);
-
   document.querySelectorAll("button:not(.sec), .btn:not(.sec)").forEach(el => {
     el.style.background = color;
   });
@@ -638,18 +579,11 @@ function cerrarEditModal() {
 }
 
 function renderDashboard(lista) {
-  if (!moduloActivo("dashboard", true)) {
-    dashboardSection.style.display = "none";
-    return;
-  }
-
-  dashboardSection.style.display = "block";
-
   const hoy = new Date().toISOString().slice(0, 10);
   const mes = hoy.slice(0, 7);
 
-  const entregasHoy = lista.filter(e => String(e.created_at || "").slice(0, 10) === hoy).length;
-  const entregasMes = lista.filter(e => String(e.created_at || "").slice(0, 7) === mes).length;
+  const entregasHoy = lista.filter(e => String(e.fecha || "").slice(0, 10) === hoy).length;
+  const entregasMes = lista.filter(e => String(e.fecha || "").slice(0, 7) === mes).length;
   const pendientes = lista.filter(e => String(e.estado || "pendiente") === "pendiente").length;
   const enRuta = lista.filter(e => String(e.estado || "") === "en_ruta").length;
   const entregados = lista.filter(e => String(e.estado || "") === "entregado").length;
@@ -657,7 +591,7 @@ function renderDashboard(lista) {
   const totalKg = lista.reduce((acc, e) => acc + Number(e.kg || 0), 0);
   const totalBultos = lista.reduce((acc, e) => acc + Number(e.bultos || 0), 0);
   const totalM3 = lista.reduce((acc, e) => acc + Number(e.m3 || 0), 0);
-  const totalPrecio = lista.reduce((acc, e) => acc + Number(e.price_eur || 0), 0);
+  const totalPrecio = lista.reduce((acc, e) => acc + Number(e.precio || 0), 0);
 
   dashboardResumen.innerHTML = `
     <div class="kpi"><div class="kpiTitle">Entregas hoy</div><div class="kpiValue">${entregasHoy}</div></div>
@@ -702,11 +636,11 @@ function renderEntregas(lista) {
   }
 
   tbodyEntregas.innerHTML = lista.map(entrega => {
-    const fotoHtml = entrega.photo_url
+    const fotoHtml = entrega.foto_url
       ? `
-        <a href="${escapeHtml(entrega.photo_url)}" target="_blank" rel="noopener noreferrer">Ver</a>
+        <a href="${escapeHtml(entrega.foto_url)}" target="_blank" rel="noopener noreferrer">Ver</a>
         <br><br>
-        <img class="thumb" src="${escapeHtml(entrega.photo_url)}" alt="Foto entrega" onclick="window.abrirModalFoto('${escapeHtml(entrega.photo_url)}')">
+        <img class="thumb" src="${escapeHtml(entrega.foto_url)}" alt="Foto entrega" onclick="window.abrirModalFoto('${escapeHtml(entrega.foto_url)}')">
       `
       : "Sin foto";
 
@@ -721,25 +655,25 @@ function renderEntregas(lista) {
 
     return `
       <tr>
-        <td>${formatearFecha(entrega.created_at)}</td>
+        <td>${formatearFecha(entrega.fecha || entrega.created_at)}</td>
         <td>${renderSelectEstado(entrega)}</td>
-        <td>${escapeHtml(entrega.driver_name)}</td>
-        <td>${escapeHtml(entrega.vehicle_plate)}</td>
-        <td>${escapeHtml(entrega.client_name)}</td>
-        <td>${escapeHtml(entrega.pickup_place)}</td>
-        <td>${escapeHtml(entrega.dropoff_place)}</td>
+        <td>${escapeHtml(entrega.conductor)}</td>
+        <td>${escapeHtml(entrega.matricula)}</td>
+        <td>${escapeHtml(entrega.cliente)}</td>
+        <td>${escapeHtml(entrega.lugar_carga)}</td>
+        <td>${escapeHtml(entrega.lugar_descarga)}</td>
         <td>${escapeHtml(entrega.num_entregas)}</td>
         <td>${escapeHtml(entrega.bultos)}</td>
         <td>${escapeHtml(entrega.kg)}</td>
         <td>${escapeHtml(entrega.m3)}</td>
-        <td>${escapeHtml(entrega.observations || "")}</td>
+        <td>${escapeHtml(entrega.observaciones || "")}</td>
         <td>
           ${badgeBooleano(entrega.mozo, "Mozo")}
           ${badgeBooleano(entrega.trampilla, "Trampilla")}
           ${badgeBooleano(entrega.urgente, "Urgente")}
         </td>
         <td>${fotoHtml}</td>
-        <td>${entrega.price_eur != null ? formatEuros(entrega.price_eur) : ""}</td>
+        <td>${entrega.precio != null ? formatEuros(entrega.precio) : ""}</td>
         <td>${acciones}</td>
       </tr>
     `;
@@ -751,13 +685,13 @@ function aplicarFiltros() {
 
   const filtradas = entregasGlobal.filter(entrega => {
     const bloqueTexto = [
-      entrega.driver_name,
-      entrega.vehicle_plate,
-      entrega.client_name,
-      entrega.pickup_place,
-      entrega.dropoff_place,
+      entrega.conductor,
+      entrega.matricula,
+      entrega.cliente,
+      entrega.lugar_carga,
+      entrega.lugar_descarga,
       entrega.num_entregas,
-      entrega.observations,
+      entrega.observaciones,
       entrega.estado
     ]
     .map(v => (v || "").toString().toLowerCase())
@@ -798,22 +732,23 @@ async function cargarEntregas() {
         id,
         empresa_id,
         created_at,
-        driver_name,
-        vehicle_plate,
-        client_name,
-        pickup_place,
-        dropoff_place,
+        fecha,
+        conductor,
+        matricula,
+        cliente,
+        lugar_carga,
+        lugar_descarga,
         num_entregas,
         bultos,
         kg,
         m3,
-        observations,
+        observaciones,
         mozo,
         trampilla,
         urgente,
-        distance_km,
-        price_eur,
-        photo_url,
+        km,
+        precio,
+        foto_url,
         estado
       `)
       .order("created_at", { ascending: false });
@@ -840,7 +775,6 @@ async function cargarEntregas() {
     }));
 
     aplicarFiltros();
-
     statusEl.innerText = "Entregas cargadas: " + entregasGlobal.length;
   } catch (e) {
     statusEl.innerText = "Fallo cargando entregas: " + e.message;
@@ -863,18 +797,18 @@ window.editarEntrega = function(id) {
 
   entregaEditandoId = id;
 
-  editDriverName.value = entrega.driver_name || "";
-  editVehiclePlate.value = entrega.vehicle_plate || "";
-  editClientName.value = entrega.client_name || "";
-  editPickupPlace.value = entrega.pickup_place || "";
-  editDropoffPlace.value = entrega.dropoff_place || "";
+  editConductor.value = entrega.conductor || "";
+  editMatricula.value = entrega.matricula || "";
+  editCliente.value = entrega.cliente || "";
+  editLugarCarga.value = entrega.lugar_carga || "";
+  editLugarDescarga.value = entrega.lugar_descarga || "";
   editNumEntregas.value = entrega.num_entregas ?? "";
   editBultos.value = entrega.bultos ?? "";
   editKg.value = entrega.kg ?? "";
   editM3.value = entrega.m3 ?? "";
-  editDistanceKm.value = entrega.distance_km ?? "";
-  editPriceEur.value = entrega.price_eur ?? "";
-  editObservations.value = entrega.observations || "";
+  editKm.value = entrega.km ?? "";
+  editPrecio.value = entrega.precio ?? "";
+  editObservaciones.value = entrega.observaciones || "";
   editMozo.checked = !!entrega.mozo;
   editTrampilla.checked = !!entrega.trampilla;
   editUrgente.checked = !!entrega.urgente;
@@ -894,18 +828,18 @@ async function guardarCambiosEntrega() {
     let query = supabase
       .from("entregas")
       .update({
-        driver_name: editDriverName.value.trim() || null,
-        vehicle_plate: editVehiclePlate.value.trim() || null,
-        client_name: editClientName.value.trim() || null,
-        pickup_place: editPickupPlace.value.trim() || null,
-        dropoff_place: editDropoffPlace.value.trim() || null,
+        conductor: editConductor.value.trim() || null,
+        matricula: editMatricula.value.trim() || null,
+        cliente: editCliente.value.trim() || null,
+        lugar_carga: editLugarCarga.value.trim() || null,
+        lugar_descarga: editLugarDescarga.value.trim() || null,
         num_entregas: normalizarNumero(editNumEntregas.value),
         bultos: normalizarNumero(editBultos.value),
         kg: normalizarNumero(editKg.value),
         m3: normalizarNumero(editM3.value),
-        distance_km: normalizarNumero(editDistanceKm.value),
-        price_eur: normalizarNumero(editPriceEur.value),
-        observations: editObservations.value.trim() || null,
+        km: normalizarNumero(editKm.value),
+        precio: normalizarNumero(editPrecio.value),
+        observaciones: editObservaciones.value.trim() || null,
         mozo: editMozo.checked,
         trampilla: editTrampilla.checked,
         urgente: editUrgente.checked
