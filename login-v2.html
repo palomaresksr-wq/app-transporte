@@ -14,16 +14,70 @@
   --accent:#ff7a18;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}
-.wrap{max-width:460px;margin:0 auto}
-.card{background:var(--card);border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-h1{margin:0 0 8px 0;font-size:28px}
-.sub{color:var(--muted);margin-bottom:18px;font-size:14px}
-label{display:block;margin-top:12px;margin-bottom:6px;font-size:14px}
-input{width:100%;padding:12px;border:none;border-radius:10px;background:#fff;color:#111}
-button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;background:var(--accent);color:#1b0c02;font-weight:700;cursor:pointer}
-.demo{margin-top:16px;background:var(--soft);padding:12px;border-radius:12px;font-size:13px;color:var(--muted)}
-#status{margin-top:14px;font-weight:700;white-space:pre-line}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:24px;
+}
+.wrap{
+  max-width:460px;
+  margin:0 auto;
+}
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+h1{
+  margin:0 0 8px 0;
+  font-size:28px;
+}
+.sub{
+  color:var(--muted);
+  margin-bottom:18px;
+  font-size:14px;
+}
+label{
+  display:block;
+  margin-top:12px;
+  margin-bottom:6px;
+  font-size:14px;
+}
+input{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+}
+button{
+  width:100%;
+  margin-top:18px;
+  padding:13px;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  color:#1b0c02;
+  font-weight:700;
+  cursor:pointer;
+}
+.demo{
+  margin-top:16px;
+  background:var(--soft);
+  padding:12px;
+  border-radius:12px;
+  font-size:13px;
+  color:var(--muted);
+}
+#status{
+  margin-top:14px;
+  font-weight:700;
+  white-space:pre-line;
+}
 </style>
 </head>
 <body>
@@ -50,15 +104,35 @@ button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;ba
 </div>
 
 <script type="module">
-import { loginApp, getSession } from "./app-utils-v2.js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const session = getSession();
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-if (session?.rol === "superadmin") {
+const SESSION_KEY = "albatrans_session_v2";
+
+function saveSession(session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+function getSession() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+const sessionActual = getSession();
+
+if (sessionActual?.rol === "superadmin") {
   window.location.replace("superadmin-v2.html");
-} else if (session?.rol === "admin") {
+}
+if (sessionActual?.rol === "admin") {
   window.location.replace("admin-v2.html");
-} else if (session?.rol === "conductor") {
+}
+if (sessionActual?.rol === "conductor") {
   window.location.replace("conductor.html");
 }
 
@@ -85,24 +159,98 @@ async function entrar() {
     btnEntrar.disabled = true;
     statusEl.innerText = "Comprobando acceso...";
 
-    const session = await loginApp(usuario, password);
+    const { data, error } = await supabase
+      .from("usuarios_app")
+      .select(`
+        id,
+        nombre,
+        usuario,
+        rol,
+        activo,
+        empresa_id,
+        empresas:empresa_id (
+          id,
+          nombre,
+          slug,
+          activa,
+          color_primario,
+          logo_url
+        )
+      `)
+      .eq("usuario", usuario)
+      .eq("password", password)
+      .eq("activo", true)
+      .limit(1);
 
-    if (session.rol === "superadmin") {
-      window.location.replace("superadmin-v2.html");
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const row = data?.[0];
+
+    if (!row) {
+      throw new Error("Usuario o contraseña incorrectos");
+    }
+
+    if (row.rol !== "superadmin") {
+      if (!row.empresas?.activa) {
+        throw new Error("La empresa está desactivada");
+      }
+
+      const { data: modules, error: modulesError } = await supabase
+        .from("modulos_empresa")
+        .select("*")
+        .eq("empresa_id", row.empresa_id)
+        .single();
+
+      if (modulesError) {
+        throw new Error(modulesError.message);
+      }
+
+      const session = {
+        user_id: row.id,
+        username: row.usuario,
+        nombre: row.nombre,
+        rol: row.rol,
+        empresa_id: row.empresa_id,
+        empresa_nombre: row.empresas?.nombre || "",
+        empresa_slug: row.empresas?.slug || "",
+        empresa_color: row.empresas?.color_primario || "#ff7a18",
+        empresa_logo: row.empresas?.logo_url || "",
+        modulos: modules || {}
+      };
+
+      saveSession(session);
+
+      if (session.rol === "admin") {
+        window.location.replace("admin-v2.html");
+        return;
+      }
+
+      if (session.rol === "conductor") {
+        window.location.replace("conductor.html");
+        return;
+      }
+
+      statusEl.innerText = "Rol no reconocido";
       return;
     }
 
-    if (session.rol === "admin") {
-      window.location.replace("admin-v2.html");
-      return;
-    }
+    const session = {
+      user_id: row.id,
+      username: row.usuario,
+      nombre: row.nombre,
+      rol: row.rol,
+      empresa_id: null,
+      empresa_nombre: "",
+      empresa_slug: "",
+      empresa_color: "#ff7a18",
+      empresa_logo: "",
+      modulos: null
+    };
 
-    if (session.rol === "conductor") {
-      window.location.replace("conductor.html");
-      return;
-    }
-
-    statusEl.innerText = "Rol no reconocido";
+    saveSession(session);
+    window.location.replace("superadmin-v2.html");
   } catch (error) {
     statusEl.innerText = error.message || "No se pudo iniciar sesión";
   } finally {
