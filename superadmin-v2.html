@@ -3,293 +3,550 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Albatrans · Superadmin PRO</title>
+<title>Superadmin v2 - Albatrans</title>
+
 <style>
-:root{
-  --bg:#0b1220;
-  --card:#121b2f;
-  --soft:#18233b;
-  --soft2:#0f1a2e;
-  --text:#fff;
-  --muted:#b9c5df;
-  --accent:#ff7a18;
-  --green:#1f8b4c;
-  --red:#b13a3a;
+body{
+  font-family: Arial, sans-serif;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:20px}
-.wrap{max-width:1400px;margin:0 auto}
-.topbar,.card{background:var(--card);border-radius:16px;padding:18px}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
-.card{margin-bottom:18px}
-h1,h2,h3{margin:0 0 10px 0}
-.sub{color:var(--muted);font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-input{width:100%;padding:12px;border:none;border-radius:10px;background:#fff;color:#111}
-button{padding:11px 14px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
-.btnPrimary{background:var(--accent);color:#1b0c02}
-.btnSec{background:#24314f;color:#fff}
-.btnOk{background:var(--green);color:#fff}
-.btnDanger{background:var(--red);color:#fff}
-.actions{display:flex;gap:10px;flex-wrap:wrap}
-.company{background:var(--soft2);border-radius:14px;padding:14px;margin-top:14px}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px;margin-top:6px}
-.on{background:rgba(31,139,76,.2);color:#abefc6}
-.off{background:rgba(177,58,58,.2);color:#ffc1c1}
-.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
-.module{background:var(--soft);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.module label{display:flex;align-items:center;gap:10px;font-size:14px}
-.module input{width:auto}
-.admins{margin-top:12px;background:var(--soft);border-radius:12px;padding:12px}
-.adminItem{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}
-.adminItem:last-child{border-bottom:none}
-#estado{margin-top:10px;font-weight:700;white-space:pre-line}
-@media (max-width:720px){body{padding:12px}}
+.wrap{
+  max-width:1400px;
+  margin:0 auto;
+}
+.topbar{
+  background:#121b2f;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+h1,h2,h3{
+  margin:0 0 12px 0;
+}
+.card{
+  background:#121b2f;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:14px;
+  color:#cdd6f4;
+}
+input{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#0b1220;
+  color:white;
+}
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  color:#1b0c02;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.sec{
+  background:#24314f;
+  color:white;
+}
+button.danger{
+  background:#ff4d4f;
+  color:white;
+}
+button.ok{
+  background:#1f8b4c;
+  color:white;
+}
+button.warn{
+  background:#7a4b00;
+  color:#fff;
+}
+.small{
+  font-size:13px;
+  color:#aab4d6;
+}
+.empresa-box{
+  background:#0b1220;
+  border-radius:10px;
+  padding:14px;
+  margin-top:14px;
+}
+.empresa-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sub-box{
+  background:#121b2f;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+}
+.item{
+  background:#18233b;
+  padding:10px;
+  border-radius:8px;
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+#estado{
+  margin-top:12px;
+  white-space:pre-line;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#24314f;
+  color:#d9e3ff;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-top:4px;
+}
+.badge.warn{
+  background:#7a4b00;
+  color:#ffe1a6;
+}
+.badge.ok{
+  background:#1f8b4c;
+  color:white;
+}
+.badge.off{
+  background:#8e2f2f;
+  color:white;
+}
+.featuresGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.featureItem{
+  background:#18233b;
+  border-radius:10px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+input[type="checkbox"]{
+  width:auto;
+  transform:scale(1.1);
+}
+@media (max-width:700px){
+  body{padding:12px;}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
+
   <div class="topbar">
     <div>
-      <h1>Superadmin PRO</h1>
-      <div class="sub">Control real por empresa: accesos, módulos y activación</div>
+      <h1>Superadmin v2</h1>
+      <div class="small">Empresas, admins y módulos por empresa</div>
     </div>
     <div class="actions">
-      <button class="btnSec" id="btnRecargar">Recargar</button>
-      <button class="btnDanger" id="btnSalir">Cerrar sesión</button>
+      <a class="sec" href="admin-v2.html" style="text-decoration:none;padding:10px 14px;border-radius:8px;background:#24314f;color:white;">Ir a admin</a>
+      <button class="sec" id="btnRecargar">Recargar</button>
+      <button id="btnCerrarSesion">Cerrar sesión</button>
     </div>
   </div>
 
   <div class="card">
     <h2>Crear empresa nueva</h2>
     <div class="grid">
-      <div><input id="nombre" placeholder="Nombre comercial"></div>
-      <div><input id="slug" placeholder="slug, por ejemplo flaxtrans"></div>
-      <div><input id="razon_social" placeholder="Razón social"></div>
-      <div><input id="cif" placeholder="CIF"></div>
-      <div><input id="telefono" placeholder="Teléfono"></div>
-      <div><input id="email" placeholder="Email"></div>
-      <div><input id="direccion" placeholder="Dirección"></div>
-      <div><input id="color_primario" placeholder="#ff7a18"></div>
-      <div><input id="logo_url" placeholder="URL logo (opcional)"></div>
+      <div>
+        <label>Nombre</label>
+        <input id="empresaNombre" placeholder="Ej: Dutti Trans">
+      </div>
+      <div>
+        <label>Slug</label>
+        <input id="empresaSlug" placeholder="Ej: duttitrans">
+      </div>
+      <div>
+        <label>Razón social</label>
+        <input id="empresaRazonSocial" placeholder="Ej: Dutti Trans, S.L.">
+      </div>
+      <div>
+        <label>CIF</label>
+        <input id="empresaCif" placeholder="Ej: B12345678">
+      </div>
+      <div>
+        <label>Email</label>
+        <input id="empresaEmail" placeholder="Ej: info@empresa.com">
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="empresaTelefono" placeholder="Ej: 600000000">
+      </div>
+      <div>
+        <label>Dirección</label>
+        <input id="empresaDireccion" placeholder="Ej: Calle Ejemplo 1, Madrid">
+      </div>
+      <div>
+        <label>Color principal</label>
+        <input id="empresaColor" value="#ff7a18">
+      </div>
+      <div>
+        <label>Nombre del admin</label>
+        <input id="adminNombre" placeholder="Ej: Oficina Dutti">
+      </div>
+      <div>
+        <label>Usuario del admin</label>
+        <input id="adminUsuario" placeholder="Ej: oficina-dutti">
+      </div>
+      <div>
+        <label>Contraseña del admin</label>
+        <input id="adminPassword" placeholder="Ej: 1234">
+      </div>
     </div>
-    <div class="actions" style="margin-top:14px">
-      <button class="btnPrimary" id="btnCrearEmpresa">Crear empresa</button>
+
+    <div class="actions" style="margin-top:14px;">
+      <button id="btnCrearEmpresa">Crear empresa + admin</button>
     </div>
-    <div id="estado"></div>
   </div>
 
   <div class="card">
-    <h2>Empresas</h2>
-    <div class="sub">Aquí decides qué tiene cada cliente y qué no tiene.</div>
-    <div id="companies"></div>
+    <h2>Empresas registradas</h2>
+    <div id="estado"></div>
+    <div id="listaEmpresas"></div>
   </div>
+
 </div>
 
 <script type="module">
 import {
-  MODULE_LABELS,
+  getSession,
   requireRole,
   logoutApp,
   getCompanies,
   createCompany,
+  createAdminForCompany,
   updateCompanyModules,
   toggleCompanyStatus,
-  createAdminForCompany
+  MODULE_LABELS
 } from "./app-utils-v2.js";
 
 const session = requireRole(["superadmin"]);
-if (!session) throw new Error("Sin sesión");
+if (!session) {
+  throw new Error("Acceso no autorizado");
+}
 
-const companiesEl = document.getElementById("companies");
 const estadoEl = document.getElementById("estado");
+const listaEmpresasEl = document.getElementById("listaEmpresas");
 
-document.getElementById("btnSalir").addEventListener("click", logoutApp);
-document.getElementById("btnRecargar").addEventListener("click", loadCompanies);
-document.getElementById("btnCrearEmpresa").addEventListener("click", onCreateCompany);
+const empresaNombreEl = document.getElementById("empresaNombre");
+const empresaSlugEl = document.getElementById("empresaSlug");
+const empresaRazonSocialEl = document.getElementById("empresaRazonSocial");
+const empresaCifEl = document.getElementById("empresaCif");
+const empresaEmailEl = document.getElementById("empresaEmail");
+const empresaTelefonoEl = document.getElementById("empresaTelefono");
+const empresaDireccionEl = document.getElementById("empresaDireccion");
+const empresaColorEl = document.getElementById("empresaColor");
+const adminNombreEl = document.getElementById("adminNombre");
+const adminUsuarioEl = document.getElementById("adminUsuario");
+const adminPasswordEl = document.getElementById("adminPassword");
 
-loadCompanies();
+const btnCrearEmpresa = document.getElementById("btnCrearEmpresa");
+const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+const btnRecargar = document.getElementById("btnRecargar");
 
-async function loadCompanies() {
-  try {
-    companiesEl.innerHTML = "Cargando empresas...";
-    const companies = await getCompanies();
+let companiesCache = [];
 
-    if (!companies.length) {
-      companiesEl.innerHTML = "No hay empresas todavía.";
-      return;
-    }
-
-    companiesEl.innerHTML = companies.map(renderCompany).join("");
-    bindCompanyEvents(companies);
-  } catch (error) {
-    companiesEl.innerHTML = error.message || "No se pudieron cargar las empresas";
-  }
-}
-
-function renderCompany(company) {
-  const modules = company.modulos_empresa?.[0] || {};
-  const admins = (company.usuarios_app || []).filter(u => u.rol === "admin");
-  const moduleHtml = Object.keys(MODULE_LABELS).map(key => `
-    <div class="module">
-      <label>
-        <input type="checkbox" data-company-id="${company.id}" data-module="${key}" ${modules[key] ? "checked" : ""}>
-        ${MODULE_LABELS[key]}
-      </label>
-    </div>
-  `).join("");
-
-  const adminHtml = admins.length
-    ? admins.map(admin => `<div class="adminItem"><strong>${admin.nombre}</strong><br>${admin.usuario}</div>`).join("")
-    : `<div class="adminItem">Sin admin todavía</div>`;
-
-  return `
-    <div class="company">
-      <div class="head">
-        <div>
-          <h3>${escapeHtml(company.nombre)}</h3>
-          <div class="sub">Slug: ${escapeHtml(company.slug)} · CIF: ${escapeHtml(company.cif || "-")}</div>
-          <span class="badge ${company.activa ? "on" : "off"}">${company.activa ? "Empresa activa" : "Empresa bloqueada"}</span>
-        </div>
-        <div class="actions">
-          <button class="${company.activa ? "btnDanger" : "btnOk"}" data-toggle-company="${company.id}" data-next-state="${company.activa ? "false" : "true"}">
-            ${company.activa ? "Bloquear empresa" : "Activar empresa"}
-          </button>
-          <button class="btnSec" data-save-company="${company.id}">Guardar módulos</button>
-        </div>
-      </div>
-
-      <div class="modules">${moduleHtml}</div>
-
-      <div class="admins">
-        <strong>Admins de empresa</strong>
-        ${adminHtml}
-        <div class="grid" style="margin-top:12px">
-          <div><input id="admin-nombre-${company.id}" placeholder="Nombre admin"></div>
-          <div><input id="admin-usuario-${company.id}" placeholder="Usuario admin"></div>
-          <div><input id="admin-pass-${company.id}" placeholder="Contraseña admin"></div>
-        </div>
-        <div class="actions" style="margin-top:10px">
-          <button class="btnPrimary" data-create-admin="${company.id}">Crear admin</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function bindCompanyEvents(companies) {
-  document.querySelectorAll("[data-save-company]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const companyId = btn.dataset.saveCompany;
-      const payload = {};
-      document.querySelectorAll(`input[data-company-id="${companyId}"]`).forEach(check => {
-        payload[check.dataset.module] = !!check.checked;
-      });
-      try {
-        btn.disabled = true;
-        await updateCompanyModules(companyId, payload);
-        setStatus("Módulos guardados correctamente");
-        await loadCompanies();
-      } catch (error) {
-        setStatus(error.message || "No se pudieron guardar los módulos");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-
-  document.querySelectorAll("[data-toggle-company]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      try {
-        btn.disabled = true;
-        await toggleCompanyStatus(btn.dataset.toggleCompany, btn.dataset.nextState === "true");
-        setStatus("Estado de empresa actualizado");
-        await loadCompanies();
-      } catch (error) {
-        setStatus(error.message || "No se pudo cambiar el estado de la empresa");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-
-  document.querySelectorAll("[data-create-admin]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const companyId = btn.dataset.createAdmin;
-      const nombre = document.getElementById(`admin-nombre-${companyId}`).value.trim();
-      const usuario = document.getElementById(`admin-usuario-${companyId}`).value.trim();
-      const password = document.getElementById(`admin-pass-${companyId}`).value.trim();
-
-      if (!nombre || !usuario || !password) {
-        setStatus("Rellena nombre, usuario y contraseña del admin");
-        return;
-      }
-
-      try {
-        btn.disabled = true;
-        await createAdminForCompany({ empresa_id: companyId, nombre, usuario, password });
-        setStatus("Admin creado correctamente");
-        await loadCompanies();
-      } catch (error) {
-        setStatus(error.message || "No se pudo crear el admin");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-}
-
-async function onCreateCompany() {
-  try {
-    const payload = {
-      nombre: getValue("nombre"),
-      slug: getValue("slug"),
-      razon_social: getValue("razon_social"),
-      cif: getValue("cif"),
-      telefono: getValue("telefono"),
-      email: getValue("email"),
-      direccion: getValue("direccion"),
-      color_primario: getValue("color_primario") || "#ff7a18",
-      logo_url: getValue("logo_url")
-    };
-
-    if (!payload.nombre || !payload.slug) {
-      setStatus("El nombre y el slug son obligatorios");
-      return;
-    }
-
-    await createCompany(payload);
-    clearCompanyForm();
-    setStatus("Empresa creada correctamente");
-    await loadCompanies();
-  } catch (error) {
-    setStatus(error.message || "No se pudo crear la empresa");
-  }
-}
-
-function getValue(id) {
-  return document.getElementById(id).value.trim();
-}
-
-function clearCompanyForm() {
-  ["nombre","slug","razon_social","cif","telefono","email","direccion","color_primario","logo_url"].forEach(id => {
-    document.getElementById(id).value = id === "color_primario" ? "#ff7a18" : "";
-  });
-}
-
-function setStatus(text) {
-  estadoEl.innerText = text;
+function setEstado(texto) {
+  estadoEl.innerText = texto || "";
 }
 
 function escapeHtml(value) {
-  return String(value || "")
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+function limpiarFormulario() {
+  empresaNombreEl.value = "";
+  empresaSlugEl.value = "";
+  empresaRazonSocialEl.value = "";
+  empresaCifEl.value = "";
+  empresaEmailEl.value = "";
+  empresaTelefonoEl.value = "";
+  empresaDireccionEl.value = "";
+  empresaColorEl.value = "#ff7a18";
+  adminNombreEl.value = "";
+  adminUsuarioEl.value = "";
+  adminPasswordEl.value = "";
+}
+
+function slugify(texto) {
+  return String(texto || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function renderCompanies(companies) {
+  companiesCache = companies || [];
+  listaEmpresasEl.innerHTML = "";
+
+  if (!companiesCache.length) {
+    listaEmpresasEl.innerHTML = "<div class='small'>No hay empresas todavía.</div>";
+    return;
+  }
+
+  companiesCache.forEach(company => {
+    const modules = company.modulos_empresa?.[0] || {};
+    const users = company.usuarios_app || [];
+
+    const adminUsers = users.filter(u => u.rol === "admin");
+    const conductores = users.filter(u => u.rol === "conductor");
+
+    const box = document.createElement("div");
+    box.className = "empresa-box";
+
+    const modulesHtml = Object.keys(MODULE_LABELS).map(key => `
+      <label class="featureItem">
+        <span>${escapeHtml(MODULE_LABELS[key])}</span>
+        <input
+          type="checkbox"
+          data-action="toggle-module"
+          data-company-id="${company.id}"
+          data-module="${key}"
+          ${modules[key] ? "checked" : ""}
+        >
+      </label>
+    `).join("");
+
+    const adminsHtml = adminUsers.length
+      ? adminUsers.map(user => `
+        <div class="item">
+          <div>
+            <strong>${escapeHtml(user.nombre || "")}</strong>
+            <div class="small">Usuario: ${escapeHtml(user.usuario || "")}</div>
+            <div class="small">Rol: ${escapeHtml(user.rol || "")}</div>
+            <div class="small">Activo: ${user.activo ? "Sí" : "No"}</div>
+          </div>
+        </div>
+      `).join("")
+      : "<div class='small'>Sin admin asignado.</div>";
+
+    const conductoresHtml = conductores.length
+      ? conductores.map(user => `
+        <div class="item">
+          <div>
+            <strong>${escapeHtml(user.nombre || "")}</strong>
+            <div class="small">Usuario: ${escapeHtml(user.usuario || "")}</div>
+            <div class="small">Rol: ${escapeHtml(user.rol || "")}</div>
+            <div class="small">Activo: ${user.activo ? "Sí" : "No"}</div>
+          </div>
+        </div>
+      `).join("")
+      : "<div class='small'>Sin conductores.</div>";
+
+    box.innerHTML = `
+      <div class="empresa-head">
+        <div>
+          <h3>${escapeHtml(company.nombre || "")}</h3>
+          <div style="margin-bottom:6px;">
+            <span class="badge ${company.activa ? "ok" : "off"}">${company.activa ? "Activa" : "Desactivada"}</span>
+            <span class="badge">${escapeHtml(company.slug || "")}</span>
+          </div>
+          <div class="small">Razón social: ${escapeHtml(company.razon_social || "-")}</div>
+          <div class="small">CIF: ${escapeHtml(company.cif || "-")}</div>
+          <div class="small">Email: ${escapeHtml(company.email || "-")}</div>
+          <div class="small">Teléfono: ${escapeHtml(company.telefono || "-")}</div>
+          <div class="small">Dirección: ${escapeHtml(company.direccion || "-")}</div>
+        </div>
+
+        <div class="actions">
+          <button
+            class="${company.activa ? "warn" : "ok"}"
+            data-action="toggle-company"
+            data-company-id="${company.id}"
+            data-company-active="${company.activa ? "1" : "0"}"
+          >
+            ${company.activa ? "Desactivar" : "Activar"}
+          </button>
+        </div>
+      </div>
+
+      <div class="sub-box">
+        <strong>Módulos por empresa</strong>
+        <div class="featuresGrid">${modulesHtml}</div>
+      </div>
+
+      <div class="sub-box">
+        <strong>Admins (${adminUsers.length})</strong>
+        ${adminsHtml}
+      </div>
+
+      <div class="sub-box">
+        <strong>Conductores (${conductores.length})</strong>
+        ${conductoresHtml}
+      </div>
+    `;
+
+    listaEmpresasEl.appendChild(box);
+  });
+}
+
+async function recargarTodo() {
+  try {
+    setEstado("Cargando empresas...");
+    const companies = await getCompanies();
+    renderCompanies(companies);
+    setEstado("Datos cargados correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function crearEmpresaConAdmin() {
+  try {
+    const nombre = empresaNombreEl.value.trim();
+    const slugManual = empresaSlugEl.value.trim();
+    const razon_social = empresaRazonSocialEl.value.trim();
+    const cif = empresaCifEl.value.trim();
+    const email = empresaEmailEl.value.trim();
+    const telefono = empresaTelefonoEl.value.trim();
+    const direccion = empresaDireccionEl.value.trim();
+    const color_primario = empresaColorEl.value.trim() || "#ff7a18";
+    const adminNombre = adminNombreEl.value.trim();
+    const adminUsuario = adminUsuarioEl.value.trim();
+    const adminPassword = adminPasswordEl.value.trim();
+
+    if (!nombre) {
+      setEstado("Pon el nombre de la empresa");
+      return;
+    }
+
+    if (!adminNombre || !adminUsuario || !adminPassword) {
+      setEstado("Completa nombre, usuario y contraseña del admin");
+      return;
+    }
+
+    const slug = slugify(slugManual || nombre);
+
+    setEstado("Creando empresa...");
+    const company = await createCompany({
+      nombre,
+      slug,
+      razon_social,
+      cif,
+      email,
+      telefono,
+      direccion,
+      color_primario
+    });
+
+    await createAdminForCompany({
+      empresa_id: company.id,
+      nombre: adminNombre,
+      usuario: adminUsuario,
+      password: adminPassword
+    });
+
+    limpiarFormulario();
+    await recargarTodo();
+    setEstado("Empresa y admin creados correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+async function guardarCambioModulo(companyId, moduleName, checked) {
+  try {
+    setEstado("Guardando módulo...");
+    await updateCompanyModules(companyId, { [moduleName]: checked });
+    setEstado("Módulo actualizado");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+    await recargarTodo();
+  }
+}
+
+async function toggleEmpresa(companyId, currentActive) {
+  try {
+    setEstado("Actualizando empresa...");
+    await toggleCompanyStatus(companyId, !currentActive);
+    await recargarTodo();
+    setEstado("Empresa actualizada correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
+}
+
+btnCrearEmpresa.addEventListener("click", crearEmpresaConAdmin);
+btnCerrarSesion.addEventListener("click", logoutApp);
+btnRecargar.addEventListener("click", recargarTodo);
+
+listaEmpresasEl.addEventListener("change", async (e) => {
+  const action = e.target.getAttribute("data-action");
+  if (action !== "toggle-module") return;
+
+  const companyId = e.target.getAttribute("data-company-id");
+  const moduleName = e.target.getAttribute("data-module");
+  const checked = e.target.checked;
+
+  if (!companyId || !moduleName) return;
+  await guardarCambioModulo(companyId, moduleName, checked);
+});
+
+listaEmpresasEl.addEventListener("click", async (e) => {
+  const action = e.target.getAttribute("data-action");
+  if (action !== "toggle-company") return;
+
+  const companyId = e.target.getAttribute("data-company-id");
+  const currentActive = e.target.getAttribute("data-company-active") === "1";
+
+  if (!companyId) return;
+  await toggleEmpresa(companyId, currentActive);
+});
+
+await recargarTodo();
 </script>
 </body>
 </html>
