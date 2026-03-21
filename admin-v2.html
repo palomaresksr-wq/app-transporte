@@ -793,7 +793,7 @@ async function cargarEntregas() {
     statusEl.innerText = "Cargando entregas...";
 
     let query = supabase
-      .from("deliveries")
+      .from("entregas")
       .select(`
         id,
         empresa_id,
@@ -892,7 +892,7 @@ async function guardarCambiosEntrega() {
     statusEl.innerText = "Guardando cambios...";
 
     let query = supabase
-      .from("deliveries")
+      .from("entregas")
       .update({
         driver_name: editDriverName.value.trim() || null,
         vehicle_plate: editVehiclePlate.value.trim() || null,
