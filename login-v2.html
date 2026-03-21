@@ -52,16 +52,13 @@ button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;ba
 <script type="module">
 import { loginApp, getSession } from "./app-utils-v2.js";
 
-if (session.rol === "superadmin") {
-  window.location.href = "superadmin-v2.html";
-} else if (session.rol === "admin") {
-  window.location.href = "admin-v2.html";
-} else if (session.rol === "conductor") {
-  window.location.href = "conductor.html";
-} else {
-  window.location.href = "admin-v2.html";
-}
-if (session?.rol === "conductor") {
+const session = getSession();
+
+if (session?.rol === "superadmin") {
+  window.location.replace("superadmin-v2.html");
+} else if (session?.rol === "admin") {
+  window.location.replace("admin-v2.html");
+} else if (session?.rol === "conductor") {
   window.location.replace("conductor.html");
 }
 
@@ -96,11 +93,16 @@ async function entrar() {
     }
 
     if (session.rol === "admin") {
-      window.location.replace("admin.html");
+      window.location.replace("admin-v2.html");
       return;
     }
 
-    window.location.replace("conductor.html");
+    if (session.rol === "conductor") {
+      window.location.replace("conductor.html");
+      return;
+    }
+
+    statusEl.innerText = "Rol no reconocido";
   } catch (error) {
     statusEl.innerText = error.message || "No se pudo iniciar sesión";
   } finally {
