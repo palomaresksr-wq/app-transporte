@@ -52,12 +52,14 @@ button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;ba
 <script type="module">
 import { loginApp, getSession } from "./app-utils-v2.js";
 
-const session = getSession();
-if (session?.rol === "superadmin") {
-  window.location.replace("superadmin-v2.html");
-}
-if (session?.rol === "admin") {
-  window.location.replace("admin.html");
+if (session.rol === "superadmin") {
+  window.location.href = "superadmin-v2.html";
+} else if (session.rol === "admin") {
+  window.location.href = "admin-v2.html";
+} else if (session.rol === "conductor") {
+  window.location.href = "conductor.html";
+} else {
+  window.location.href = "admin-v2.html";
 }
 if (session?.rol === "conductor") {
   window.location.replace("conductor.html");
