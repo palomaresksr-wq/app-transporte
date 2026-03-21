@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Albatrans · Acceso</title>
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --text:#fff;
+  --muted:#b9c5df;
+  --accent:#ff7a18;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}
+.wrap{max-width:460px;margin:0 auto}
+.card{background:var(--card);border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+h1{margin:0 0 8px 0;font-size:28px}
+.sub{color:var(--muted);margin-bottom:18px;font-size:14px}
+label{display:block;margin-top:12px;margin-bottom:6px;font-size:14px}
+input{width:100%;padding:12px;border:none;border-radius:10px;background:#fff;color:#111}
+button{width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;background:var(--accent);color:#1b0c02;font-weight:700;cursor:pointer}
+.demo{margin-top:16px;background:var(--soft);padding:12px;border-radius:12px;font-size:13px;color:var(--muted)}
+#status{margin-top:14px;font-weight:700;white-space:pre-line}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Albatrans</h1>
+    <div class="sub">Acceso multiempresa preparado para modo PRO</div>
+
+    <label>Usuario</label>
+    <input id="username" autocomplete="username" placeholder="Tu usuario">
+
+    <label>Contraseña</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+
+    <button id="btnEntrar">Entrar</button>
+    <div id="status"></div>
+
+    <div class="demo">
+      Demo inicial:<br>
+      superadmin / 1234<br>
+      oficina / 1234
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { loginApp, getSession } from "./app-utils-v2.js";
+
+const session = getSession();
+if (session?.rol === "superadmin") {
+  window.location.replace("superadmin-v2.html");
+}
+if (session?.rol === "admin") {
+  window.location.replace("admin.html");
+}
+if (session?.rol === "conductor") {
+  window.location.replace("conductor.html");
+}
+
+const usernameEl = document.getElementById("username");
+const passwordEl = document.getElementById("password");
+const btnEntrar = document.getElementById("btnEntrar");
+const statusEl = document.getElementById("status");
+
+btnEntrar.addEventListener("click", entrar);
+passwordEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") entrar();
+});
+
+async function entrar() {
+  try {
+    const usuario = usernameEl.value.trim();
+    const password = passwordEl.value.trim();
+
+    if (!usuario || !password) {
+      statusEl.innerText = "Introduce usuario y contraseña";
+      return;
+    }
+
+    btnEntrar.disabled = true;
+    statusEl.innerText = "Comprobando acceso...";
+
+    const session = await loginApp(usuario, password);
+
+    if (session.rol === "superadmin") {
+      window.location.replace("superadmin-v2.html");
+      return;
+    }
+
+    if (session.rol === "admin") {
+      window.location.replace("admin.html");
+      return;
+    }
+
+    window.location.replace("conductor.html");
+  } catch (error) {
+    statusEl.innerText = error.message || "No se pudo iniciar sesión";
+  } finally {
+    btnEntrar.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

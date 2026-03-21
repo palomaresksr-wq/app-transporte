@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Albatrans · Superadmin PRO</title>
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --soft2:#0f1a2e;
+  --text:#fff;
+  --muted:#b9c5df;
+  --accent:#ff7a18;
+  --green:#1f8b4c;
+  --red:#b13a3a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:20px}
+.wrap{max-width:1400px;margin:0 auto}
+.topbar,.card{background:var(--card);border-radius:16px;padding:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.card{margin-bottom:18px}
+h1,h2,h3{margin:0 0 10px 0}
+.sub{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+input{width:100%;padding:12px;border:none;border-radius:10px;background:#fff;color:#111}
+button{padding:11px 14px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+.btnPrimary{background:var(--accent);color:#1b0c02}
+.btnSec{background:#24314f;color:#fff}
+.btnOk{background:var(--green);color:#fff}
+.btnDanger{background:var(--red);color:#fff}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.company{background:var(--soft2);border-radius:14px;padding:14px;margin-top:14px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px;margin-top:6px}
+.on{background:rgba(31,139,76,.2);color:#abefc6}
+.off{background:rgba(177,58,58,.2);color:#ffc1c1}
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+.module{background:var(--soft);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.module label{display:flex;align-items:center;gap:10px;font-size:14px}
+.module input{width:auto}
+.admins{margin-top:12px;background:var(--soft);border-radius:12px;padding:12px}
+.adminItem{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.adminItem:last-child{border-bottom:none}
+#estado{margin-top:10px;font-weight:700;white-space:pre-line}
+@media (max-width:720px){body{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>Superadmin PRO</h1>
+      <div class="sub">Control real por empresa: accesos, módulos y activación</div>
+    </div>
+    <div class="actions">
+      <button class="btnSec" id="btnRecargar">Recargar</button>
+      <button class="btnDanger" id="btnSalir">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Crear empresa nueva</h2>
+    <div class="grid">
+      <div><input id="nombre" placeholder="Nombre comercial"></div>
+      <div><input id="slug" placeholder="slug, por ejemplo flaxtrans"></div>
+      <div><input id="razon_social" placeholder="Razón social"></div>
+      <div><input id="cif" placeholder="CIF"></div>
+      <div><input id="telefono" placeholder="Teléfono"></div>
+      <div><input id="email" placeholder="Email"></div>
+      <div><input id="direccion" placeholder="Dirección"></div>
+      <div><input id="color_primario" placeholder="#ff7a18"></div>
+      <div><input id="logo_url" placeholder="URL logo (opcional)"></div>
+    </div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btnPrimary" id="btnCrearEmpresa">Crear empresa</button>
+    </div>
+    <div id="estado"></div>
+  </div>
+
+  <div class="card">
+    <h2>Empresas</h2>
+    <div class="sub">Aquí decides qué tiene cada cliente y qué no tiene.</div>
+    <div id="companies"></div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  MODULE_LABELS,
+  requireRole,
+  logoutApp,
+  getCompanies,
+  createCompany,
+  updateCompanyModules,
+  toggleCompanyStatus,
+  createAdminForCompany
+} from "./app-utils-v2.js";
+
+const session = requireRole(["superadmin"]);
+if (!session) throw new Error("Sin sesión");
+
+const companiesEl = document.getElementById("companies");
+const estadoEl = document.getElementById("estado");
+
+document.getElementById("btnSalir").addEventListener("click", logoutApp);
+document.getElementById("btnRecargar").addEventListener("click", loadCompanies);
+document.getElementById("btnCrearEmpresa").addEventListener("click", onCreateCompany);
+
+loadCompanies();
+
+async function loadCompanies() {
+  try {
+    companiesEl.innerHTML = "Cargando empresas...";
+    const companies = await getCompanies();
+
+    if (!companies.length) {
+      companiesEl.innerHTML = "No hay empresas todavía.";
+      return;
+    }
+
+    companiesEl.innerHTML = companies.map(renderCompany).join("");
+    bindCompanyEvents(companies);
+  } catch (error) {
+    companiesEl.innerHTML = error.message || "No se pudieron cargar las empresas";
+  }
+}
+
+function renderCompany(company) {
+  const modules = company.modulos_empresa?.[0] || {};
+  const admins = (company.usuarios_app || []).filter(u => u.rol === "admin");
+  const moduleHtml = Object.keys(MODULE_LABELS).map(key => `
+    <div class="module">
+      <label>
+        <input type="checkbox" data-company-id="${company.id}" data-module="${key}" ${modules[key] ? "checked" : ""}>
+        ${MODULE_LABELS[key]}
+      </label>
+    </div>
+  `).join("");
+
+  const adminHtml = admins.length
+    ? admins.map(admin => `<div class="adminItem"><strong>${admin.nombre}</strong><br>${admin.usuario}</div>`).join("")
+    : `<div class="adminItem">Sin admin todavía</div>`;
+
+  return `
+    <div class="company">
+      <div class="head">
+        <div>
+          <h3>${escapeHtml(company.nombre)}</h3>
+          <div class="sub">Slug: ${escapeHtml(company.slug)} · CIF: ${escapeHtml(company.cif || "-")}</div>
+          <span class="badge ${company.activa ? "on" : "off"}">${company.activa ? "Empresa activa" : "Empresa bloqueada"}</span>
+        </div>
+        <div class="actions">
+          <button class="${company.activa ? "btnDanger" : "btnOk"}" data-toggle-company="${company.id}" data-next-state="${company.activa ? "false" : "true"}">
+            ${company.activa ? "Bloquear empresa" : "Activar empresa"}
+          </button>
+          <button class="btnSec" data-save-company="${company.id}">Guardar módulos</button>
+        </div>
+      </div>
+
+      <div class="modules">${moduleHtml}</div>
+
+      <div class="admins">
+        <strong>Admins de empresa</strong>
+        ${adminHtml}
+        <div class="grid" style="margin-top:12px">
+          <div><input id="admin-nombre-${company.id}" placeholder="Nombre admin"></div>
+          <div><input id="admin-usuario-${company.id}" placeholder="Usuario admin"></div>
+          <div><input id="admin-pass-${company.id}" placeholder="Contraseña admin"></div>
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <button class="btnPrimary" data-create-admin="${company.id}">Crear admin</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindCompanyEvents(companies) {
+  document.querySelectorAll("[data-save-company]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const companyId = btn.dataset.saveCompany;
+      const payload = {};
+      document.querySelectorAll(`input[data-company-id="${companyId}"]`).forEach(check => {
+        payload[check.dataset.module] = !!check.checked;
+      });
+      try {
+        btn.disabled = true;
+        await updateCompanyModules(companyId, payload);
+        setStatus("Módulos guardados correctamente");
+        await loadCompanies();
+      } catch (error) {
+        setStatus(error.message || "No se pudieron guardar los módulos");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-toggle-company]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      try {
+        btn.disabled = true;
+        await toggleCompanyStatus(btn.dataset.toggleCompany, btn.dataset.nextState === "true");
+        setStatus("Estado de empresa actualizado");
+        await loadCompanies();
+      } catch (error) {
+        setStatus(error.message || "No se pudo cambiar el estado de la empresa");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-create-admin]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const companyId = btn.dataset.createAdmin;
+      const nombre = document.getElementById(`admin-nombre-${companyId}`).value.trim();
+      const usuario = document.getElementById(`admin-usuario-${companyId}`).value.trim();
+      const password = document.getElementById(`admin-pass-${companyId}`).value.trim();
+
+      if (!nombre || !usuario || !password) {
+        setStatus("Rellena nombre, usuario y contraseña del admin");
+        return;
+      }
+
+      try {
+        btn.disabled = true;
+        await createAdminForCompany({ empresa_id: companyId, nombre, usuario, password });
+        setStatus("Admin creado correctamente");
+        await loadCompanies();
+      } catch (error) {
+        setStatus(error.message || "No se pudo crear el admin");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+async function onCreateCompany() {
+  try {
+    const payload = {
+      nombre: getValue("nombre"),
+      slug: getValue("slug"),
+      razon_social: getValue("razon_social"),
+      cif: getValue("cif"),
+      telefono: getValue("telefono"),
+      email: getValue("email"),
+      direccion: getValue("direccion"),
+      color_primario: getValue("color_primario") || "#ff7a18",
+      logo_url: getValue("logo_url")
+    };
+
+    if (!payload.nombre || !payload.slug) {
+      setStatus("El nombre y el slug son obligatorios");
+      return;
+    }
+
+    await createCompany(payload);
+    clearCompanyForm();
+    setStatus("Empresa creada correctamente");
+    await loadCompanies();
+  } catch (error) {
+    setStatus(error.message || "No se pudo crear la empresa");
+  }
+}
+
+function getValue(id) {
+  return document.getElementById(id).value.trim();
+}
+
+function clearCompanyForm() {
+  ["nombre","slug","razon_social","cif","telefono","email","direccion","color_primario","logo_url"].forEach(id => {
+    document.getElementById(id).value = id === "color_primario" ? "#ff7a18" : "";
+  });
+}
+
+function setStatus(text) {
+  estadoEl.innerText = text;
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+</script>
+</body>
+</html>
