@@ -78,6 +78,16 @@ button{
   font-weight:700;
   white-space:pre-line;
 }
+.linkbtn{
+  display:block;
+  text-align:center;
+  margin-top:10px;
+  color:#fff;
+  text-decoration:none;
+  background:#24314f;
+  padding:12px;
+  border-radius:10px;
+}
 </style>
 </head>
 <body>
@@ -93,6 +103,8 @@ button{
     <input id="password" type="password" autocomplete="current-password" placeholder="Tu contraseña">
 
     <button id="btnEntrar">Entrar</button>
+    <a class="linkbtn" href="login-v2.html?reset=1">Borrar sesión guardada</a>
+
     <div id="status"></div>
 
     <div class="demo">
@@ -111,6 +123,10 @@ const SUPABASE_ANON_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const SESSION_KEY = "albatrans_session_v2";
+const statusEl = document.getElementById("status");
+const usernameEl = document.getElementById("username");
+const passwordEl = document.getElementById("password");
+const btnEntrar = document.getElementById("btnEntrar");
 
 function saveSession(session) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -124,6 +140,18 @@ function getSession() {
   }
 }
 
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("reset") === "1") {
+  clearSession();
+  statusEl.innerText = "Sesión borrada correctamente. Ya puedes volver a entrar.";
+  window.history.replaceState({}, "", "login-v2.html");
+}
+
 const sessionActual = getSession();
 
 if (sessionActual?.rol === "superadmin") {
@@ -133,13 +161,8 @@ if (sessionActual?.rol === "admin") {
   window.location.replace("admin-v2.html");
 }
 if (sessionActual?.rol === "conductor") {
-  window.location.replace("conductor.html");
+  window.location.replace("conductor-v2.html");
 }
-
-const usernameEl = document.getElementById("username");
-const passwordEl = document.getElementById("password");
-const btnEntrar = document.getElementById("btnEntrar");
-const statusEl = document.getElementById("status");
 
 btnEntrar.addEventListener("click", entrar);
 passwordEl.addEventListener("keydown", (e) => {
@@ -182,58 +205,30 @@ async function entrar() {
       .eq("activo", true)
       .limit(1);
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
 
     const row = data?.[0];
+    if (!row) throw new Error("Usuario o contraseña incorrectos");
 
-    if (!row) {
-      throw new Error("Usuario o contraseña incorrectos");
+    if (row.rol !== "superadmin" && !row.empresa_id) {
+      throw new Error("Este usuario no tiene empresa asignada");
     }
 
-    if (row.rol !== "superadmin") {
-      if (!row.empresas?.activa) {
-        throw new Error("La empresa está desactivada");
-      }
+    if (row.rol !== "superadmin" && !row.empresas?.activa) {
+      throw new Error("La empresa está desactivada");
+    }
 
-      const { data: modules, error: modulesError } = await supabase
+    let modules = null;
+
+    if (row.rol !== "superadmin") {
+      const { data: modulesData, error: modulesError } = await supabase
         .from("modulos_empresa")
         .select("*")
         .eq("empresa_id", row.empresa_id)
         .single();
 
-      if (modulesError) {
-        throw new Error(modulesError.message);
-      }
-
-      const session = {
-        user_id: row.id,
-        username: row.usuario,
-        nombre: row.nombre,
-        rol: row.rol,
-        empresa_id: row.empresa_id,
-        empresa_nombre: row.empresas?.nombre || "",
-        empresa_slug: row.empresas?.slug || "",
-        empresa_color: row.empresas?.color_primario || "#ff7a18",
-        empresa_logo: row.empresas?.logo_url || "",
-        modulos: modules || {}
-      };
-
-      saveSession(session);
-
-      if (session.rol === "admin") {
-        window.location.replace("admin-v2.html");
-        return;
-      }
-
-      if (session.rol === "conductor") {
-        window.location.replace("conductor.html");
-        return;
-      }
-
-      statusEl.innerText = "Rol no reconocido";
-      return;
+      if (modulesError) throw new Error(modulesError.message);
+      modules = modulesData || {};
     }
 
     const session = {
@@ -241,16 +236,32 @@ async function entrar() {
       username: row.usuario,
       nombre: row.nombre,
       rol: row.rol,
-      empresa_id: null,
-      empresa_nombre: "",
-      empresa_slug: "",
-      empresa_color: "#ff7a18",
-      empresa_logo: "",
-      modulos: null
+      empresa_id: row.empresa_id || null,
+      empresa_nombre: row.empresas?.nombre || "",
+      empresa_slug: row.empresas?.slug || "",
+      empresa_color: row.empresas?.color_primario || "#ff7a18",
+      empresa_logo: row.empresas?.logo_url || "",
+      modulos: modules
     };
 
     saveSession(session);
-    window.location.replace("superadmin-v2.html");
+
+    if (session.rol === "superadmin") {
+      window.location.replace("superadmin-v2.html");
+      return;
+    }
+
+    if (session.rol === "admin") {
+      window.location.replace("admin-v2.html");
+      return;
+    }
+
+    if (session.rol === "conductor") {
+      window.location.replace("conductor-v2.html");
+      return;
+    }
+
+    statusEl.innerText = "Rol no reconocido";
   } catch (error) {
     statusEl.innerText = error.message || "No se pudo iniciar sesión";
   } finally {
