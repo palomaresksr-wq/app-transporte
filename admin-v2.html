@@ -274,7 +274,7 @@ input[type="checkbox"]{
     <div class="filters">
       <div>
         <label>Buscar</label>
-        <input id="searchInput" placeholder="Cliente, carga, descarga, conductor, matrícula...">
+        <input id="searchInput" placeholder="Cliente, carga, descarga, matrícula, observaciones...">
       </div>
 
       <div>
@@ -372,18 +372,13 @@ input[type="checkbox"]{
 
     <div class="formGrid">
       <div>
-        <label>Conductor</label>
-        <input id="edit_conductor">
+        <label>Cliente</label>
+        <input id="edit_cliente">
       </div>
 
       <div>
         <label>Matrícula</label>
         <input id="edit_matricula">
-      </div>
-
-      <div>
-        <label>Cliente</label>
-        <input id="edit_cliente">
       </div>
 
       <div>
@@ -414,11 +409,6 @@ input[type="checkbox"]{
       <div>
         <label>M3</label>
         <input id="edit_m3" type="number" step="0.01">
-      </div>
-
-      <div>
-        <label>Km</label>
-        <input id="edit_km" type="number" step="0.01">
       </div>
 
       <div>
@@ -465,7 +455,6 @@ const trampillaFilter = document.getElementById("trampillaFilter");
 const panelTitle = document.getElementById("panelTitle");
 const panelSubtitle = document.getElementById("panelSubtitle");
 const dashboardResumen = document.getElementById("dashboardResumen");
-const dashboardSection = document.getElementById("dashboardSection");
 const btnSuperadmin = document.getElementById("btnSuperadmin");
 
 const photoModal = document.getElementById("photoModal");
@@ -477,16 +466,14 @@ const cerrarEditBtn = document.getElementById("cerrarEditBtn");
 const cancelarEditBtn = document.getElementById("cancelarEditBtn");
 const guardarEntregaBtn = document.getElementById("guardarEntregaBtn");
 
-const editConductor = document.getElementById("edit_conductor");
-const editMatricula = document.getElementById("edit_matricula");
 const editCliente = document.getElementById("edit_cliente");
+const editMatricula = document.getElementById("edit_matricula");
 const editLugarCarga = document.getElementById("edit_lugar_carga");
 const editLugarDescarga = document.getElementById("edit_lugar_descarga");
 const editNumEntregas = document.getElementById("edit_num_entregas");
 const editBultos = document.getElementById("edit_bultos");
 const editKg = document.getElementById("edit_kg");
 const editM3 = document.getElementById("edit_m3");
-const editKm = document.getElementById("edit_km");
 const editPrecio = document.getElementById("edit_precio");
 const editObservaciones = document.getElementById("edit_observaciones");
 const editMozo = document.getElementById("edit_mozo");
@@ -657,7 +644,7 @@ function renderEntregas(lista) {
       <tr>
         <td>${formatearFecha(entrega.fecha || entrega.created_at)}</td>
         <td>${renderSelectEstado(entrega)}</td>
-        <td>${escapeHtml(entrega.conductor)}</td>
+        <td>—</td>
         <td>${escapeHtml(entrega.matricula)}</td>
         <td>${escapeHtml(entrega.cliente)}</td>
         <td>${escapeHtml(entrega.lugar_carga)}</td>
@@ -685,7 +672,6 @@ function aplicarFiltros() {
 
   const filtradas = entregasGlobal.filter(entrega => {
     const bloqueTexto = [
-      entrega.conductor,
       entrega.matricula,
       entrega.cliente,
       entrega.lugar_carga,
@@ -733,8 +719,6 @@ async function cargarEntregas() {
         empresa_id,
         created_at,
         fecha,
-        conductor,
-        matricula,
         cliente,
         lugar_carga,
         lugar_descarga,
@@ -746,10 +730,10 @@ async function cargarEntregas() {
         mozo,
         trampilla,
         urgente,
-        km,
-        precio,
+        matricula,
+        estado,
         foto_url,
-        estado
+        precio
       `)
       .order("created_at", { ascending: false });
 
@@ -797,16 +781,14 @@ window.editarEntrega = function(id) {
 
   entregaEditandoId = id;
 
-  editConductor.value = entrega.conductor || "";
-  editMatricula.value = entrega.matricula || "";
   editCliente.value = entrega.cliente || "";
+  editMatricula.value = entrega.matricula || "";
   editLugarCarga.value = entrega.lugar_carga || "";
   editLugarDescarga.value = entrega.lugar_descarga || "";
   editNumEntregas.value = entrega.num_entregas ?? "";
   editBultos.value = entrega.bultos ?? "";
   editKg.value = entrega.kg ?? "";
   editM3.value = entrega.m3 ?? "";
-  editKm.value = entrega.km ?? "";
   editPrecio.value = entrega.precio ?? "";
   editObservaciones.value = entrega.observaciones || "";
   editMozo.checked = !!entrega.mozo;
@@ -828,16 +810,14 @@ async function guardarCambiosEntrega() {
     let query = supabase
       .from("entregas")
       .update({
-        conductor: editConductor.value.trim() || null,
-        matricula: editMatricula.value.trim() || null,
         cliente: editCliente.value.trim() || null,
+        matricula: editMatricula.value.trim() || null,
         lugar_carga: editLugarCarga.value.trim() || null,
         lugar_descarga: editLugarDescarga.value.trim() || null,
         num_entregas: normalizarNumero(editNumEntregas.value),
         bultos: normalizarNumero(editBultos.value),
         kg: normalizarNumero(editKg.value),
         m3: normalizarNumero(editM3.value),
-        km: normalizarNumero(editKm.value),
         precio: normalizarNumero(editPrecio.value),
         observaciones: editObservaciones.value.trim() || null,
         mozo: editMozo.checked,
