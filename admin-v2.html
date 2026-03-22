@@ -56,6 +56,7 @@ button.sec, .btn.sec{
 #status{
   margin-top:10px;
   font-weight:bold;
+  white-space:pre-line;
 }
 .tableWrap{
   overflow:auto;
@@ -64,7 +65,7 @@ button.sec, .btn.sec{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1800px;
+  min-width:1600px;
   background:#121b2f;
 }
 th, td{
@@ -96,18 +97,6 @@ th{
 .no{
   background:#3a445f;
   color:#cfd8f0;
-}
-.info{
-  background:#274d8a;
-  color:white;
-}
-.warn{
-  background:#a86d16;
-  color:white;
-}
-.danger{
-  background:#a83232;
-  color:white;
 }
 .estadoPendiente{
   background:#5a647c;
@@ -254,7 +243,7 @@ input[type="checkbox"]{
 
   <div class="topbar">
     <div>
-      <h1 id="panelTitle">Admin v2</h1>
+      <h1 id="panelTitle">Panel Admin</h1>
       <div class="muted" id="panelSubtitle">Cargando empresa...</div>
     </div>
 
@@ -410,11 +399,6 @@ input[type="checkbox"]{
         <label>M3</label>
         <input id="edit_m3" type="number" step="0.01">
       </div>
-
-      <div>
-        <label>Precio (€)</label>
-        <input id="edit_precio" type="number" step="0.01">
-      </div>
     </div>
 
     <div style="margin-top:12px;">
@@ -474,7 +458,6 @@ const editNumEntregas = document.getElementById("edit_num_entregas");
 const editBultos = document.getElementById("edit_bultos");
 const editKg = document.getElementById("edit_kg");
 const editM3 = document.getElementById("edit_m3");
-const editPrecio = document.getElementById("edit_precio");
 const editObservaciones = document.getElementById("edit_observaciones");
 const editMozo = document.getElementById("edit_mozo");
 const editTrampilla = document.getElementById("edit_trampilla");
@@ -578,7 +561,6 @@ function renderDashboard(lista) {
   const totalKg = lista.reduce((acc, e) => acc + Number(e.kg || 0), 0);
   const totalBultos = lista.reduce((acc, e) => acc + Number(e.bultos || 0), 0);
   const totalM3 = lista.reduce((acc, e) => acc + Number(e.m3 || 0), 0);
-  const totalPrecio = lista.reduce((acc, e) => acc + Number(e.precio || 0), 0);
 
   dashboardResumen.innerHTML = `
     <div class="kpi"><div class="kpiTitle">Entregas hoy</div><div class="kpiValue">${entregasHoy}</div></div>
@@ -587,7 +569,6 @@ function renderDashboard(lista) {
     <div class="kpi"><div class="kpiTitle">En ruta</div><div class="kpiValue">${enRuta}</div></div>
     <div class="kpi"><div class="kpiTitle">Entregados</div><div class="kpiValue">${entregados}</div></div>
     <div class="kpi"><div class="kpiTitle">Facturados</div><div class="kpiValue">${facturados}</div></div>
-    <div class="kpi"><div class="kpiTitle">Total facturable</div><div class="kpiValue" style="font-size:20px;">${formatEuros(totalPrecio)}</div></div>
     <div class="kpi"><div class="kpiTitle">KG totales</div><div class="kpiValue">${Number(totalKg.toFixed(2))}</div></div>
     <div class="kpi"><div class="kpiTitle">Bultos totales</div><div class="kpiValue">${totalBultos}</div></div>
     <div class="kpi"><div class="kpiTitle">M3 totales</div><div class="kpiValue">${Number(totalM3.toFixed(2))}</div></div>
@@ -660,7 +641,7 @@ function renderEntregas(lista) {
           ${badgeBooleano(entrega.urgente, "Urgente")}
         </td>
         <td>${fotoHtml}</td>
-        <td>${entrega.precio != null ? formatEuros(entrega.precio) : ""}</td>
+        <td>—</td>
         <td>${acciones}</td>
       </tr>
     `;
@@ -732,8 +713,7 @@ async function cargarEntregas() {
         urgente,
         matricula,
         estado,
-        foto_url,
-        precio
+        foto_url
       `)
       .order("created_at", { ascending: false });
 
@@ -789,7 +769,6 @@ window.editarEntrega = function(id) {
   editBultos.value = entrega.bultos ?? "";
   editKg.value = entrega.kg ?? "";
   editM3.value = entrega.m3 ?? "";
-  editPrecio.value = entrega.precio ?? "";
   editObservaciones.value = entrega.observaciones || "";
   editMozo.checked = !!entrega.mozo;
   editTrampilla.checked = !!entrega.trampilla;
@@ -818,7 +797,6 @@ async function guardarCambiosEntrega() {
         bultos: normalizarNumero(editBultos.value),
         kg: normalizarNumero(editKg.value),
         m3: normalizarNumero(editM3.value),
-        precio: normalizarNumero(editPrecio.value),
         observaciones: editObservaciones.value.trim() || null,
         mozo: editMozo.checked,
         trampilla: editTrampilla.checked,
