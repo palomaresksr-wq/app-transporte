@@ -1178,6 +1178,7 @@ async function leerFotoAutomatica() {
     actualizarResumenVisual();
 
     ultimaPhotoUrl = await subirFoto(file, "preview-");
+
     setStatus("Leyendo albarán con IA...", "warn");
 
     const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
@@ -1249,6 +1250,7 @@ async function leerFotoAutomatica() {
 
     actualizarResumenVisual();
     setStatus("Albarán leído con IA", "ok");
+
   } catch (e) {
     console.log("ERROR LEYENDO ALBARÁN:", e);
     setStatus("Error leyendo albarán con IA", "error");
@@ -1549,19 +1551,6 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
   }
 }
 
-async function guardarEnTablaNueva(datos) {
-  const { error } = await supabase
-    .from("entregas")
-    .insert(datos);
-
-  if (error) {
-    console.warn("No se pudo guardar en tabla entregas:", error.message);
-    return false;
-  }
-
-  return true;
-}
-
 async function guardarEnTablaViejaSinRomper(datosLegacy) {
   const { data, error } = await supabase
     .from("deliveries")
@@ -1621,10 +1610,10 @@ function renderUltimasEntregas(lista) {
   tbodyUltimasEntregas.innerHTML = lista.map(entrega => `
     <tr>
       <td>${escapeHtml(formatearFecha(entrega.created_at || entrega.fecha))}</td>
-      <td>${escapeHtml(entrega.client_name || entrega.cliente || "")}</td>
-      <td>${escapeHtml(entrega.vehicle_plate || entrega.matricula || "")}</td>
-      <td>${escapeHtml(entrega.pickup_place || entrega.lugar_carga || "")}</td>
-      <td>${escapeHtml(entrega.dropoff_place || entrega.lugar_descarga || "")}</td>
+      <td>${escapeHtml(entrega.client_name || "")}</td>
+      <td>${escapeHtml(entrega.vehicle_plate || "")}</td>
+      <td>${escapeHtml(entrega.pickup_place || "")}</td>
+      <td>${escapeHtml(entrega.dropoff_place || "")}</td>
       <td>${escapeHtml(entrega.bultos ?? "")}</td>
       <td>${escapeHtml(entrega.kg ?? "")}</td>
       <td>${escapeHtml(entrega.m3 ?? "")}</td>
@@ -1682,27 +1671,6 @@ async function cargarUltimasEntregasConductor() {
     }
 
     ultimasEntregas = data || [];
-
-    if (ultimasEntregas.length) {
-      const idsViejos = ultimasEntregas.map(e => e.id).filter(Boolean);
-
-      const { data: enlazadas, error: errorEnlace } = await supabase
-        .from("entregas")
-        .select("id, legacy_delivery_id")
-        .in("legacy_delivery_id", idsViejos);
-
-      if (!errorEnlace && Array.isArray(enlazadas)) {
-        ultimasEntregas = ultimasEntregas.map(entrega => {
-          const enlace = enlazadas.find(x => x.legacy_delivery_id === entrega.id);
-          return {
-            ...entrega,
-            entrega_nueva_id: enlace?.id || null,
-            legacy_delivery_id: entrega.id
-          };
-        });
-      }
-    }
-
     renderUltimasEntregas(ultimasEntregas);
   } catch (e) {
     console.warn("Error cargando últimas entregas:", e.message);
@@ -1782,47 +1750,6 @@ window.guardarCambiosEntregaConductor = async function() {
 
     if (errorVieja) {
       throw new Error("Error guardando en deliveries: " + errorVieja.message);
-    }
-
-    const datosActualizadosNueva = {
-      cliente: editClient.value.trim() || null,
-      matricula: editVehicle.value.trim().toUpperCase() || null,
-      lugar_carga: editPickup.value.trim() || null,
-      lugar_descarga: editDropoff.value.trim() || null,
-      num_entregas: normalizarNumero(editNumEntregas.value),
-      bultos: normalizarNumero(editBultos.value),
-      kg: normalizarNumero(editKg.value),
-      m3: normalizarNumero(editM3.value),
-      observaciones: editObservations.value.trim() || null,
-      mozo: editMozo.checked,
-      trampilla: editTrampilla.checked,
-      urgente: editUrgente.checked
-    };
-
-    let idNueva = entregaEditandoActual.entrega_nueva_id || null;
-
-    if (!idNueva && entregaEditandoActual.id) {
-      const { data: enlazada, error: errorEnlace } = await supabase
-        .from("entregas")
-        .select("id")
-        .eq("legacy_delivery_id", entregaEditandoActual.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (!errorEnlace && enlazada?.id) {
-        idNueva = enlazada.id;
-      }
-    }
-
-    if (idNueva) {
-      const { error: errorNueva } = await supabase
-        .from("entregas")
-        .update(datosActualizadosNueva)
-        .eq("id", idNueva);
-
-      if (errorNueva) {
-        console.warn("No se pudo actualizar tabla entregas:", errorNueva.message);
-      }
     }
 
     await guardarClienteFrecuenteSiNoExiste(editClient.value.trim() || null);
@@ -1961,30 +1888,7 @@ window.guardarEntrega = async function () {
       photo_url: photo_url || null
     };
 
-    const legacyDeliveryId = await guardarEnTablaViejaSinRomper(datosTablaVieja);
-
-    const datosNuevaTabla = {
-      fecha: new Date().toISOString().split("T")[0],
-      cliente: cliente,
-      lugar_carga: lugarCarga,
-      lugar_descarga: lugarDescarga,
-      num_entregas: numEntregas,
-      bultos: bultos,
-      kg: kg,
-      m3: m3,
-      observaciones: observaciones,
-      mozo: mozo,
-      trampilla: trampilla,
-      urgente: urgente,
-      matricula: matricula,
-      estado: "pendiente",
-      foto_url: photo_url || null,
-      conductor_id: conductor.id,
-      empresa_id: conductor.empresa_id,
-      legacy_delivery_id: legacyDeliveryId
-    };
-
-    const guardadoEnTablaNueva = await guardarEnTablaNueva(datosNuevaTabla);
+    await guardarEnTablaViejaSinRomper(datosTablaVieja);
 
     await guardarClienteFrecuenteSiNoExiste(cliente);
 
@@ -2003,12 +1907,7 @@ window.guardarEntrega = async function () {
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
     limpiarFormulario(true);
-
-    if (guardadoEnTablaNueva) {
-      setStatus("Entrega guardada correctamente", "ok");
-    } else {
-      setStatus("Entrega guardada correctamente en deliveries. La tabla nueva entregas sigue mal configurada y no ha bloqueado el trabajo.", "warn");
-    }
+    setStatus("Entrega guardada correctamente", "ok");
   } catch (e) {
     console.error(e);
     setStatus(e.message, "error");
