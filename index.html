@@ -1594,13 +1594,17 @@ async function guardarEnTablaNueva(datos) {
 }
 
 async function guardarEnTablaViejaSinRomper(datosLegacy) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("deliveries")
-    .insert(datosLegacy);
+    .insert(datosLegacy)
+    .select("id")
+    .single();
 
   if (error) {
-    console.warn("No se pudo guardar en deliveries (tabla vieja):", error.message);
+    throw new Error("No se pudo guardar en deliveries (tabla vieja): " + error.message);
   }
+
+  return data?.id || null;
 }
 
 function validarFormularioAntesDeGuardar() {
