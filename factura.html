@@ -37,7 +37,7 @@ h1{
 }
 
 h3{
-  margin-top:0;
+  margin:0 0 12px 0;
 }
 
 button, .btn{
@@ -84,6 +84,10 @@ input, select, textarea{
   box-sizing:border-box;
 }
 
+input[type="checkbox"]{
+  width:auto;
+}
+
 .tableWrap{
   overflow:auto;
   border-radius:12px;
@@ -92,7 +96,7 @@ input, select, textarea{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1650px;
+  min-width:1800px;
   background:#121b2f;
 }
 
@@ -118,7 +122,7 @@ th{
 }
 
 .kpi{
-  background:#18233b;
+  background:linear-gradient(180deg, #18233b, #121b2f);
   border-radius:12px;
   padding:15px;
 }
@@ -281,6 +285,61 @@ th{
   font-size:12px;
 }
 
+.dashboardGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.resumeBar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+.resumePill{
+  background:#18233b;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:13px;
+}
+
+.actionsBar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-bottom:4px;
+}
+
+.si{
+  background:#1f8b4c;
+  color:white;
+}
+
+.no{
+  background:#3a445f;
+  color:#cfd8f0;
+}
+
+.info{
+  background:#274d8a;
+  color:white;
+}
+
+.selectionCell{
+  text-align:center;
+}
+
 @media (max-width:700px){
   body{
     padding:12px;
@@ -336,10 +395,35 @@ th{
       <div class="muted" id="pageSubtitle">Cálculo por entrega y total</div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div class="actionsBar">
       <a class="btn sec" href="admin.html">Volver al panel</a>
       <button class="sec" onclick="cargarDatos()">Actualizar</button>
       <button onclick="guardarPreciosCalculados()">Guardar precios en entregas</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Resumen general</h3>
+    <div class="dashboardGrid">
+      <div class="kpi">
+        <div class="label">Entregas filtradas</div>
+        <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Base imponible</div>
+        <div class="value" id="kpiBase">0.00 €</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">IVA</div>
+        <div class="value" id="kpiIva">0.00 €</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Total factura</div>
+        <div class="value" id="kpiTotal">0.00 €</div>
+      </div>
     </div>
   </div>
 
@@ -401,9 +485,9 @@ th{
       </div>
 
       <div>
-  <label>Precio por carga Sotracom (€)</label>
-  <input id="tarifaCargaSotracom" type="number" step="0.01" value="0">
-</div>
+        <label>Precio por carga Sotracom (€)</label>
+        <input id="tarifaCargaSotracom" type="number" step="0.01" value="0">
+      </div>
 
       <div>
         <label>Extra mozo (€)</label>
@@ -421,12 +505,26 @@ th{
       </div>
     </div>
 
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="margin-top:14px;" class="actionsBar">
       <button onclick="aplicarFiltrosYCalculo()">Recalcular</button>
       <button class="sec" onclick="guardarTarifas()">Guardar tarifa</button>
     </div>
 
     <div id="status"></div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Selección para facturar</h3>
+    <div class="resumeBar">
+      <div class="resumePill">Seleccionadas: <strong id="selectedCount">0</strong></div>
+      <div class="resumePill">Base selección: <strong id="selectedBase">0.00 €</strong></div>
+      <div class="resumePill">Total selección: <strong id="selectedTotal">0.00 €</strong></div>
+    </div>
+
+    <div style="margin-top:14px;" class="actionsBar">
+      <button onclick="seleccionarTodasVisibles()">Seleccionar todas</button>
+      <button class="sec" onclick="deseleccionarTodasVisibles()">Quitar selección</button>
+    </div>
   </div>
 
   <div class="card no-print">
@@ -473,34 +571,10 @@ th{
       </div>
     </div>
 
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="margin-top:14px;" class="actionsBar">
       <button onclick="generarFacturaPreview()">Generar factura</button>
       <button class="sec" onclick="imprimirFactura()">Imprimir / Guardar PDF</button>
       <button class="sec" onclick="guardarDatosFactura()">Guardar datos de factura</button>
-    </div>
-  </div>
-
-  <div class="card no-print">
-    <div class="totalBox">
-      <div class="kpi">
-        <div class="label">Entregas calculadas</div>
-        <div class="value" id="kpiEntregas">0</div>
-      </div>
-
-      <div class="kpi">
-        <div class="label">Base imponible</div>
-        <div class="value" id="kpiBase">0.00 €</div>
-      </div>
-
-      <div class="kpi">
-        <div class="label">IVA</div>
-        <div class="value" id="kpiIva">0.00 €</div>
-      </div>
-
-      <div class="kpi">
-        <div class="label">Total factura</div>
-        <div class="value" id="kpiTotal">0.00 €</div>
-      </div>
     </div>
   </div>
 
@@ -509,6 +583,7 @@ th{
       <table>
         <thead>
           <tr>
+            <th>Sel.</th>
             <th>Fecha</th>
             <th>Conductor</th>
             <th>Cliente</th>
@@ -528,7 +603,7 @@ th{
         </thead>
         <tbody id="tbodyFactura">
           <tr>
-            <td colspan="15">Cargando...</td>
+            <td colspan="16">Cargando...</td>
           </tr>
         </tbody>
       </table>
@@ -686,6 +761,10 @@ const invoiceConcept = document.getElementById("invoiceConcept");
 const invoiceVat = document.getElementById("invoiceVat");
 const invoiceNotes = document.getElementById("invoiceNotes");
 
+const selectedCount = document.getElementById("selectedCount");
+const selectedBase = document.getElementById("selectedBase");
+const selectedTotal = document.getElementById("selectedTotal");
+
 const editModal = document.getElementById("editModal");
 const editDriverName = document.getElementById("edit_driver_name");
 const editClientName = document.getElementById("edit_client_name");
@@ -705,6 +784,7 @@ let entregasGlobal = [];
 let entregasCalculadas = [];
 let empresaActual = null;
 let entregaEditandoId = null;
+let seleccionadasIds = new Set();
 
 async function cargarInfoEmpresaActual() {
   try {
@@ -906,7 +986,7 @@ function calcularImporte(entrega) {
 
   return Number(total.toFixed(2));
 }
-  
+
 function rellenarFiltros(lista) {
   const drivers = [...new Set(lista.map(x => x.driver_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
   const clients = [...new Set(lista.map(x => x.client_name).filter(Boolean))].sort((a,b) => a.localeCompare(b));
@@ -939,13 +1019,13 @@ function rellenarFiltros(lista) {
   }
 }
 
-function aplicarFiltrosYCalculo() {
+function obtenerListaFiltrada() {
   const driver = driverFilter.value;
   const client = clientFilter.value;
   const desde = dateFrom.value;
   const hasta = dateTo.value;
 
-  let lista = entregasGlobal.filter(entrega => {
+  return entregasGlobal.filter(entrega => {
     const fecha = entrega.created_at ? entrega.created_at.slice(0,10) : "";
 
     if (driver && entrega.driver_name !== driver) return false;
@@ -955,13 +1035,25 @@ function aplicarFiltrosYCalculo() {
 
     return true;
   });
+}
+
+function aplicarFiltrosYCalculo() {
+  let lista = obtenerListaFiltrada();
 
   entregasCalculadas = lista.map(entrega => ({
     ...entrega,
     importe_calculado: calcularImporte(entrega)
   }));
 
+  const idsVisibles = new Set(entregasCalculadas.map(e => e.id));
+  seleccionadasIds.forEach(id => {
+    if (!idsVisibles.has(id)) {
+      seleccionadasIds.delete(id);
+    }
+  });
+
   renderFactura(entregasCalculadas);
+  actualizarResumenSeleccion();
 }
 
 window.aplicarFiltrosYCalculo = aplicarFiltrosYCalculo;
@@ -974,11 +1066,43 @@ function puedeEditarEntrega(entrega) {
   return false;
 }
 
+function actualizarResumenSeleccion() {
+  const listaSeleccionada = entregasCalculadas.filter(e => seleccionadasIds.has(e.id));
+  const base = listaSeleccionada.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const ivaImporte = base * (numero(invoiceVat.value) / 100);
+  const total = base + ivaImporte;
+
+  selectedCount.innerText = String(listaSeleccionada.length);
+  selectedBase.innerText = formatearEuros(base);
+  selectedTotal.innerText = formatearEuros(total);
+}
+
+window.seleccionarTodasVisibles = function() {
+  entregasCalculadas.forEach(e => seleccionadasIds.add(e.id));
+  renderFactura(entregasCalculadas);
+  actualizarResumenSeleccion();
+};
+
+window.deseleccionarTodasVisibles = function() {
+  entregasCalculadas.forEach(e => seleccionadasIds.delete(e.id));
+  renderFactura(entregasCalculadas);
+  actualizarResumenSeleccion();
+};
+
+window.toggleSeleccionEntrega = function(id, checked) {
+  if (checked) {
+    seleccionadasIds.add(id);
+  } else {
+    seleccionadasIds.delete(id);
+  }
+  actualizarResumenSeleccion();
+};
+
 function renderFactura(lista) {
   if (!lista.length) {
     tbodyFactura.innerHTML = `
       <tr>
-        <td colspan="15">No hay entregas para esos filtros.</td>
+        <td colspan="16">No hay entregas para esos filtros.</td>
       </tr>
     `;
     kpiEntregas.innerText = "0";
@@ -993,8 +1117,13 @@ function renderFactura(lista) {
       ? `<button class="smallBtn sec" onclick="editarEntregaFactura('${entrega.id}')">Editar</button>`
       : `<span class="muted">Sin permiso</span>`;
 
+    const checked = seleccionadasIds.has(entrega.id) ? "checked" : "";
+
     return `
       <tr>
+        <td class="selectionCell">
+          <input type="checkbox" ${checked} onchange="toggleSeleccionEntrega('${entrega.id}', this.checked)">
+        </td>
         <td>${formatearFecha(entrega.created_at)}</td>
         <td>${escaparHtml(entrega.driver_name || "")}</td>
         <td>${escaparHtml(entrega.client_name || "")}</td>
@@ -1005,9 +1134,9 @@ function renderFactura(lista) {
         <td>${entrega.bultos ?? ""}</td>
         <td>${entrega.kg ?? ""}</td>
         <td>${entrega.m3 ?? ""}</td>
-        <td>${entrega.mozo ? "Sí" : "No"}</td>
-        <td>${entrega.trampilla ? "Sí" : "No"}</td>
-        <td>${entrega.urgente ? "Sí" : "No"}</td>
+        <td><span class="badge ${entrega.mozo ? "si" : "no"}">${entrega.mozo ? "Sí" : "No"}</span></td>
+        <td><span class="badge ${entrega.trampilla ? "si" : "no"}">${entrega.trampilla ? "Sí" : "No"}</span></td>
+        <td><span class="badge ${entrega.urgente ? "info" : "no"}">${entrega.urgente ? "Sí" : "No"}</span></td>
         <td><strong>${formatearEuros(entrega.importe_calculado)}</strong></td>
         <td>${acciones}</td>
       </tr>
@@ -1024,12 +1153,20 @@ function renderFactura(lista) {
   kpiTotal.innerText = formatearEuros(total);
 }
 
+function obtenerEntregasParaFactura() {
+  const seleccionadas = entregasCalculadas.filter(e => seleccionadasIds.has(e.id));
+  if (seleccionadas.length) return seleccionadas;
+  return entregasCalculadas;
+}
+
 function construirHtmlFactura() {
-  if (!entregasCalculadas.length) {
+  const entregasFactura = obtenerEntregasParaFactura();
+
+  if (!entregasFactura.length) {
     return `<div>No hay entregas filtradas para generar factura.</div>`;
   }
 
-  const base = entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const base = entregasFactura.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
   const ivaPorcentaje = numero(invoiceVat.value);
   const ivaImporte = base * (ivaPorcentaje / 100);
   const total = base + ivaImporte;
@@ -1038,7 +1175,7 @@ function construirHtmlFactura() {
   const nombreClienteFinal = invoiceClientName.value.trim() || clienteAutomatico;
   const rangoFechas = `${dateFrom.value || "sin inicio"} - ${dateTo.value || "sin fin"}`;
 
-  const filas = entregasCalculadas.map((entrega, index) => `
+  const filas = entregasFactura.map((entrega, index) => `
     <tr>
       <td>${index + 1}</td>
       <td>${escaparHtml(formatearFechaSoloDia(entrega.created_at))}</td>
@@ -1075,6 +1212,7 @@ function construirHtmlFactura() {
         <div><strong>Fecha:</strong> ${escaparHtml(invoiceDate.value || "")}</div>
         <div><strong>Concepto:</strong> ${escaparHtml(invoiceConcept.value || "Servicios de transporte")}</div>
         <div><strong>Periodo:</strong> ${escaparHtml(rangoFechas)}</div>
+        <div><strong>Entregas incluidas:</strong> ${escaparHtml(entregasFactura.length)}</div>
       </div>
 
       <div class="invoiceBox invoiceClientBlock">
@@ -1135,8 +1273,10 @@ function construirHtmlFactura() {
 }
 
 window.generarFacturaPreview = function() {
-  if (!entregasCalculadas.length) {
-    alert("No hay entregas filtradas para generar la factura.");
+  const entregasFactura = obtenerEntregasParaFactura();
+
+  if (!entregasFactura.length) {
+    alert("No hay entregas para generar la factura.");
     return;
   }
 
@@ -1149,8 +1289,10 @@ window.generarFacturaPreview = function() {
 };
 
 window.imprimirFactura = function() {
-  if (!entregasCalculadas.length) {
-    alert("No hay entregas filtradas para imprimir.");
+  const entregasFactura = obtenerEntregasParaFactura();
+
+  if (!entregasFactura.length) {
+    alert("No hay entregas para imprimir.");
     return;
   }
 
@@ -1313,23 +1455,21 @@ window.guardarCambiosEntregaFactura = async function() {
   try {
     statusEl.innerText = "Guardando cambios...";
 
-   const datosActualizados = {
-  driver_name: editDriverName.value.trim() || null,
-  client_name: editClientName.value.trim() || null,
-  vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
-  pickup_place: editPickupPlace.value.trim() || null,
-  dropoff_place: editDropoffPlace.value.trim() || null,
-  num_entregas: normalizarNumero(editNumEntregas.value),
-  bultos: normalizarNumero(editBultos.value),
-  kg: normalizarNumero(editKg.value),
-  m3: normalizarNumero(editM3.value),
-  price_eur: normalizarNumero(editPriceEur.value),
-  mozo: editMozo.checked,
-  trampilla: editTrampilla.checked,
-  urgente: editUrgente.checked
-};
-
-console.log("GUARDANDO ENTREGA:", entregaEditandoId, datosActualizados);
+    const datosActualizados = {
+      driver_name: editDriverName.value.trim() || null,
+      client_name: editClientName.value.trim() || null,
+      vehicle_plate: editVehiclePlate.value.trim().toUpperCase() || null,
+      pickup_place: editPickupPlace.value.trim() || null,
+      dropoff_place: editDropoffPlace.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      price_eur: normalizarNumero(editPriceEur.value),
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
 
     let query = supabase
       .from("deliveries")
@@ -1394,7 +1534,7 @@ async function cargarDatos() {
       statusEl.innerText = "Error cargando datos: " + error.message;
       tbodyFactura.innerHTML = `
         <tr>
-          <td colspan="15">No se pudieron cargar las entregas.</td>
+          <td colspan="16">No se pudieron cargar las entregas.</td>
         </tr>
       `;
       return;
@@ -1467,7 +1607,10 @@ clientFilter.addEventListener("change", () => {
 
 dateFrom.addEventListener("change", aplicarFiltrosYCalculo);
 dateTo.addEventListener("change", aplicarFiltrosYCalculo);
-invoiceVat.addEventListener("input", aplicarFiltrosYCalculo);
+invoiceVat.addEventListener("input", () => {
+  aplicarFiltrosYCalculo();
+  actualizarResumenSeleccion();
+});
 
 await cargarInfoEmpresaActual();
 cargarTarifas();
