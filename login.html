@@ -1,13 +1,92 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=login-v2.html">
-  <title>Redirigiendo...</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login App Transporte</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:30px;
+}
+
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:10px;
+  max-width:400px;
+  margin:auto;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:6px;
+  border:none;
+}
+
+button{
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  background:#ff7a18;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#status{
+  margin-top:15px;
+}
+</style>
 </head>
+
 <body>
-  <script>
-    window.location.replace("login-v2.html");
-  </script>
+
+<div class="card">
+  <h2>Login</h2>
+
+  <input id="user" placeholder="Usuario">
+  <input id="pass" type="password" placeholder="Contraseña">
+
+  <button onclick="login()">Entrar</button>
+
+  <div id="status"></div>
+</div>
+
+<script>
+function login(){
+  const user = document.getElementById("user").value;
+  const pass = document.getElementById("pass").value;
+
+  if(user === "oficina" && pass === "1234"){
+    localStorage.setItem("sesionAppTransporte", JSON.stringify({
+      role:"admin_global",
+      nombre:"Oficina"
+    }));
+    window.location.href = "menu-admin.html";
+    return;
+  }
+
+  if(user === "duttitrans" && pass === "1234"){
+    localStorage.setItem("sesionAppTransporte", JSON.stringify({
+      role:"admin_empresa",
+      nombre:"DuttiTrans",
+      empresa_id: 1
+    }));
+    window.location.href = "menu-admin.html";
+    return;
+  }
+
+  document.getElementById("status").innerText = "Usuario incorrecto";
+}
+</script>
+
 </body>
 </html>
