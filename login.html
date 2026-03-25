@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Login App Transporte</title>
-
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#0b1220;
   color:white;
   margin:0;
@@ -17,15 +16,20 @@ body{
   background:#121b2f;
   padding:20px;
   border-radius:10px;
-  max-width:400px;
+  max-width:500px;
   margin:auto;
+}
+label{
+  display:block;
+  margin-top:10px;
 }
 input{
   width:100%;
   padding:10px;
-  margin-top:10px;
+  margin-top:5px;
   border-radius:6px;
   border:none;
+  box-sizing:border-box;
 }
 button{
   margin-top:20px;
@@ -39,61 +43,218 @@ button{
 }
 #status{
   margin-top:15px;
+  white-space:pre-line;
 }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Login</h2>
-  <input id="user" placeholder="Usuario">
-  <input id="pass" type="password" placeholder="Contraseña">
-  <button onclick="login()">Entrar</button>
+  <h2>Entrada App Transporte</h2>
+
+  <label>Usuario</label>
+  <input id="username" autocomplete="username">
+
+  <label>Contraseña</label>
+  <input id="password" type="password" autocomplete="current-password">
+
+  <button id="btnEntrar">Entrar</button>
+
   <div id="status"></div>
 </div>
 
-<script>
-function limpiarTodo(){
-  try{
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const statusEl = document.getElementById("status");
+const usernameEl = document.getElementById("username");
+const passwordEl = document.getElementById("password");
+const btnEntrar = document.getElementById("btnEntrar");
+
+const SUPERADMIN_FIJO = {
+  username: "superadmin",
+  password: "1234",
+  role: "superadmin"
+};
+
+const ADMIN_FIJO = {
+  username: "oficina",
+  password: "1234",
+  role: "admin_global"
+};
+
+const params = new URLSearchParams(window.location.search);
+const logoutMode = params.get("logout") === "1";
+const forzarLogin = params.get("forzar") === "1";
+
+if (logoutMode) {
+  localStorage.removeItem("sesionAppTransporte");
+  localStorage.removeItem("clienteSeleccionado");
+  localStorage.removeItem("cliente_id_actual");
+  localStorage.removeItem("cliente_nombre_actual");
+  sessionStorage.clear();
+  statusEl.innerText = "Sesión cerrada correctamente";
+}
+
+function limpiarDatosClienteSeleccionado() {
+  localStorage.removeItem("clienteSeleccionado");
+  localStorage.removeItem("cliente_id_actual");
+  localStorage.removeItem("cliente_nombre_actual");
+}
+
+function guardarSesion(data) {
+  localStorage.setItem("sesionAppTransporte", JSON.stringify(data));
+}
+
+function redirigirSegunSesion(sesion){
+  if (!sesion || !sesion.role) {
     localStorage.removeItem("sesionAppTransporte");
-    localStorage.removeItem("albatrans_session_v2");
-    localStorage.removeItem("clienteSeleccionadoAppTransporte");
-    localStorage.removeItem("cliente_id_actual");
-    localStorage.removeItem("cliente_nombre_actual");
-    sessionStorage.clear();
-  }catch(e){
+    return;
+  }
+
+  if (sesion.role === "superadmin") {
+    window.location.replace("superadmin.html");
+    return;
+  }
+
+  if (sesion.role === "admin_global" || sesion.role === "admin_empresa") {
+    window.location.replace("menu-admin.html");
+    return;
+  }
+
+  if (sesion.role === "driver") {
+    window.location.replace("menu-conductor.html");
+    return;
+  }
+
+  localStorage.removeItem("sesionAppTransporte");
+}
+
+if (!logoutMode && !forzarLogin) {
+  const sesionGuardada = localStorage.getItem("sesionAppTransporte");
+  if (sesionGuardada) {
+    try {
+      const sesion = JSON.parse(sesionGuardada);
+      redirigirSegunSesion(sesion);
+    } catch (e) {
+      localStorage.removeItem("sesionAppTransporte");
+    }
+  }
+}
+
+async function buscarAdminEmpresa(username, password) {
+  const { data, error } = await supabase
+    .from("admins_empresa")
+    .select("id, empresa_id, nombre, usuario, password")
+    .eq("usuario", username)
+    .eq("password", password)
+    .limit(1);
+
+  if (error) {
+    throw new Error("Error consultando admins de empresa: " + error.message);
+  }
+
+  return data && data.length ? data[0] : null;
+}
+
+async function buscarConductorEnSupabase(username, password) {
+  const { data, error } = await supabase
+    .from("conductores")
+    .select("id, nombre, usuario, password, empresa_id")
+    .eq("usuario", username)
+    .eq("password", password)
+    .limit(1);
+
+  if (error) {
+    throw new Error("Error consultando conductores: " + error.message);
+  }
+
+  return data && data.length ? data[0] : null;
+}
+
+async function entrar() {
+  try {
+    const username = usernameEl.value.trim();
+    const password = passwordEl.value.trim();
+
+    statusEl.innerText = "Comprobando acceso...";
+
+    if (!username || !password) {
+      statusEl.innerText = "Introduce usuario y contraseña";
+      return;
+    }
+
+    limpiarDatosClienteSeleccionado();
+
+    if (username === SUPERADMIN_FIJO.username && password === SUPERADMIN_FIJO.password) {
+      guardarSesion({
+        username: SUPERADMIN_FIJO.username,
+        role: "superadmin"
+      });
+      window.location.replace("superadmin.html");
+      return;
+    }
+
+    if (username === ADMIN_FIJO.username && password === ADMIN_FIJO.password) {
+      guardarSesion({
+        username: ADMIN_FIJO.username,
+        role: "admin_global",
+        nombre: "Oficina",
+        empresa_id: null
+      });
+      window.location.replace("menu-admin.html");
+      return;
+    }
+
+    const adminEmpresa = await buscarAdminEmpresa(username, password);
+
+    if (adminEmpresa) {
+      guardarSesion({
+        username: adminEmpresa.usuario,
+        nombre: adminEmpresa.nombre || "",
+        role: "admin_empresa",
+        admin_empresa_id: adminEmpresa.id,
+        empresa_id: adminEmpresa.empresa_id || null
+      });
+      window.location.replace("menu-admin.html");
+      return;
+    }
+
+    const conductor = await buscarConductorEnSupabase(username, password);
+
+    if (!conductor) {
+      statusEl.innerText = "Usuario o contraseña incorrectos";
+      return;
+    }
+
+    guardarSesion({
+      username: conductor.usuario,
+      nombre: conductor.nombre || "",
+      role: "driver",
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id || null
+    });
+
+    window.location.replace("menu-conductor.html");
+  } catch (e) {
     console.error(e);
+    statusEl.innerText = "Error: " + e.message;
   }
 }
 
-function login(){
-  const user = document.getElementById("user").value.trim().toLowerCase();
-  const pass = document.getElementById("pass").value.trim();
+btnEntrar.addEventListener("click", entrar);
 
-  limpiarTodo();
+passwordEl.addEventListener("keydown", function(e){
+  if (e.key === "Enter") entrar();
+});
 
-  if(user === "oficina" && pass === "1234"){
-    localStorage.setItem("sesionAppTransporte", JSON.stringify({
-      role: "admin_global",
-      nombre: "Oficina",
-      username: "oficina"
-    }));
-    window.location.href = "menu-admin.html?t=" + Date.now();
-    return;
-  }
-
-  if(user === "duttitrans" && pass === "1234"){
-    localStorage.setItem("sesionAppTransporte", JSON.stringify({
-      role: "admin_global",
-      nombre: "DuttiTrans",
-      username: "duttitrans"
-    }));
-    window.location.href = "menu-admin.html?t=" + Date.now();
-    return;
-  }
-
-  document.getElementById("status").innerText = "Usuario o contraseña incorrectos";
-}
+usernameEl.addEventListener("keydown", function(e){
+  if (e.key === "Enter") entrar();
+});
 </script>
 
 </body>

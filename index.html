@@ -1,13 +1,1197 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=login-v2.html">
-  <title>Albatrans</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App Transporte</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:30px;
+}
+
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
+  margin:auto;
+}
+
+label{
+  display:block;
+  margin-top:10px;
+}
+
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:none;
+  box-sizing:border-box;
+}
+
+input[type="checkbox"]{
+  width:auto;
+  margin:0;
+}
+
+button{
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  background:#ff7a18;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#status{
+  margin-top:15px;
+  font-weight:bold;
+  white-space:pre-line;
+}
+
+.selectorSecundario{
+  background:#0f1a2e;
+  color:#fff;
+}
+
+.inditexBox{
+  margin-top:15px;
+  padding:14px;
+  background:#0f1a2e;
+  border-radius:8px;
+}
+
+.inditexTitulo{
+  margin:0 0 8px 0;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.lineaMercancia{
+  background:#0b1220;
+  border-radius:8px;
+  padding:10px;
+  margin-top:10px;
+}
+
+.lineaMercancia .filaGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.lineaMercancia .filaGridUna{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.btnMini{
+  width:auto;
+  padding:8px 12px;
+  margin-top:10px;
+}
+
+.btnEliminarLinea{
+  background:#a83232;
+  color:white;
+}
+
+.resumenTotales{
+  margin-top:10px;
+  padding:10px;
+  background:#0b1220;
+  border-radius:8px;
+  font-size:14px;
+}
+</style>
 </head>
+
 <body>
-  <script>
-    window.location.replace("login-v2.html");
-  </script>
+
+<div class="card">
+
+  <div id="sessionBar" style="margin-bottom:15px;padding:10px;background:#0f1a2e;border-radius:8px;">
+    Usuario: <span id="currentUser"></span>
+    <button type="button" onclick="cerrarSesion()" style="margin-top:10px;">Salir</button>
+  </div>
+
+  <h2>Nueva entrega</h2>
+
+  <div id="vehicleBloque">
+    <label>Matrícula frecuente</label>
+    <select id="vehicleSelect" class="selectorSecundario">
+      <option value="">Seleccionar matrícula frecuente</option>
+    </select>
+
+    <label>Matrícula vehículo</label>
+    <input id="vehicle" placeholder="Ej: 1234ABC">
+  </div>
+
+  <label>Cliente frecuente</label>
+  <select id="clientSelect" class="selectorSecundario">
+    <option value="">Seleccionar cliente frecuente</option>
+  </select>
+
+  <label>Cliente</label>
+  <input id="client" placeholder="Nombre del cliente">
+
+  <div id="cargaBloque">
+    <label>Lugar de carga frecuente</label>
+    <select id="pickupSelect" class="selectorSecundario">
+      <option value="">Seleccionar lugar de carga frecuente</option>
+    </select>
+
+    <label>Lugar de carga</label>
+    <input id="pickupPlace" placeholder="Dirección o empresa de recogida">
+  </div>
+
+  <div id="descargaBloque">
+    <label>Lugar de descarga frecuente</label>
+    <select id="dropoffSelect" class="selectorSecundario">
+      <option value="">Seleccionar lugar de descarga frecuente</option>
+    </select>
+
+    <label>Lugar de descarga</label>
+    <input id="dropoffPlace" placeholder="Dirección o empresa de descarga">
+  </div>
+
+  <div id="albepetBloque" style="display:none;">
+    <label>Número de entregas</label>
+    <input id="numEntregas" type="number" placeholder="Ej: 12">
+  </div>
+
+  <div id="inditexBloque" class="inditexBox" style="display:none;">
+    <div class="inditexTitulo">Datos Inditex</div>
+
+    <label>Fecha albarán</label>
+    <input id="inditexFecha" type="text" placeholder="Ej: 11.03.2026">
+
+    <label>Destinatario</label>
+    <input id="inditexDestinatario" type="text" placeholder="Ej: Pull & Bear / Logifashion / WWF España">
+
+    <label>Dirección descarga detallada</label>
+    <input id="inditexDireccionDescarga" type="text" placeholder="Dirección completa del destinatario">
+
+    <div id="lineasMercanciaContainer"></div>
+
+    <button type="button" id="btnAgregarLinea" class="btnMini">
+      + Añadir línea de mercancía
+    </button>
+
+    <div class="resumenTotales">
+      <div><strong>Total bultos:</strong> <span id="inditexTotalBultos">0</span></div>
+      <div><strong>Total kilos:</strong> <span id="inditexTotalKilos">0</span></div>
+    </div>
+  </div>
+
+  <label>Bultos</label>
+  <input id="bultos" type="number">
+
+  <label>Kg</label>
+  <input id="kg" type="number">
+
+  <label>M3</label>
+  <input id="m3" type="number">
+
+  <label>Observaciones</label>
+  <textarea id="observations" rows="3" placeholder="Tiempo de espera, averías, nº bultos, etc."></textarea>
+
+  <div style="margin-top:15px;display:flex;flex-direction:column;gap:10px;">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="mozo" type="checkbox">
+      Mozo
+    </label>
+
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="trampilla" type="checkbox">
+      Trampilla
+    </label>
+
+    <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+      <input id="urgente" type="checkbox">
+      Urgente
+    </label>
+  </div>
+
+  <label>Foto albarán</label>
+
+  <button type="button" onclick="document.getElementById('cameraInput').click()">
+    📷 Hacer foto
+  </button>
+
+  <button type="button" onclick="document.getElementById('galleryInput').click()">
+    🖼 Elegir de galería
+  </button>
+
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
+  <input id="galleryInput" type="file" accept="image/*" style="display:none">
+
+  <img id="previewFoto" style="max-width:100%;margin-top:10px;display:none;border-radius:8px;">
+
+  <button onclick="guardarEntrega()">Guardar entrega</button>
+
+  <div id="status"></div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+console.log("Supabase conectado");
+
+const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+const FALLBACK_CONDUCTOR_ID = "77993ca9-9b43-44ce-94a5-43194af738eb";
+
+const statusEl = document.getElementById("status");
+const currentUserEl = document.getElementById("currentUser");
+
+const vehicleBloque = document.getElementById("vehicleBloque");
+const vehicleSelect = document.getElementById("vehicleSelect");
+const vehicleInput = document.getElementById("vehicle");
+
+const clientSelect = document.getElementById("clientSelect");
+const clientInput = document.getElementById("client");
+
+const pickupSelect = document.getElementById("pickupSelect");
+const pickupInput = document.getElementById("pickupPlace");
+
+const dropoffSelect = document.getElementById("dropoffSelect");
+const dropoffInput = document.getElementById("dropoffPlace");
+
+const numEntregasInput = document.getElementById("numEntregas");
+
+const bultosInput = document.getElementById("bultos");
+const kgInput = document.getElementById("kg");
+const m3Input = document.getElementById("m3");
+const observationsInput = document.getElementById("observations");
+
+const mozoInput = document.getElementById("mozo");
+const trampillaInput = document.getElementById("trampilla");
+const urgenteInput = document.getElementById("urgente");
+
+const preview = document.getElementById("previewFoto");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+
+const inditexBloque = document.getElementById("inditexBloque");
+const inditexFechaInput = document.getElementById("inditexFecha");
+const inditexDestinatarioInput = document.getElementById("inditexDestinatario");
+const inditexDireccionDescargaInput = document.getElementById("inditexDireccionDescarga");
+const lineasMercanciaContainer = document.getElementById("lineasMercanciaContainer");
+const btnAgregarLinea = document.getElementById("btnAgregarLinea");
+const inditexTotalBultosEl = document.getElementById("inditexTotalBultos");
+const inditexTotalKilosEl = document.getElementById("inditexTotalKilos");
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || sesion.role !== "driver") {
+  window.location.href = "login.html?logout=1";
+}
+
+currentUserEl.innerText = sesion.username || "sin usuario";
+
+window.cerrarSesion = function () {
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (e) {
+    console.error("Error cerrando sesión:", e);
+  }
+
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
+
+let ultimaPhotoUrl = null;
+let conductorActual = null;
+
+function esAlbepet(cliente) {
+  return String(cliente || "").trim().toLowerCase() === "albepet";
+}
+
+function esSotracom(cliente) {
+  return String(cliente || "").trim().toLowerCase() === "sotracom";
+}
+
+function esInditex(cliente) {
+  const t = String(cliente || "").trim().toLowerCase();
+  return (
+    t === "inditex" ||
+    t.includes("inditex") ||
+    t === "flf" ||
+    t.includes("flf") ||
+    t.includes("fashion logistics")
+  );
+}
+
+function normalizarClienteIA(cliente) {
+  if (esInditex(cliente)) return "Inditex";
+  return String(cliente || "").trim();
+}
+
+function actualizarCamposCliente() {
+  const cargaBloque = document.getElementById("cargaBloque");
+  const descargaBloque = document.getElementById("descargaBloque");
+  const albepetBloque = document.getElementById("albepetBloque");
+
+  if (esAlbepet(clientInput.value)) {
+    vehicleBloque.style.display = "block";
+    cargaBloque.style.display = "none";
+    descargaBloque.style.display = "none";
+    albepetBloque.style.display = "block";
+    inditexBloque.style.display = "none";
+
+    pickupInput.value = "";
+    pickupSelect.value = "";
+    dropoffInput.value = "";
+    dropoffSelect.value = "";
+  } else if (esSotracom(clientInput.value)) {
+    vehicleBloque.style.display = "none";
+    cargaBloque.style.display = "block";
+    descargaBloque.style.display = "none";
+    albepetBloque.style.display = "none";
+    inditexBloque.style.display = "none";
+
+    vehicleInput.value = "";
+    vehicleSelect.value = "";
+    dropoffInput.value = "";
+    dropoffSelect.value = "";
+    numEntregasInput.value = "";
+  } else {
+    vehicleBloque.style.display = "block";
+    cargaBloque.style.display = "block";
+    descargaBloque.style.display = "block";
+    albepetBloque.style.display = "none";
+
+    if (esInditex(clientInput.value)) {
+      inditexBloque.style.display = "block";
+    } else {
+      inditexBloque.style.display = "none";
+      limpiarCamposInditex(false);
+    }
+
+    numEntregasInput.value = "";
+  }
+}
+
+function normalizarNumero(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const n = parseFloat(String(valor).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+function numeroEnteroSeguro(valor) {
+  if (valor === null || valor === undefined || valor === "") return 0;
+  const n = parseInt(String(valor).replace(/[^\d-]/g, ""), 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
+function getSelectedPhotoFile() {
+  return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+function crearLineaMercancia(data = {}) {
+  const linea = document.createElement("div");
+  linea.className = "lineaMercancia";
+
+  linea.innerHTML = `
+    <div class="filaGrid">
+      <div>
+        <label>MAWB</label>
+        <input type="text" class="inditexMawb" placeholder="Ej: 23544122912" value="${escapeHtml(data.mawb || "")}">
+      </div>
+      <div>
+        <label>Pedido</label>
+        <input type="text" class="inditexPedido" placeholder="Ej: 45249-W/1" value="${escapeHtml(data.pedido || "")}">
+      </div>
+    </div>
+
+    <div class="filaGrid">
+      <div>
+        <label>Bultos</label>
+        <input type="number" class="inditexBultos" placeholder="0" value="${escapeHtml(data.bultos ?? "")}">
+      </div>
+      <div>
+        <label>Kilos</label>
+        <input type="number" class="inditexKilos" placeholder="0" value="${escapeHtml(data.kilos ?? "")}">
+      </div>
+    </div>
+
+    <button type="button" class="btnMini btnEliminarLinea">Eliminar línea</button>
+  `;
+
+  const btnEliminar = linea.querySelector(".btnEliminarLinea");
+  btnEliminar.addEventListener("click", () => {
+    linea.remove();
+    recalcularTotalesInditex();
+  });
+
+  linea.querySelector(".inditexBultos").addEventListener("input", recalcularTotalesInditex);
+  linea.querySelector(".inditexKilos").addEventListener("input", recalcularTotalesInditex);
+
+  lineasMercanciaContainer.appendChild(linea);
+}
+
+function limpiarLineasMercancia() {
+  lineasMercanciaContainer.innerHTML = "";
+}
+
+function obtenerLineasMercancia() {
+  const lineas = [];
+
+  document.querySelectorAll("#lineasMercanciaContainer .lineaMercancia").forEach(linea => {
+    const mawb = linea.querySelector(".inditexMawb")?.value?.trim() || "";
+    const pedido = linea.querySelector(".inditexPedido")?.value?.trim() || "";
+    const bultos = linea.querySelector(".inditexBultos")?.value ? parseInt(linea.querySelector(".inditexBultos").value, 10) : null;
+    const kilos = linea.querySelector(".inditexKilos")?.value ? normalizarNumero(linea.querySelector(".inditexKilos").value) : null;
+
+    if (mawb || pedido || bultos !== null || kilos !== null) {
+      lineas.push({
+        mawb,
+        pedido,
+        bultos,
+        kilos
+      });
+    }
+  });
+
+  return lineas;
+}
+
+function recalcularTotalesInditex() {
+  const lineas = obtenerLineasMercancia();
+
+  const totalBultos = lineas.reduce((acc, item) => acc + numeroEnteroSeguro(item.bultos), 0);
+  const totalKilos = lineas.reduce((acc, item) => acc + (normalizarNumero(item.kilos) || 0), 0);
+
+  inditexTotalBultosEl.innerText = totalBultos;
+  inditexTotalKilosEl.innerText = totalKilos;
+
+  if (esInditex(clientInput.value)) {
+    bultosInput.value = totalBultos || "";
+    kgInput.value = totalKilos || "";
+  }
+}
+
+function limpiarCamposInditex(crearLineaInicial = true) {
+  inditexFechaInput.value = "";
+  inditexDestinatarioInput.value = "";
+  inditexDireccionDescargaInput.value = "";
+  limpiarLineasMercancia();
+
+  if (crearLineaInicial) {
+    crearLineaMercancia();
+  }
+
+  inditexTotalBultosEl.innerText = "0";
+  inditexTotalKilosEl.innerText = "0";
+}
+
+function cargarLineasInditex(lineas) {
+  limpiarLineasMercancia();
+
+  if (Array.isArray(lineas) && lineas.length > 0) {
+    lineas.forEach(linea => crearLineaMercancia(linea));
+  } else {
+    crearLineaMercancia();
+  }
+
+  recalcularTotalesInditex();
+}
+
+function extraerLineasDesdeJson(json) {
+  if (Array.isArray(json.lineasMercancia)) return json.lineasMercancia;
+  if (Array.isArray(json.lineas_mercancia)) return json.lineas_mercancia;
+  if (Array.isArray(json.mercancia)) return json.mercancia;
+  if (Array.isArray(json.lineas)) return json.lineas;
+  return [];
+}
+
+function construirObservacionesFinales(observacionesBase, datosInditex) {
+  let resultado = (observacionesBase || "").trim();
+
+  if (datosInditex && datosInditex.esInditex) {
+    const bloque = [
+      "",
+      "[INDITEX]",
+      `fecha_albaran=${datosInditex.fechaAlbaran || ""}`,
+      `destinatario=${datosInditex.destinatario || ""}`,
+      `direccion_descarga=${datosInditex.direccionDescarga || ""}`,
+      `lineas=${JSON.stringify(datosInditex.lineasMercancia || [])}`
+    ].join("\n");
+
+    resultado = `${resultado}${bloque}`.trim();
+  }
+
+  return resultado || null;
+}
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function subirFoto(photoFile, prefix = "") {
+  const fileExt = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const fileName = `${prefix}${Date.now()}.${safeExt}`;
+
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
+
+  if (error) {
+    throw new Error("Error subiendo foto: " + error.message);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/pod/${fileName}`;
+}
+
+async function leerFotoAutomatica() {
+  try {
+    const file = getSelectedPhotoFile();
+
+    if (!file) {
+      statusEl.innerText = "No se ha seleccionado ninguna foto";
+      return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+    statusEl.innerText = "Subiendo foto...";
+
+    ultimaPhotoUrl = await subirFoto(file, "preview-");
+
+    statusEl.innerText = "Leyendo albarán con IA...";
+
+    const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        image: ultimaPhotoUrl
+      })
+    });
+
+    const data = await response.json();
+
+    console.log("RESPUESTA IA:", data);
+
+    if (!response.ok) {
+      statusEl.innerText = "Error leyendo albarán";
+      console.log(data);
+      return;
+    }
+
+    if (!data.result) {
+      statusEl.innerText = "La IA no devolvió datos";
+      return;
+    }
+
+    let texto = String(data.result).trim();
+
+    texto = texto
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+
+    const json = JSON.parse(texto);
+    console.log("JSON LIMPIO IA:", json);
+
+    if (json.cliente) clientInput.value = normalizarClienteIA(json.cliente);
+    if (json.matricula) vehicleInput.value = String(json.matricula).replace(/\s+/g, "").toUpperCase();
+    if (json.lugar_carga) pickupInput.value = json.lugar_carga;
+    if (json.lugar_descarga) dropoffInput.value = json.lugar_descarga;
+    if (json.bultos) bultosInput.value = json.bultos;
+    if (json.kg) kgInput.value = json.kg;
+    if (json.m3) m3Input.value = json.m3;
+    if (json.observaciones) observationsInput.value = json.observaciones;
+
+    actualizarCamposCliente();
+
+    if (esInditex(clientInput.value)) {
+      if (json.fecha || json.fecha_albaran) {
+        inditexFechaInput.value = json.fecha_albaran || json.fecha || "";
+      }
+
+      if (json.destinatario) {
+        inditexDestinatarioInput.value = json.destinatario;
+      }
+
+      if (json.direccion_descarga || json.lugar_descarga_detallado) {
+        inditexDireccionDescargaInput.value = json.direccion_descarga || json.lugar_descarga_detallado || "";
+      }
+
+      const lineas = extraerLineasDesdeJson(json);
+      cargarLineasInditex(lineas);
+
+      if (!dropoffInput.value) {
+        dropoffInput.value = inditexDireccionDescargaInput.value || inditexDestinatarioInput.value || "";
+      }
+
+      recalcularTotalesInditex();
+    }
+
+    statusEl.innerText = "Albarán leído con IA";
+
+  } catch (e) {
+    console.log("ERROR LEYENDO ALBARÁN:", e);
+    statusEl.innerText = "Error leyendo albarán con IA";
+  }
+}
+
+cameraInput.addEventListener("change", leerFotoAutomatica);
+galleryInput.addEventListener("change", leerFotoAutomatica);
+
+btnAgregarLinea.addEventListener("click", () => {
+  crearLineaMercancia();
+});
+
+async function obtenerConductorActual() {
+  if (conductorActual) return conductorActual;
+
+  if (sesion?.conductor_id && sesion?.empresa_id) {
+    conductorActual = {
+      id: sesion.conductor_id,
+      empresa_id: sesion.empresa_id,
+      usuario: sesion.username || null
+    };
+    return conductorActual;
+  }
+
+  if (sesion?.username) {
+    const { data, error } = await supabase
+      .from("conductores")
+      .select("id, empresa_id, nombre, usuario")
+      .eq("usuario", sesion.username)
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      conductorActual = data[0];
+      return conductorActual;
+    }
+  }
+
+  if (FALLBACK_CONDUCTOR_ID && FALLBACK_EMPRESA_ID) {
+    conductorActual = {
+      id: FALLBACK_CONDUCTOR_ID,
+      empresa_id: FALLBACK_EMPRESA_ID,
+      usuario: sesion?.username || null
+    };
+    return conductorActual;
+  }
+
+  throw new Error(
+    "No se ha encontrado el conductor en Supabase. Haz que el usuario de login coincida con la columna usuario de la tabla conductores o rellena FALLBACK_EMPRESA_ID y FALLBACK_CONDUCTOR_ID en el código."
+  );
+}
+
+function rellenarSelect(selectEl, primerTexto, valores) {
+  const unicos = [...new Set(
+    (valores || [])
+      .map(v => String(v || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "es"));
+
+  selectEl.innerHTML = `<option value="">${primerTexto}</option>`;
+
+  unicos.forEach(valor => {
+    const option = document.createElement("option");
+    option.value = valor;
+    option.textContent = valor;
+    selectEl.appendChild(option);
+  });
+}
+
+async function cargarClientesEmpresa() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("nombre")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar clientes:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarPickupsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_pickups")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de carga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarDropoffsFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_dropoffs")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar lugares de descarga:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarVehiculosFrecuentes() {
+  const conductor = await obtenerConductorActual();
+
+  const { data, error } = await supabase
+    .from("frequent_vehicles")
+    .select("name")
+    .eq("empresa_id", conductor.empresa_id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron cargar matrículas:", error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function cargarFrecuentes() {
+  try {
+    const clientes = await cargarClientesEmpresa();
+    const pickups = await cargarPickupsFrecuentes();
+    const dropoffs = await cargarDropoffsFrecuentes();
+    const vehicles = await cargarVehiculosFrecuentes();
+
+    rellenarSelect(
+      clientSelect,
+      "Seleccionar cliente frecuente",
+      clientes.map(c => c.nombre)
+    );
+
+    rellenarSelect(
+      pickupSelect,
+      "Seleccionar lugar de carga frecuente",
+      pickups.map(p => p.name)
+    );
+
+    rellenarSelect(
+      dropoffSelect,
+      "Seleccionar lugar de descarga frecuente",
+      dropoffs.map(d => d.name)
+    );
+
+    rellenarSelect(
+      vehicleSelect,
+      "Seleccionar matrícula frecuente",
+      vehicles.map(v => v.name)
+    );
+  } catch (e) {
+    console.warn("Error cargando frecuentes:", e.message);
+  }
+}
+
+vehicleSelect.addEventListener("change", () => {
+  vehicleInput.value = vehicleSelect.value || "";
+});
+
+clientSelect.addEventListener("change", () => {
+  clientInput.value = clientSelect.value || "";
+  actualizarCamposCliente();
+});
+
+pickupSelect.addEventListener("change", () => {
+  pickupInput.value = pickupSelect.value || "";
+});
+
+dropoffSelect.addEventListener("change", () => {
+  dropoffInput.value = dropoffSelect.value || "";
+});
+
+clientInput.addEventListener("input", actualizarCamposCliente);
+
+async function guardarClienteFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("nombre", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando cliente: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("clientes")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      nombre: limpio
+    });
+
+  if (error) {
+    alert("Error guardando cliente frecuente: " + error.message);
+  }
+}
+
+async function guardarPickupFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_pickups")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando lugar de carga: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("frequent_pickups")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    alert("Error guardando lugar de carga frecuente: " + error.message);
+  }
+}
+
+async function guardarDropoffFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_dropoffs")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando lugar de descarga: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) return;
+
+  const { error } = await supabase
+    .from("frequent_dropoffs")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    alert("Error guardando lugar de descarga frecuente: " + error.message);
+  }
+}
+
+async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
+  const limpio = (nombre || "").trim().toUpperCase();
+  if (!limpio) return;
+
+  const conductor = await obtenerConductorActual();
+
+  const { data: existe, error: errorBuscar } = await supabase
+    .from("frequent_vehicles")
+    .select("id")
+    .eq("empresa_id", conductor.empresa_id)
+    .eq("name", limpio)
+    .limit(1);
+
+  if (errorBuscar) {
+    alert("Error buscando matrícula: " + errorBuscar.message);
+    return;
+  }
+
+  if (existe && existe.length > 0) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("frequent_vehicles")
+    .insert({
+      empresa_id: conductor.empresa_id,
+      name: limpio
+    });
+
+  if (error) {
+    alert("Error guardando matrícula frecuente: " + error.message);
+  }
+}
+
+async function guardarEnTablaNueva(datos) {
+  const { error } = await supabase
+    .from("entregas")
+    .insert(datos);
+
+  if (error) {
+    throw new Error("Error guardando en tabla entregas: " + error.message);
+  }
+}
+
+async function guardarEnTablaViejaSinRomper(datosLegacy) {
+  const { error } = await supabase
+    .from("deliveries")
+    .insert(datosLegacy);
+
+  if (error) {
+    console.warn("No se pudo guardar en deliveries (tabla vieja):", error.message);
+  }
+}
+
+function limpiarFormulario() {
+  vehicleInput.value = "";
+  vehicleSelect.value = "";
+  clientInput.value = "";
+  clientSelect.value = "";
+  pickupInput.value = "";
+  pickupSelect.value = "";
+  dropoffInput.value = "";
+  dropoffSelect.value = "";
+  numEntregasInput.value = "";
+  bultosInput.value = "";
+  kgInput.value = "";
+  m3Input.value = "";
+  observationsInput.value = "";
+  mozoInput.checked = false;
+  trampillaInput.checked = false;
+  urgenteInput.checked = false;
+  cameraInput.value = "";
+  galleryInput.value = "";
+  preview.style.display = "none";
+  preview.src = "";
+  ultimaPhotoUrl = null;
+  limpiarCamposInditex(true);
+  actualizarCamposCliente();
+}
+
+window.guardarEntrega = async function () {
+  try {
+    statusEl.innerText = "Guardando...";
+
+    const conductor = await obtenerConductorActual();
+
+    const clienteOriginal = clientInput.value.trim();
+    const cliente = normalizarClienteIA(clienteOriginal);
+    const albepet = esAlbepet(cliente);
+    const sotracom = esSotracom(cliente);
+    const inditex = esInditex(cliente);
+
+    const matricula = sotracom ? null : (vehicleInput.value.trim().toUpperCase() || null);
+    const lugarCarga = albepet ? null : (pickupInput.value.trim() || null);
+
+    const lineasMercancia = inditex ? obtenerLineasMercancia() : [];
+    if (inditex) {
+      recalcularTotalesInditex();
+    }
+
+    const destinatarioInditex = inditex ? (inditexDestinatarioInput.value.trim() || null) : null;
+    const direccionDescargaInditex = inditex ? (inditexDireccionDescargaInput.value.trim() || null) : null;
+    const fechaAlbaranInditex = inditex ? (inditexFechaInput.value.trim() || null) : null;
+
+    const lugarDescarga = (albepet || sotracom)
+      ? null
+      : (
+          inditex
+            ? (direccionDescargaInditex || destinatarioInditex || dropoffInput.value.trim() || null)
+            : (dropoffInput.value.trim() || null)
+        );
+
+    const numEntregas = albepet ? (numEntregasInput.value ? parseInt(numEntregasInput.value, 10) : null) : null;
+    const bultos = bultosInput.value ? parseInt(bultosInput.value, 10) : null;
+    const kg = normalizarNumero(kgInput.value);
+    const m3 = normalizarNumero(m3Input.value);
+    const observacionesBase = observationsInput.value.trim() || null;
+    const mozo = mozoInput.checked;
+    const trampilla = trampillaInput.checked;
+    const urgente = urgenteInput.checked;
+
+    const observaciones = construirObservacionesFinales(observacionesBase, {
+      esInditex: inditex,
+      fechaAlbaran: fechaAlbaranInditex,
+      destinatario: destinatarioInditex,
+      direccionDescarga: direccionDescargaInditex,
+      lineasMercancia
+    });
+
+    if (!conductor?.id || !conductor?.empresa_id) {
+      statusEl.innerText = "No se ha encontrado la empresa del conductor";
+      return;
+    }
+
+    if (!cliente) {
+      statusEl.innerText = "Falta cliente";
+      return;
+    }
+
+    if (!sotracom && !matricula) {
+      statusEl.innerText = "Falta matrícula";
+      return;
+    }
+
+    if (!albepet && !lugarCarga) {
+      statusEl.innerText = "Falta lugar de carga";
+      return;
+    }
+
+    if (!albepet && !sotracom && !lugarDescarga) {
+      statusEl.innerText = "Falta lugar de descarga";
+      return;
+    }
+
+    if (albepet && !numEntregas) {
+      statusEl.innerText = "Falta número de entregas";
+      return;
+    }
+
+    const photoFile = getSelectedPhotoFile();
+    let photo_url = ultimaPhotoUrl;
+
+    if (photoFile && !photo_url) {
+      photo_url = await subirFoto(photoFile, "entrega-");
+    }
+
+    const datosNuevaTabla = {
+      fecha: new Date().toISOString().split("T")[0],
+      cliente: cliente,
+      lugar_carga: lugarCarga,
+      lugar_descarga: lugarDescarga,
+      num_entregas: numEntregas,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observaciones: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      matricula: matricula,
+      estado: "pendiente",
+      foto_url: photo_url || null,
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id
+    };
+
+    await guardarEnTablaNueva(datosNuevaTabla);
+
+    await guardarClienteFrecuenteSiNoExiste(cliente);
+
+    if (!albepet) {
+      await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    }
+
+    if (!albepet && !sotracom) {
+      await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    }
+
+    if (!sotracom && matricula) {
+      await guardarVehiculoFrecuenteSiNoExiste(matricula);
+    }
+
+    const datosTablaVieja = {
+      empresa_id: conductor.empresa_id,
+      driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
+      vehicle_plate: matricula,
+      client_name: cliente,
+      pickup_place: lugarCarga,
+      dropoff_place: lugarDescarga,
+      num_entregas: numEntregas,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observations: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      distance_km: 0,
+      price_eur: 0,
+      photo_url: photo_url || null
+    };
+
+    await guardarEnTablaViejaSinRomper(datosTablaVieja);
+
+    await cargarFrecuentes();
+    statusEl.innerText = "Entrega guardada correctamente";
+    limpiarFormulario();
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+    alert("Fallo al guardar: " + e.message);
+  }
+};
+
+async function initApp() {
+  try {
+    statusEl.innerText = "Cargando datos...";
+    await obtenerConductorActual();
+    await cargarFrecuentes();
+    limpiarCamposInditex(true);
+    actualizarCamposCliente();
+    statusEl.innerText = "";
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = e.message;
+  }
+}
+
+initApp();
+</script>
+
 </body>
 </html>
