@@ -751,12 +751,13 @@ if (
   (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
 ) {
   window.location.href = "login.html";
+  throw new Error("Sesión no válida");
 }
 
 window.cerrarSesion = function(){
   try {
     localStorage.removeItem("sesionAppTransporte");
-    sessionStorage.clear();
+    sessionStorage.removeItem("sesionAppTransporte");
   } catch (e) {
     console.error("Error limpiando sesión:", e);
   }
@@ -1474,7 +1475,7 @@ mozoFilter.addEventListener("change", aplicarFiltros);
 trampillaFilter.addEventListener("change", aplicarFiltros);
 
 await cargarInfoEmpresaActual();
-cargarEntregas();
+await cargarEntregas();
 </script>
 </body>
 </html>
