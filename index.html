@@ -71,12 +71,6 @@ body{
   font-size:18px;
 }
 
-.grid2{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-  gap:12px;
-}
-
 .grid3{
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
@@ -250,10 +244,6 @@ button.danger{
   background:var(--warn);
 }
 
-.pill.info{
-  background:#274d8a;
-}
-
 .checkGroup{
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
@@ -308,14 +298,6 @@ button.danger{
   border-radius:8px;
   padding:10px;
   font-size:13px;
-}
-
-.inditexBox{
-  margin-top:15px;
-  padding:14px;
-  background:var(--soft2);
-  border-radius:10px;
-  border:1px solid var(--border);
 }
 
 .inditexTitulo{
@@ -405,11 +387,6 @@ th{
 .no{
   background:#3a445f;
   color:#cfd8f0;
-}
-
-.info{
-  background:#274d8a;
-  color:white;
 }
 
 .empty{
@@ -1100,6 +1077,7 @@ function obtenerLineasMercancia() {
 
 function recalcularTotalesInditex() {
   const lineas = obtenerLineasMercancia();
+
   const totalBultos = lineas.reduce((acc, item) => acc + numeroEnteroSeguro(item.bultos), 0);
   const totalKilos = lineas.reduce((acc, item) => acc + (normalizarNumero(item.kilos) || 0), 0);
 
@@ -1172,7 +1150,10 @@ async function subirFoto(photoFile, prefix = "") {
   const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
   const fileName = `${prefix}${Date.now()}.${safeExt}`;
 
-  const { error } = await supabase.storage.from("pod").upload(fileName, photoFile, { upsert: true });
+  const { error } = await supabase
+    .storage
+    .from("pod")
+    .upload(fileName, photoFile, { upsert: true });
 
   if (error) {
     throw new Error("Error subiendo foto: " + error.message);
@@ -1223,6 +1204,7 @@ async function leerFotoAutomatica() {
     }
 
     let texto = String(data.result).trim();
+
     texto = texto
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
@@ -1568,10 +1550,16 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
 }
 
 async function guardarEnTablaNueva(datos) {
-  const { error } = await supabase.from("entregas").insert(datos);
+  const { error } = await supabase
+    .from("entregas")
+    .insert(datos);
+
   if (error) {
-    throw new Error("Error guardando en tabla entregas: " + error.message);
+    console.warn("No se pudo guardar en tabla entregas:", error.message);
+    return false;
   }
+
+  return true;
 }
 
 async function guardarEnTablaViejaSinRomper(datosLegacy) {
@@ -1996,7 +1984,7 @@ window.guardarEntrega = async function () {
       legacy_delivery_id: legacyDeliveryId
     };
 
-    await guardarEnTablaNueva(datosNuevaTabla);
+    const guardadoEnTablaNueva = await guardarEnTablaNueva(datosNuevaTabla);
 
     await guardarClienteFrecuenteSiNoExiste(cliente);
 
@@ -2015,7 +2003,12 @@ window.guardarEntrega = async function () {
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
     limpiarFormulario(true);
-    setStatus("Entrega guardada correctamente", "ok");
+
+    if (guardadoEnTablaNueva) {
+      setStatus("Entrega guardada correctamente", "ok");
+    } else {
+      setStatus("Entrega guardada correctamente en deliveries. La tabla nueva entregas sigue mal configurada y no ha bloqueado el trabajo.", "warn");
+    }
   } catch (e) {
     console.error(e);
     setStatus(e.message, "error");
@@ -2084,5 +2077,4 @@ initApp();
 
 </body>
 </html>
-  
   
