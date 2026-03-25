@@ -1723,6 +1723,25 @@ async function cargarUltimasEntregasConductor() {
     `;
   }
 }
+  if (ultimasEntregas.length) {
+  const idsViejos = ultimasEntregas.map(e => e.id).filter(Boolean);
+
+  const { data: enlazadas, error: errorEnlace } = await supabase
+    .from("entregas")
+    .select("id, legacy_delivery_id")
+    .in("legacy_delivery_id", idsViejos);
+
+  if (!errorEnlace && Array.isArray(enlazadas)) {
+    ultimasEntregas = ultimasEntregas.map(entrega => {
+      const enlace = enlazadas.find(x => x.legacy_delivery_id === entrega.id);
+      return {
+        ...entrega,
+        entrega_nueva_id: enlace?.id || null,
+        legacy_delivery_id: entrega.id
+      };
+    });
+  }
+}
 
 window.cerrarEditModal = function() {
   editModal.classList.remove("open");
