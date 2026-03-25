@@ -597,12 +597,12 @@ th{
 
       <div>
         <label>Kg</label>
-        <input id="kg" type="number">
+        <input id="kg" type="number" step="0.01">
       </div>
 
       <div>
         <label>M3</label>
-        <input id="m3" type="number">
+        <input id="m3" type="number" step="0.01">
       </div>
     </div>
 
@@ -781,7 +781,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = "https://jpnritlcfumjmdpoaytr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr";
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FALLBACK_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
@@ -858,27 +857,26 @@ const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null")
 
 if (!sesion || sesion.role !== "driver") {
   window.location.href = "login.html?logout=1";
+  throw new Error("Sesión no válida");
 }
 
 currentUserEl.innerText = sesion.username || "sin usuario";
-
-window.cerrarSesion = function () {
-  try {
-    localStorage.removeItem("sesionAppTransporte");
-    localStorage.clear();
-    sessionStorage.clear();
-  } catch (e) {
-    console.error("Error cerrando sesión:", e);
-  }
-
-  window.location.href = "login.html?logout=1&t=" + Date.now();
-};
 
 let ultimaPhotoUrl = null;
 let conductorActual = null;
 let guardandoEntrega = false;
 let ultimasEntregas = [];
 let entregaEditandoActual = null;
+
+window.cerrarSesion = function () {
+  try {
+    localStorage.removeItem("sesionAppTransporte");
+    sessionStorage.removeItem("sesionAppTransporte");
+  } catch (e) {
+    console.error("Error cerrando sesión:", e);
+  }
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
 
 function setStatus(texto, tipo = "") {
   statusEl.innerText = texto || "";
@@ -961,6 +959,11 @@ function badgeBooleano(activo, texto) {
   return `<span class="badge ${activo ? "si" : "no"}">${texto}: ${activo ? "Sí" : "No"}</span>`;
 }
 
+function actualizarPill(el, ok, texto) {
+  el.className = "pill " + (ok ? "ok" : "warn");
+  el.innerText = ok ? `${texto} OK` : `${texto} pendiente`;
+}
+
 function actualizarResumenVisual() {
   const cliente = clientInput.value.trim() || "—";
   kpiCliente.innerText = cliente.length > 18 ? cliente.slice(0, 18) + "…" : cliente;
@@ -983,11 +986,6 @@ function actualizarResumenVisual() {
   actualizarPill(pillMatricula, !requiereMatricula || !!vehicleInput.value.trim(), "Matrícula");
   actualizarPill(pillCarga, !requiereCarga || !!pickupInput.value.trim(), "Carga");
   actualizarPill(pillDescarga, !requiereDescarga || !!dropoffInput.value.trim(), "Descarga");
-}
-
-function actualizarPill(el, ok, texto) {
-  el.className = "pill " + (ok ? "ok" : "warn");
-  el.innerText = ok ? `${texto} OK` : `${texto} pendiente`;
 }
 
 function actualizarCamposCliente() {
@@ -1060,7 +1058,7 @@ function crearLineaMercancia(data = {}) {
       </div>
       <div>
         <label>Kilos</label>
-        <input type="number" class="inditexKilos" placeholder="0" value="${escapeHtml(data.kilos ?? "")}">
+        <input type="number" class="inditexKilos" step="0.01" placeholder="0" value="${escapeHtml(data.kilos ?? "")}">
       </div>
     </div>
 
@@ -1093,12 +1091,7 @@ function obtenerLineasMercancia() {
     const kilos = linea.querySelector(".inditexKilos")?.value ? normalizarNumero(linea.querySelector(".inditexKilos").value) : null;
 
     if (mawb || pedido || bultos !== null || kilos !== null) {
-      lineas.push({
-        mawb,
-        pedido,
-        bultos,
-        kilos
-      });
+      lineas.push({ mawb, pedido, bultos, kilos });
     }
   });
 
@@ -1107,7 +1100,6 @@ function obtenerLineasMercancia() {
 
 function recalcularTotalesInditex() {
   const lineas = obtenerLineasMercancia();
-
   const totalBultos = lineas.reduce((acc, item) => acc + numeroEnteroSeguro(item.bultos), 0);
   const totalKilos = lineas.reduce((acc, item) => acc + (normalizarNumero(item.kilos) || 0), 0);
 
@@ -1180,10 +1172,7 @@ async function subirFoto(photoFile, prefix = "") {
   const safeExt = fileExt.replace(/[^a-z0-9]/gi, "") || "jpg";
   const fileName = `${prefix}${Date.now()}.${safeExt}`;
 
-  const { error } = await supabase
-    .storage
-    .from("pod")
-    .upload(fileName, photoFile, { upsert: true });
+  const { error } = await supabase.storage.from("pod").upload(fileName, photoFile, { upsert: true });
 
   if (error) {
     throw new Error("Error subiendo foto: " + error.message);
@@ -1208,7 +1197,6 @@ async function leerFotoAutomatica() {
     actualizarResumenVisual();
 
     ultimaPhotoUrl = await subirFoto(file, "preview-");
-
     setStatus("Leyendo albarán con IA...", "warn");
 
     const response = await fetch("https://jpnritlcfumjmdpoaytr.functions.supabase.co/leer-albaran", {
@@ -1235,7 +1223,6 @@ async function leerFotoAutomatica() {
     }
 
     let texto = String(data.result).trim();
-
     texto = texto
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
@@ -1280,7 +1267,6 @@ async function leerFotoAutomatica() {
 
     actualizarResumenVisual();
     setStatus("Albarán leído con IA", "ok");
-
   } catch (e) {
     console.log("ERROR LEYENDO ALBARÁN:", e);
     setStatus("Error leyendo albarán con IA", "error");
@@ -1328,9 +1314,7 @@ async function obtenerConductorActual() {
     return conductorActual;
   }
 
-  throw new Error(
-    "No se ha encontrado el conductor en Supabase. Haz que el usuario de login coincida con la columna usuario de la tabla conductores o rellena FALLBACK_EMPRESA_ID y FALLBACK_CONDUCTOR_ID en el código."
-  );
+  throw new Error("No se ha encontrado el conductor en Supabase.");
 }
 
 function rellenarSelect(selectEl, primerTexto, valores) {
@@ -1420,10 +1404,12 @@ async function cargarVehiculosFrecuentes() {
 
 async function cargarFrecuentes() {
   try {
-    const clientes = await cargarClientesEmpresa();
-    const pickups = await cargarPickupsFrecuentes();
-    const dropoffs = await cargarDropoffsFrecuentes();
-    const vehicles = await cargarVehiculosFrecuentes();
+    const [clientes, pickups, dropoffs, vehicles] = await Promise.all([
+      cargarClientesEmpresa(),
+      cargarPickupsFrecuentes(),
+      cargarDropoffsFrecuentes(),
+      cargarVehiculosFrecuentes()
+    ]);
 
     rellenarSelect(
       clientSelect,
@@ -1467,7 +1453,7 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
     .limit(1);
 
   if (errorBuscar) {
-    alert("Error buscando cliente: " + errorBuscar.message);
+    console.warn("Error buscando cliente:", errorBuscar.message);
     return;
   }
 
@@ -1481,7 +1467,7 @@ async function guardarClienteFrecuenteSiNoExiste(nombre) {
     });
 
   if (error) {
-    alert("Error guardando cliente frecuente: " + error.message);
+    console.warn("Error guardando cliente frecuente:", error.message);
   }
 }
 
@@ -1499,7 +1485,7 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
     .limit(1);
 
   if (errorBuscar) {
-    alert("Error buscando lugar de carga: " + errorBuscar.message);
+    console.warn("Error buscando lugar de carga:", errorBuscar.message);
     return;
   }
 
@@ -1513,7 +1499,7 @@ async function guardarPickupFrecuenteSiNoExiste(nombre) {
     });
 
   if (error) {
-    alert("Error guardando lugar de carga frecuente: " + error.message);
+    console.warn("Error guardando lugar de carga frecuente:", error.message);
   }
 }
 
@@ -1531,7 +1517,7 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
     .limit(1);
 
   if (errorBuscar) {
-    alert("Error buscando lugar de descarga: " + errorBuscar.message);
+    console.warn("Error buscando lugar de descarga:", errorBuscar.message);
     return;
   }
 
@@ -1545,7 +1531,7 @@ async function guardarDropoffFrecuenteSiNoExiste(nombre) {
     });
 
   if (error) {
-    alert("Error guardando lugar de descarga frecuente: " + error.message);
+    console.warn("Error guardando lugar de descarga frecuente:", error.message);
   }
 }
 
@@ -1563,13 +1549,11 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
     .limit(1);
 
   if (errorBuscar) {
-    alert("Error buscando matrícula: " + errorBuscar.message);
+    console.warn("Error buscando matrícula:", errorBuscar.message);
     return;
   }
 
-  if (existe && existe.length > 0) {
-    return;
-  }
+  if (existe && existe.length > 0) return;
 
   const { error } = await supabase
     .from("frequent_vehicles")
@@ -1579,15 +1563,12 @@ async function guardarVehiculoFrecuenteSiNoExiste(nombre) {
     });
 
   if (error) {
-    alert("Error guardando matrícula frecuente: " + error.message);
+    console.warn("Error guardando matrícula frecuente:", error.message);
   }
 }
 
 async function guardarEnTablaNueva(datos) {
-  const { error } = await supabase
-    .from("entregas")
-    .insert(datos);
-
+  const { error } = await supabase.from("entregas").insert(datos);
   if (error) {
     throw new Error("Error guardando en tabla entregas: " + error.message);
   }
@@ -1601,7 +1582,7 @@ async function guardarEnTablaViejaSinRomper(datosLegacy) {
     .single();
 
   if (error) {
-    throw new Error("No se pudo guardar en deliveries (tabla vieja): " + error.message);
+    throw new Error("No se pudo guardar en deliveries: " + error.message);
   }
 
   return data?.id || null;
@@ -1673,30 +1654,29 @@ function renderUltimasEntregas(lista) {
 
 async function cargarUltimasEntregasConductor() {
   try {
-    
     const conductor = await obtenerConductorActual();
 
-   const { data, error } = await supabase
-  .from("deliveries")
-  .select(`
-    id,
-    empresa_id,
-    created_at,
-    driver_name,
-    vehicle_plate,
-    client_name,
-    pickup_place,
-    dropoff_place,
-    num_entregas,
-    bultos,
-    kg,
-    m3,
-    observations,
-    mozo,
-    trampilla,
-    urgente,
-    photo_url
-  `)
+    const { data, error } = await supabase
+      .from("deliveries")
+      .select(`
+        id,
+        empresa_id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        num_entregas,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        photo_url
+      `)
       .eq("empresa_id", conductor.empresa_id)
       .eq("driver_name", sesion.username || conductor.usuario || conductor.nombre || "")
       .order("created_at", { ascending: false })
@@ -1709,10 +1689,32 @@ async function cargarUltimasEntregasConductor() {
           <td colspan="10" class="empty">No se pudieron cargar las últimas entregas.</td>
         </tr>
       `;
+      ultimasEntregas = [];
       return;
     }
 
     ultimasEntregas = data || [];
+
+    if (ultimasEntregas.length) {
+      const idsViejos = ultimasEntregas.map(e => e.id).filter(Boolean);
+
+      const { data: enlazadas, error: errorEnlace } = await supabase
+        .from("entregas")
+        .select("id, legacy_delivery_id")
+        .in("legacy_delivery_id", idsViejos);
+
+      if (!errorEnlace && Array.isArray(enlazadas)) {
+        ultimasEntregas = ultimasEntregas.map(entrega => {
+          const enlace = enlazadas.find(x => x.legacy_delivery_id === entrega.id);
+          return {
+            ...entrega,
+            entrega_nueva_id: enlace?.id || null,
+            legacy_delivery_id: entrega.id
+          };
+        });
+      }
+    }
+
     renderUltimasEntregas(ultimasEntregas);
   } catch (e) {
     console.warn("Error cargando últimas entregas:", e.message);
@@ -1721,25 +1723,6 @@ async function cargarUltimasEntregasConductor() {
         <td colspan="10" class="empty">Error cargando últimas entregas.</td>
       </tr>
     `;
-  }
-}
-  if (ultimasEntregas.length) {
-  const idsViejos = ultimasEntregas.map(e => e.id).filter(Boolean);
-
-  const { data: enlazadas, error: errorEnlace } = await supabase
-    .from("entregas")
-    .select("id, legacy_delivery_id")
-    .in("legacy_delivery_id", idsViejos);
-
-  if (!errorEnlace && Array.isArray(enlazadas)) {
-    ultimasEntregas = ultimasEntregas.map(entrega => {
-      const enlace = enlazadas.find(x => x.legacy_delivery_id === entrega.id);
-      return {
-        ...entrega,
-        entrega_nueva_id: enlace?.id || null,
-        legacy_delivery_id: entrega.id
-      };
-    });
   }
 }
 
@@ -1810,16 +1793,8 @@ window.guardarCambiosEntregaConductor = async function() {
       .eq("id", entregaEditandoActual.id);
 
     if (errorVieja) {
-      alert("Error guardando en deliveries: " + errorVieja.message);
-      setStatus("Error guardando cambios en deliveries", "error");
-      return;
+      throw new Error("Error guardando en deliveries: " + errorVieja.message);
     }
-
-    const conductor = await obtenerConductorActual();
-
-    const fechaSoloDia = entregaEditandoActual.created_at
-      ? String(entregaEditandoActual.created_at).slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
 
     const datosActualizadosNueva = {
       cliente: editClient.value.trim() || null,
@@ -1836,30 +1811,29 @@ window.guardarCambiosEntregaConductor = async function() {
       urgente: editUrgente.checked
     };
 
-    const { data: candidatasNueva, error: errorBuscarNueva } = await supabase
-      .from("entregas")
-      .select("id, fecha, cliente, matricula")
-      .eq("empresa_id", conductor.empresa_id)
-      .eq("conductor_id", conductor.id)
-      .eq("fecha", fechaSoloDia)
-      .order("id", { ascending: false })
-      .limit(10);
+    let idNueva = entregaEditandoActual.entrega_nueva_id || null;
 
-    if (!errorBuscarNueva && Array.isArray(candidatasNueva) && candidatasNueva.length) {
-      const candidata = candidatasNueva.find(item =>
-        String(item.cliente || "").trim() === String(entregaEditandoActual.client_name || "").trim() &&
-        String(item.matricula || "").trim().toUpperCase() === String(entregaEditandoActual.vehicle_plate || "").trim().toUpperCase()
-      ) || candidatasNueva[0];
+    if (!idNueva && entregaEditandoActual.id) {
+      const { data: enlazada, error: errorEnlace } = await supabase
+        .from("entregas")
+        .select("id")
+        .eq("legacy_delivery_id", entregaEditandoActual.id)
+        .limit(1)
+        .maybeSingle();
 
-      if (candidata?.id) {
-        const { error: errorNueva } = await supabase
-          .from("entregas")
-          .update(datosActualizadosNueva)
-          .eq("id", candidata.id);
+      if (!errorEnlace && enlazada?.id) {
+        idNueva = enlazada.id;
+      }
+    }
 
-        if (errorNueva) {
-          console.warn("No se pudo actualizar tabla entregas:", errorNueva.message);
-        }
+    if (idNueva) {
+      const { error: errorNueva } = await supabase
+        .from("entregas")
+        .update(datosActualizadosNueva)
+        .eq("id", idNueva);
+
+      if (errorNueva) {
+        console.warn("No se pudo actualizar tabla entregas:", errorNueva.message);
       }
     }
 
@@ -1869,9 +1843,9 @@ window.guardarCambiosEntregaConductor = async function() {
     await guardarVehiculoFrecuenteSiNoExiste(editVehicle.value.trim() || null);
 
     cerrarEditModal();
-    setStatus("Entrega actualizada correctamente", "ok");
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
+    setStatus("Entrega actualizada correctamente", "ok");
   } catch (e) {
     console.error(e);
     setStatus("Fallo guardando cambios: " + e.message, "error");
@@ -1879,7 +1853,7 @@ window.guardarCambiosEntregaConductor = async function() {
   }
 };
 
-window.limpiarFormulario = function() {
+window.limpiarFormulario = function(mantenerStatus = false) {
   vehicleInput.value = "";
   vehicleSelect.value = "";
   clientInput.value = "";
@@ -1904,7 +1878,10 @@ window.limpiarFormulario = function() {
   limpiarCamposInditex(true);
   actualizarCamposCliente();
   actualizarResumenVisual();
-  setStatus("", "");
+
+  if (!mantenerStatus) {
+    setStatus("", "");
+  }
 };
 
 window.guardarEntrega = async function () {
@@ -1966,8 +1943,7 @@ window.guardarEntrega = async function () {
     });
 
     if (!conductor?.id || !conductor?.empresa_id) {
-      setStatus("No se ha encontrado la empresa del conductor", "error");
-      return;
+      throw new Error("No se ha encontrado la empresa del conductor");
     }
 
     const photoFile = getSelectedPhotoFile();
@@ -1977,68 +1953,69 @@ window.guardarEntrega = async function () {
       photo_url = await subirFoto(photoFile, "entrega-");
     }
 
-   const datosTablaVieja = {
-  empresa_id: conductor.empresa_id,
-  driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
-  vehicle_plate: matricula,
-  client_name: cliente,
-  pickup_place: lugarCarga,
-  dropoff_place: lugarDescarga,
-  num_entregas: numEntregas,
-  bultos: bultos,
-  kg: kg,
-  m3: m3,
-  observations: observaciones,
-  mozo: mozo,
-  trampilla: trampilla,
-  urgente: urgente,
-  distance_km: 0,
-  price_eur: 0,
-  photo_url: photo_url || null
-};
+    const datosTablaVieja = {
+      empresa_id: conductor.empresa_id,
+      driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
+      vehicle_plate: matricula,
+      client_name: cliente,
+      pickup_place: lugarCarga,
+      dropoff_place: lugarDescarga,
+      num_entregas: numEntregas,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observations: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      distance_km: 0,
+      price_eur: 0,
+      photo_url: photo_url || null
+    };
 
-const legacyDeliveryId = await guardarEnTablaViejaSinRomper(datosTablaVieja);
+    const legacyDeliveryId = await guardarEnTablaViejaSinRomper(datosTablaVieja);
 
-const datosNuevaTabla = {
-  fecha: new Date().toISOString().split("T")[0],
-  cliente: cliente,
-  lugar_carga: lugarCarga,
-  lugar_descarga: lugarDescarga,
-  num_entregas: numEntregas,
-  bultos: bultos,
-  kg: kg,
-  m3: m3,
-  observaciones: observaciones,
-  mozo: mozo,
-  trampilla: trampilla,
-  urgente: urgente,
-  matricula: matricula,
-  estado: "pendiente",
-  foto_url: photo_url || null,
-  conductor_id: conductor.id,
-  empresa_id: conductor.empresa_id,
-  legacy_delivery_id: legacyDeliveryId
-};
+    const datosNuevaTabla = {
+      fecha: new Date().toISOString().split("T")[0],
+      cliente: cliente,
+      lugar_carga: lugarCarga,
+      lugar_descarga: lugarDescarga,
+      num_entregas: numEntregas,
+      bultos: bultos,
+      kg: kg,
+      m3: m3,
+      observaciones: observaciones,
+      mozo: mozo,
+      trampilla: trampilla,
+      urgente: urgente,
+      matricula: matricula,
+      estado: "pendiente",
+      foto_url: photo_url || null,
+      conductor_id: conductor.id,
+      empresa_id: conductor.empresa_id,
+      legacy_delivery_id: legacyDeliveryId
+    };
 
-await guardarEnTablaNueva(datosNuevaTabla);
+    await guardarEnTablaNueva(datosNuevaTabla);
 
-await guardarClienteFrecuenteSiNoExiste(cliente);
+    await guardarClienteFrecuenteSiNoExiste(cliente);
 
-if (!albepet) {
-  await guardarPickupFrecuenteSiNoExiste(lugarCarga);
-}
+    if (!albepet) {
+      await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+    }
 
-if (!albepet && !sotracom) {
-  await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
-}
+    if (!albepet && !sotracom) {
+      await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+    }
 
-if (!sotracom && matricula) {
-  await guardarVehiculoFrecuenteSiNoExiste(matricula);
-}
+    if (!sotracom && matricula) {
+      await guardarVehiculoFrecuenteSiNoExiste(matricula);
+    }
+
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
+    limpiarFormulario(true);
     setStatus("Entrega guardada correctamente", "ok");
-    limpiarFormulario();
   } catch (e) {
     console.error(e);
     setStatus(e.message, "error");
@@ -2089,10 +2066,10 @@ urgenteInput.addEventListener("change", actualizarResumenVisual);
 async function initApp() {
   try {
     setStatus("Cargando datos...", "warn");
+    limpiarCamposInditex(true);
     await obtenerConductorActual();
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
-    limpiarCamposInditex(true);
     actualizarCamposCliente();
     actualizarResumenVisual();
     setStatus("", "");
@@ -2107,4 +2084,5 @@ initApp();
 
 </body>
 </html>
+  
   
