@@ -726,6 +726,7 @@ if (
   (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")
 ) {
   window.location.href = "login.html?logout=1";
+  throw new Error("Sesión no válida");
 }
 
 const statusEl = document.getElementById("status");
@@ -1038,7 +1039,7 @@ function obtenerListaFiltrada() {
 }
 
 function aplicarFiltrosYCalculo() {
-  let lista = obtenerListaFiltrada();
+  const lista = obtenerListaFiltrada();
 
   entregasCalculadas = lista.map(entrega => ({
     ...entrega,
@@ -1615,11 +1616,12 @@ invoiceVat.addEventListener("input", () => {
 await cargarInfoEmpresaActual();
 cargarTarifas();
 cargarDatosFacturaGuardados();
-cargarDatos();
 
 if (!invoiceDate.value) {
   invoiceDate.value = hoyISO();
 }
+
+await cargarDatos();
 </script>
 </body>
 </html>
