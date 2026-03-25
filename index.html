@@ -1673,29 +1673,30 @@ function renderUltimasEntregas(lista) {
 
 async function cargarUltimasEntregasConductor() {
   try {
+    
     const conductor = await obtenerConductorActual();
 
-    const { data, error } = await supabase
-      .from("deliveries")
-      .select(`
-        id,
-        empresa_id,
-        created_at,
-        driver_name,
-        vehicle_plate,
-        client_name,
-        pickup_place,
-        dropoff_place,
-        num_entregas,
-        bultos,
-        kg,
-        m3,
-        observations,
-        mozo,
-        trampilla,
-        urgente,
-        photo_url
-      `)
+   const { data, error } = await supabase
+  .from("deliveries")
+  .select(`
+    id,
+    empresa_id,
+    created_at,
+    driver_name,
+    vehicle_plate,
+    client_name,
+    pickup_place,
+    dropoff_place,
+    num_entregas,
+    bultos,
+    kg,
+    m3,
+    observations,
+    mozo,
+    trampilla,
+    urgente,
+    photo_url
+  `)
       .eq("empresa_id", conductor.empresa_id)
       .eq("driver_name", sesion.username || conductor.usuario || conductor.nombre || "")
       .order("created_at", { ascending: false })
