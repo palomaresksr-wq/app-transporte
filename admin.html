@@ -117,6 +117,16 @@ th{
   color:white;
 }
 
+.warn{
+  background:#8a5a00;
+  color:#fff3d1;
+}
+
+.danger{
+  background:#7a2230;
+  color:white;
+}
+
 a{
   color:#7db4ff;
 }
@@ -292,6 +302,86 @@ input[type="checkbox"]{
   line-height:1.45;
 }
 
+.dashboardGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:linear-gradient(180deg, #18233b, #121b2f);
+  border-radius:12px;
+  padding:16px;
+  min-height:92px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.kpiLabel{
+  font-size:13px;
+  color:#b7c3dd;
+}
+
+.kpiValue{
+  font-size:30px;
+  font-weight:bold;
+  line-height:1;
+  margin-top:6px;
+}
+
+.quickGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px;
+}
+
+.quickBtn{
+  display:block;
+  background:#18233b;
+  color:white;
+  text-decoration:none;
+  border-radius:10px;
+  padding:14px;
+  font-weight:bold;
+}
+
+.quickBtn:hover{
+  filter:brightness(1.08);
+}
+
+.alertList{
+  display:grid;
+  gap:10px;
+}
+
+.alertItem{
+  background:#0f1a2e;
+  border-left:4px solid #ff7a18;
+  padding:12px;
+  border-radius:8px;
+  font-size:14px;
+}
+
+.resumeBar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+.resumePill{
+  background:#18233b;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:13px;
+}
+
+.sectionTitle{
+  margin:0 0 12px 0;
+  font-size:18px;
+}
+
 @media (max-width: 700px){
   body{
     padding:12px;
@@ -299,6 +389,10 @@ input[type="checkbox"]{
 
   h1{
     font-size:22px;
+  }
+
+  .kpiValue{
+    font-size:24px;
   }
 }
 </style>
@@ -314,9 +408,52 @@ input[type="checkbox"]{
     </div>
 
     <div class="actions">
+      <a class="btn sec" href="index.html">Nueva entrega</a>
       <a class="btn sec" href="factura.html">Facturación</a>
       <button class="sec" onclick="cargarEntregas()">Actualizar</button>
       <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Resumen general</h3>
+    <div class="dashboardGrid">
+      <div class="kpi">
+        <div class="kpiLabel">Entregas de hoy</div>
+        <div class="kpiValue" id="kpiHoy">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpiLabel">Urgentes</div>
+        <div class="kpiValue" id="kpiUrgentes">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpiLabel">Con foto</div>
+        <div class="kpiValue" id="kpiConFoto">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpiLabel">Pendientes de precio</div>
+        <div class="kpiValue" id="kpiSinPrecio">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Accesos rápidos</h3>
+    <div class="quickGrid">
+      <a class="quickBtn" href="index.html">Registrar entrega</a>
+      <a class="quickBtn" href="factura.html">Ir a facturación</a>
+      <a class="quickBtn" href="#" onclick="cargarEntregas(); return false;">Recargar entregas</a>
+      <a class="quickBtn" href="#" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); return false;">Ir a tabla</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Alertas</h3>
+    <div id="alertList" class="alertList">
+      <div class="alertItem">Cargando alertas...</div>
     </div>
   </div>
 
@@ -356,6 +493,17 @@ input[type="checkbox"]{
     </div>
 
     <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Resumen de resultados</h3>
+    <div class="resumeBar">
+      <div class="resumePill">Mostrando: <strong id="resumeMostrando">0</strong></div>
+      <div class="resumePill">Total cargadas: <strong id="resumeTotal">0</strong></div>
+      <div class="resumePill">Con mozo: <strong id="resumeMozo">0</strong></div>
+      <div class="resumePill">Con trampilla: <strong id="resumeTrampilla">0</strong></div>
+      <div class="resumePill">Urgentes: <strong id="resumeUrgentes">0</strong></div>
+    </div>
   </div>
 
   <div class="card">
@@ -558,6 +706,18 @@ const photoModal = document.getElementById("photoModal");
 const modalImg = document.getElementById("modalImg");
 const panelTitle = document.getElementById("panelTitle");
 const panelSubtitle = document.getElementById("panelSubtitle");
+
+const kpiHoy = document.getElementById("kpiHoy");
+const kpiUrgentes = document.getElementById("kpiUrgentes");
+const kpiConFoto = document.getElementById("kpiConFoto");
+const kpiSinPrecio = document.getElementById("kpiSinPrecio");
+const alertList = document.getElementById("alertList");
+
+const resumeMostrando = document.getElementById("resumeMostrando");
+const resumeTotal = document.getElementById("resumeTotal");
+const resumeMozo = document.getElementById("resumeMozo");
+const resumeTrampilla = document.getElementById("resumeTrampilla");
+const resumeUrgentes = document.getElementById("resumeUrgentes");
 
 const editModal = document.getElementById("editModal");
 const editDriverName = document.getElementById("edit_driver_name");
@@ -855,6 +1015,74 @@ function renderLineasInditexTabla(datos) {
   `;
 }
 
+function esMismoDia(fechaA, fechaB) {
+  return fechaA.getFullYear() === fechaB.getFullYear()
+    && fechaA.getMonth() === fechaB.getMonth()
+    && fechaA.getDate() === fechaB.getDate();
+}
+
+function actualizarDashboard(listaBase) {
+  const hoy = new Date();
+
+  const totalHoy = listaBase.filter(e => {
+    if (!e.created_at) return false;
+    const fecha = new Date(e.created_at);
+    if (isNaN(fecha.getTime())) return false;
+    return esMismoDia(fecha, hoy);
+  }).length;
+
+  const totalUrgentes = listaBase.filter(e => !!e.urgente).length;
+  const totalConFoto = listaBase.filter(e => !!e.photo_url).length;
+  const totalSinPrecio = listaBase.filter(e => e.price_eur === null || e.price_eur === undefined || e.price_eur === "").length;
+
+  kpiHoy.innerText = totalHoy;
+  kpiUrgentes.innerText = totalUrgentes;
+  kpiConFoto.innerText = totalConFoto;
+  kpiSinPrecio.innerText = totalSinPrecio;
+
+  const sinFoto = listaBase.filter(e => !e.photo_url).length;
+  const sinCliente = listaBase.filter(e => !String(e.client_name || "").trim()).length;
+  const sinDescarga = listaBase.filter(e => !String(e.dropoff_place || "").trim()).length;
+  const sinPrecio = totalSinPrecio;
+  const urgentes = totalUrgentes;
+
+  const alertas = [];
+
+  if (sinFoto > 0) {
+    alertas.push(`Hay ${sinFoto} entrega${sinFoto === 1 ? "" : "s"} sin foto.`);
+  }
+
+  if (sinCliente > 0) {
+    alertas.push(`Hay ${sinCliente} entrega${sinCliente === 1 ? "" : "s"} sin cliente.`);
+  }
+
+  if (sinDescarga > 0) {
+    alertas.push(`Hay ${sinDescarga} entrega${sinDescarga === 1 ? "" : "s"} sin lugar de descarga.`);
+  }
+
+  if (sinPrecio > 0) {
+    alertas.push(`Hay ${sinPrecio} entrega${sinPrecio === 1 ? "" : "s"} pendiente${sinPrecio === 1 ? "" : "s"} de precio.`);
+  }
+
+  if (urgentes > 0) {
+    alertas.push(`Tienes ${urgentes} entrega${urgentes === 1 ? "" : "s"} marcada${urgentes === 1 ? "" : "s"} como urgente.`);
+  }
+
+  if (!alertas.length) {
+    alertList.innerHTML = `<div class="alertItem">Todo parece correcto. No hay alertas importantes.</div>`;
+  } else {
+    alertList.innerHTML = alertas.map(txt => `<div class="alertItem">${escapeHtml(txt)}</div>`).join("");
+  }
+}
+
+function actualizarResumenFiltrado(listaFiltrada) {
+  resumeMostrando.innerText = listaFiltrada.length;
+  resumeTotal.innerText = entregasGlobal.length;
+  resumeMozo.innerText = listaFiltrada.filter(e => !!e.mozo).length;
+  resumeTrampilla.innerText = listaFiltrada.filter(e => !!e.trampilla).length;
+  resumeUrgentes.innerText = listaFiltrada.filter(e => !!e.urgente).length;
+}
+
 function renderEntregas(lista) {
   if (!lista.length) {
     tbodyEntregas.innerHTML = `
@@ -957,6 +1185,7 @@ function aplicarFiltros() {
   });
 
   renderEntregas(filtradas);
+  actualizarResumenFiltrado(filtradas);
 }
 
 async function cargarEntregas() {
@@ -1005,6 +1234,7 @@ async function cargarEntregas() {
     }
 
     entregasGlobal = data || [];
+    actualizarDashboard(entregasGlobal);
     aplicarFiltros();
 
     if (sesion.role === "admin_empresa") {
