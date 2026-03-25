@@ -33,7 +33,7 @@ body{
 }
 
 .wrap{
-  max-width:900px;
+  max-width:1000px;
   margin:0 auto;
 }
 
@@ -363,8 +363,91 @@ button.danger{
   font-weight:bold;
 }
 
-.hide{
-  display:none !important;
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1100px;
+  background:var(--card);
+}
+
+th, td{
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  margin-right:6px;
+  margin-bottom:4px;
+}
+
+.si{
+  background:#1f8b4c;
+  color:white;
+}
+
+.no{
+  background:#3a445f;
+  color:#cfd8f0;
+}
+
+.info{
+  background:#274d8a;
+  color:white;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modalContent{
+  background:#121b2f;
+  border-radius:12px;
+  padding:20px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+}
+
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap:wrap;
 }
 
 @media (max-width:700px){
@@ -571,7 +654,7 @@ button.danger{
     <div class="helperList">
       <div class="helperItem">Si eliges un cliente frecuente, se rellenará más rápido.</div>
       <div class="helperItem">En Inditex, los bultos y kilos se pueden sumar automáticamente desde las líneas de mercancía.</div>
-      <div class="helperItem">La entrega se guarda en la tabla nueva y también en la tabla antigua para no romper lo que ya funciona.</div>
+      <div class="helperItem">Si te equivocas, ahora puedes corregir tus últimas entregas desde abajo.</div>
     </div>
   </div>
 
@@ -584,6 +667,113 @@ button.danger{
     <div id="status" class="statusBox"></div>
   </div>
 
+  <div class="card">
+    <h3 class="sectionTitle">Mis últimas entregas</h3>
+    <div class="muted" style="margin-bottom:12px;">Puedes revisar y corregir tus últimas entregas desde aquí.</div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Matrícula</th>
+            <th>Carga</th>
+            <th>Descarga</th>
+            <th>Bultos</th>
+            <th>Kg</th>
+            <th>M3</th>
+            <th>Extras</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyUltimasEntregas">
+          <tr>
+            <td colspan="10" class="empty">Cargando últimas entregas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="editModal" class="modal" onclick="cerrarEditModalSiFondo(event)">
+  <div class="modalContent">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+      <strong>Editar entrega</strong>
+      <button class="sec btnMini" onclick="cerrarEditModal()">Cerrar</button>
+    </div>
+
+    <div class="formGrid">
+      <div>
+        <label>Cliente</label>
+        <input id="edit_client">
+      </div>
+
+      <div>
+        <label>Matrícula</label>
+        <input id="edit_vehicle">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="edit_pickup">
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="edit_dropoff">
+      </div>
+
+      <div>
+        <label>Nº entregas</label>
+        <input id="edit_num_entregas" type="number">
+      </div>
+
+      <div>
+        <label>Bultos</label>
+        <input id="edit_bultos" type="number">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="edit_kg" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="edit_m3" type="number" step="0.01">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Observaciones</label>
+      <textarea id="edit_observations" rows="4"></textarea>
+    </div>
+
+    <div class="checkGroup" style="margin-top:14px;">
+      <label class="checkItem">
+        <input id="edit_mozo" type="checkbox">
+        <span>Mozo</span>
+      </label>
+
+      <label class="checkItem">
+        <input id="edit_trampilla" type="checkbox">
+        <span>Trampilla</span>
+      </label>
+
+      <label class="checkItem">
+        <input id="edit_urgente" type="checkbox">
+        <span>Urgente</span>
+      </label>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" onclick="cerrarEditModal()">Cancelar</button>
+      <button onclick="guardarCambiosEntregaConductor()">Guardar cambios</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -648,6 +838,22 @@ const pillMatricula = document.getElementById("pillMatricula");
 const pillCarga = document.getElementById("pillCarga");
 const pillDescarga = document.getElementById("pillDescarga");
 
+const tbodyUltimasEntregas = document.getElementById("tbodyUltimasEntregas");
+
+const editModal = document.getElementById("editModal");
+const editClient = document.getElementById("edit_client");
+const editVehicle = document.getElementById("edit_vehicle");
+const editPickup = document.getElementById("edit_pickup");
+const editDropoff = document.getElementById("edit_dropoff");
+const editNumEntregas = document.getElementById("edit_num_entregas");
+const editBultos = document.getElementById("edit_bultos");
+const editKg = document.getElementById("edit_kg");
+const editM3 = document.getElementById("edit_m3");
+const editObservations = document.getElementById("edit_observations");
+const editMozo = document.getElementById("edit_mozo");
+const editTrampilla = document.getElementById("edit_trampilla");
+const editUrgente = document.getElementById("edit_urgente");
+
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || sesion.role !== "driver") {
@@ -671,6 +877,8 @@ window.cerrarSesion = function () {
 let ultimaPhotoUrl = null;
 let conductorActual = null;
 let guardandoEntrega = false;
+let ultimasEntregas = [];
+let entregaEditandoActual = null;
 
 function setStatus(texto, tipo = "") {
   statusEl.innerText = texto || "";
@@ -731,8 +939,26 @@ function escapeHtml(valor) {
     .replaceAll("'", "&#039;");
 }
 
+function quitarBloqueInditexDeObservaciones(texto) {
+  const t = String(texto || "");
+  const marca = "[INDITEX]";
+  if (!t.includes(marca)) return t.trim();
+  return t.split(marca)[0].trim();
+}
+
 function getSelectedPhotoFile() {
   return cameraInput.files[0] || galleryInput.files[0] || null;
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function badgeBooleano(activo, texto) {
+  return `<span class="badge ${activo ? "si" : "no"}">${texto}: ${activo ? "Sí" : "No"}</span>`;
 }
 
 function actualizarResumenVisual() {
@@ -1227,43 +1453,6 @@ async function cargarFrecuentes() {
   }
 }
 
-vehicleSelect.addEventListener("change", () => {
-  vehicleInput.value = (vehicleSelect.value || "").toUpperCase();
-  actualizarResumenVisual();
-});
-
-clientSelect.addEventListener("change", () => {
-  clientInput.value = clientSelect.value || "";
-  actualizarCamposCliente();
-});
-
-pickupSelect.addEventListener("change", () => {
-  pickupInput.value = pickupSelect.value || "";
-  actualizarResumenVisual();
-});
-
-dropoffSelect.addEventListener("change", () => {
-  dropoffInput.value = dropoffSelect.value || "";
-  actualizarResumenVisual();
-});
-
-vehicleInput.addEventListener("input", () => {
-  vehicleInput.value = vehicleInput.value.toUpperCase().replace(/\s+/g, "");
-  actualizarResumenVisual();
-});
-
-clientInput.addEventListener("input", actualizarCamposCliente);
-pickupInput.addEventListener("input", actualizarResumenVisual);
-dropoffInput.addEventListener("input", actualizarResumenVisual);
-numEntregasInput.addEventListener("input", actualizarResumenVisual);
-bultosInput.addEventListener("input", actualizarResumenVisual);
-kgInput.addEventListener("input", actualizarResumenVisual);
-m3Input.addEventListener("input", actualizarResumenVisual);
-observationsInput.addEventListener("input", actualizarResumenVisual);
-mozoInput.addEventListener("change", actualizarResumenVisual);
-trampillaInput.addEventListener("change", actualizarResumenVisual);
-urgenteInput.addEventListener("change", actualizarResumenVisual);
-
 async function guardarClienteFrecuenteSiNoExiste(nombre) {
   const limpio = (nombre || "").trim();
   if (!limpio) return;
@@ -1446,6 +1635,226 @@ function validarFormularioAntesDeGuardar() {
   return null;
 }
 
+function renderUltimasEntregas(lista) {
+  if (!lista.length) {
+    tbodyUltimasEntregas.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">No hay entregas todavía.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbodyUltimasEntregas.innerHTML = lista.map(entrega => `
+    <tr>
+      <td>${escapeHtml(formatearFecha(entrega.created_at || entrega.fecha))}</td>
+      <td>${escapeHtml(entrega.client_name || entrega.cliente || "")}</td>
+      <td>${escapeHtml(entrega.vehicle_plate || entrega.matricula || "")}</td>
+      <td>${escapeHtml(entrega.pickup_place || entrega.lugar_carga || "")}</td>
+      <td>${escapeHtml(entrega.dropoff_place || entrega.lugar_descarga || "")}</td>
+      <td>${escapeHtml(entrega.bultos ?? "")}</td>
+      <td>${escapeHtml(entrega.kg ?? "")}</td>
+      <td>${escapeHtml(entrega.m3 ?? "")}</td>
+      <td>
+        ${badgeBooleano(!!entrega.mozo, "Mozo")}
+        ${badgeBooleano(!!entrega.trampilla, "Trampilla")}
+        ${badgeBooleano(!!entrega.urgente, "Urgente")}
+      </td>
+      <td>
+        <button class="sec btnMini" onclick="editarEntregaConductor('${entrega.id}')">Editar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function cargarUltimasEntregasConductor() {
+  try {
+    const conductor = await obtenerConductorActual();
+
+    const { data, error } = await supabase
+      .from("deliveries")
+      .select(`
+        id,
+        empresa_id,
+        created_at,
+        driver_name,
+        vehicle_plate,
+        client_name,
+        pickup_place,
+        dropoff_place,
+        num_entregas,
+        bultos,
+        kg,
+        m3,
+        observations,
+        mozo,
+        trampilla,
+        urgente,
+        photo_url
+      `)
+      .eq("empresa_id", conductor.empresa_id)
+      .eq("driver_name", sesion.username || conductor.usuario || conductor.nombre || "")
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.warn("No se pudieron cargar últimas entregas:", error.message);
+      tbodyUltimasEntregas.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty">No se pudieron cargar las últimas entregas.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    ultimasEntregas = data || [];
+    renderUltimasEntregas(ultimasEntregas);
+  } catch (e) {
+    console.warn("Error cargando últimas entregas:", e.message);
+    tbodyUltimasEntregas.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">Error cargando últimas entregas.</td>
+      </tr>
+    `;
+  }
+}
+
+window.cerrarEditModal = function() {
+  editModal.classList.remove("open");
+  entregaEditandoActual = null;
+};
+
+window.cerrarEditModalSiFondo = function(event) {
+  if (event.target === editModal) {
+    cerrarEditModal();
+  }
+};
+
+window.editarEntregaConductor = function(id) {
+  const entrega = ultimasEntregas.find(e => e.id === id);
+
+  if (!entrega) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  entregaEditandoActual = entrega;
+
+  editClient.value = entrega.client_name || "";
+  editVehicle.value = (entrega.vehicle_plate || "").toUpperCase();
+  editPickup.value = entrega.pickup_place || "";
+  editDropoff.value = entrega.dropoff_place || "";
+  editNumEntregas.value = entrega.num_entregas ?? "";
+  editBultos.value = entrega.bultos ?? "";
+  editKg.value = entrega.kg ?? "";
+  editM3.value = entrega.m3 ?? "";
+  editObservations.value = quitarBloqueInditexDeObservaciones(entrega.observations || "");
+  editMozo.checked = !!entrega.mozo;
+  editTrampilla.checked = !!entrega.trampilla;
+  editUrgente.checked = !!entrega.urgente;
+
+  editModal.classList.add("open");
+};
+
+window.guardarCambiosEntregaConductor = async function() {
+  if (!entregaEditandoActual) {
+    alert("No hay entrega seleccionada");
+    return;
+  }
+
+  try {
+    setStatus("Guardando cambios de la entrega...", "warn");
+
+    const datosActualizadosVieja = {
+      client_name: editClient.value.trim() || null,
+      vehicle_plate: editVehicle.value.trim().toUpperCase() || null,
+      pickup_place: editPickup.value.trim() || null,
+      dropoff_place: editDropoff.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      observations: editObservations.value.trim() || null,
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
+
+    const { error: errorVieja } = await supabase
+      .from("deliveries")
+      .update(datosActualizadosVieja)
+      .eq("id", entregaEditandoActual.id);
+
+    if (errorVieja) {
+      alert("Error guardando en deliveries: " + errorVieja.message);
+      setStatus("Error guardando cambios en deliveries", "error");
+      return;
+    }
+
+    const conductor = await obtenerConductorActual();
+
+    const fechaSoloDia = entregaEditandoActual.created_at
+      ? String(entregaEditandoActual.created_at).slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+
+    const datosActualizadosNueva = {
+      cliente: editClient.value.trim() || null,
+      matricula: editVehicle.value.trim().toUpperCase() || null,
+      lugar_carga: editPickup.value.trim() || null,
+      lugar_descarga: editDropoff.value.trim() || null,
+      num_entregas: normalizarNumero(editNumEntregas.value),
+      bultos: normalizarNumero(editBultos.value),
+      kg: normalizarNumero(editKg.value),
+      m3: normalizarNumero(editM3.value),
+      observaciones: editObservations.value.trim() || null,
+      mozo: editMozo.checked,
+      trampilla: editTrampilla.checked,
+      urgente: editUrgente.checked
+    };
+
+    const { data: candidatasNueva, error: errorBuscarNueva } = await supabase
+      .from("entregas")
+      .select("id, fecha, cliente, matricula")
+      .eq("empresa_id", conductor.empresa_id)
+      .eq("conductor_id", conductor.id)
+      .eq("fecha", fechaSoloDia)
+      .order("id", { ascending: false })
+      .limit(10);
+
+    if (!errorBuscarNueva && Array.isArray(candidatasNueva) && candidatasNueva.length) {
+      const candidata = candidatasNueva.find(item =>
+        String(item.cliente || "").trim() === String(entregaEditandoActual.client_name || "").trim() &&
+        String(item.matricula || "").trim().toUpperCase() === String(entregaEditandoActual.vehicle_plate || "").trim().toUpperCase()
+      ) || candidatasNueva[0];
+
+      if (candidata?.id) {
+        const { error: errorNueva } = await supabase
+          .from("entregas")
+          .update(datosActualizadosNueva)
+          .eq("id", candidata.id);
+
+        if (errorNueva) {
+          console.warn("No se pudo actualizar tabla entregas:", errorNueva.message);
+        }
+      }
+    }
+
+    await guardarClienteFrecuenteSiNoExiste(editClient.value.trim() || null);
+    await guardarPickupFrecuenteSiNoExiste(editPickup.value.trim() || null);
+    await guardarDropoffFrecuenteSiNoExiste(editDropoff.value.trim() || null);
+    await guardarVehiculoFrecuenteSiNoExiste(editVehicle.value.trim() || null);
+
+    cerrarEditModal();
+    setStatus("Entrega actualizada correctamente", "ok");
+    await cargarFrecuentes();
+    await cargarUltimasEntregasConductor();
+  } catch (e) {
+    console.error(e);
+    setStatus("Fallo guardando cambios: " + e.message, "error");
+    alert("Fallo guardando cambios: " + e.message);
+  }
+};
+
 window.limpiarFormulario = function() {
   vehicleInput.value = "";
   vehicleSelect.value = "";
@@ -1603,6 +2012,7 @@ window.guardarEntrega = async function () {
     await guardarEnTablaViejaSinRomper(datosTablaVieja);
 
     await cargarFrecuentes();
+    await cargarUltimasEntregasConductor();
     setStatus("Entrega guardada correctamente", "ok");
     limpiarFormulario();
   } catch (e) {
@@ -1615,11 +2025,49 @@ window.guardarEntrega = async function () {
   }
 };
 
+vehicleSelect.addEventListener("change", () => {
+  vehicleInput.value = (vehicleSelect.value || "").toUpperCase();
+  actualizarResumenVisual();
+});
+
+clientSelect.addEventListener("change", () => {
+  clientInput.value = clientSelect.value || "";
+  actualizarCamposCliente();
+});
+
+pickupSelect.addEventListener("change", () => {
+  pickupInput.value = pickupSelect.value || "";
+  actualizarResumenVisual();
+});
+
+dropoffSelect.addEventListener("change", () => {
+  dropoffInput.value = dropoffSelect.value || "";
+  actualizarResumenVisual();
+});
+
+vehicleInput.addEventListener("input", () => {
+  vehicleInput.value = vehicleInput.value.toUpperCase().replace(/\s+/g, "");
+  actualizarResumenVisual();
+});
+
+clientInput.addEventListener("input", actualizarCamposCliente);
+pickupInput.addEventListener("input", actualizarResumenVisual);
+dropoffInput.addEventListener("input", actualizarResumenVisual);
+numEntregasInput.addEventListener("input", actualizarResumenVisual);
+bultosInput.addEventListener("input", actualizarResumenVisual);
+kgInput.addEventListener("input", actualizarResumenVisual);
+m3Input.addEventListener("input", actualizarResumenVisual);
+observationsInput.addEventListener("input", actualizarResumenVisual);
+mozoInput.addEventListener("change", actualizarResumenVisual);
+trampillaInput.addEventListener("change", actualizarResumenVisual);
+urgenteInput.addEventListener("change", actualizarResumenVisual);
+
 async function initApp() {
   try {
     setStatus("Cargando datos...", "warn");
     await obtenerConductorActual();
     await cargarFrecuentes();
+    await cargarUltimasEntregasConductor();
     limpiarCamposInditex(true);
     actualizarCamposCliente();
     actualizarResumenVisual();
@@ -1635,3 +2083,4 @@ initApp();
 
 </body>
 </html>
+  
