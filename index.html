@@ -1957,64 +1957,64 @@ window.guardarEntrega = async function () {
       photo_url = await subirFoto(photoFile, "entrega-");
     }
 
-    const datosNuevaTabla = {
-      fecha: new Date().toISOString().split("T")[0],
-      cliente: cliente,
-      lugar_carga: lugarCarga,
-      lugar_descarga: lugarDescarga,
-      num_entregas: numEntregas,
-      bultos: bultos,
-      kg: kg,
-      m3: m3,
-      observaciones: observaciones,
-      mozo: mozo,
-      trampilla: trampilla,
-      urgente: urgente,
-      matricula: matricula,
-      estado: "pendiente",
-      foto_url: photo_url || null,
-      conductor_id: conductor.id,
-      empresa_id: conductor.empresa_id
-    };
+   const datosTablaVieja = {
+  empresa_id: conductor.empresa_id,
+  driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
+  vehicle_plate: matricula,
+  client_name: cliente,
+  pickup_place: lugarCarga,
+  dropoff_place: lugarDescarga,
+  num_entregas: numEntregas,
+  bultos: bultos,
+  kg: kg,
+  m3: m3,
+  observations: observaciones,
+  mozo: mozo,
+  trampilla: trampilla,
+  urgente: urgente,
+  distance_km: 0,
+  price_eur: 0,
+  photo_url: photo_url || null
+};
 
-    await guardarEnTablaNueva(datosNuevaTabla);
+const legacyDeliveryId = await guardarEnTablaViejaSinRomper(datosTablaVieja);
 
-    await guardarClienteFrecuenteSiNoExiste(cliente);
+const datosNuevaTabla = {
+  fecha: new Date().toISOString().split("T")[0],
+  cliente: cliente,
+  lugar_carga: lugarCarga,
+  lugar_descarga: lugarDescarga,
+  num_entregas: numEntregas,
+  bultos: bultos,
+  kg: kg,
+  m3: m3,
+  observaciones: observaciones,
+  mozo: mozo,
+  trampilla: trampilla,
+  urgente: urgente,
+  matricula: matricula,
+  estado: "pendiente",
+  foto_url: photo_url || null,
+  conductor_id: conductor.id,
+  empresa_id: conductor.empresa_id,
+  legacy_delivery_id: legacyDeliveryId
+};
 
-    if (!albepet) {
-      await guardarPickupFrecuenteSiNoExiste(lugarCarga);
-    }
+await guardarEnTablaNueva(datosNuevaTabla);
 
-    if (!albepet && !sotracom) {
-      await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
-    }
+await guardarClienteFrecuenteSiNoExiste(cliente);
 
-    if (!sotracom && matricula) {
-      await guardarVehiculoFrecuenteSiNoExiste(matricula);
-    }
+if (!albepet) {
+  await guardarPickupFrecuenteSiNoExiste(lugarCarga);
+}
 
-    const datosTablaVieja = {
-      empresa_id: conductor.empresa_id,
-      driver_name: sesion.username || conductor.usuario || conductor.nombre || "sin_usuario",
-      vehicle_plate: matricula,
-      client_name: cliente,
-      pickup_place: lugarCarga,
-      dropoff_place: lugarDescarga,
-      num_entregas: numEntregas,
-      bultos: bultos,
-      kg: kg,
-      m3: m3,
-      observations: observaciones,
-      mozo: mozo,
-      trampilla: trampilla,
-      urgente: urgente,
-      distance_km: 0,
-      price_eur: 0,
-      photo_url: photo_url || null
-    };
+if (!albepet && !sotracom) {
+  await guardarDropoffFrecuenteSiNoExiste(lugarDescarga);
+}
 
-    await guardarEnTablaViejaSinRomper(datosTablaVieja);
-
+if (!sotracom && matricula) {
+  await guardarVehiculoFrecuenteSiNoExiste(matricula);
+}
     await cargarFrecuentes();
     await cargarUltimasEntregasConductor();
     setStatus("Entrega guardada correctamente", "ok");
