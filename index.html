@@ -1803,6 +1803,7 @@ window.guardarEntrega = async function () {
   if (guardandoEntrega) return;
 
   try {
+    alert("INDEX NUEVO CARGADO");
     const errorValidacion = validarFormularioAntesDeGuardar();
     if (errorValidacion) {
       setStatus(errorValidacion, "error");
