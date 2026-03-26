@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firmar Albaranes</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:12px;
+  max-width:900px;
+  margin:auto;
+}
+
+.item{
+  background:#18233b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+canvas{
+  width:100%;
+  height:200px;
+  background:white;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+button{
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#ff7a18;
+  font-weight:bold;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <h1>Albaranes pendientes</h1>
+
+  <div id="lista"></div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const lista = document.getElementById("lista");
+
+async function cargar(){
+
+  const { data } = await supabase
+    .from("albaranes_electronicos")
+    .select("*")
+    .eq("estado","pendiente");
+
+  lista.innerHTML = "";
+
+  data.forEach(a => {
+
+    const id = a.id;
+
+    lista.innerHTML += `
+      <div class="item">
+        <strong>${a.cliente}</strong><br>
+        ${a.carga} → ${a.descarga}
+
+        <canvas id="canvas_${id}"></canvas>
+
+        <button onclick="limpiar('${id}')">Limpiar firma</button>
+        <button onclick="firmar('${id}')">Firmar</button>
+      </div>
+    `;
+
+    setTimeout(() => activarCanvas(id), 100);
+  });
+}
+
+function activarCanvas(id){
+  const canvas = document.getElementById("canvas_" + id);
+  const ctx = canvas.getContext("2d");
+
+  let dibujando = false;
+
+  canvas.addEventListener("mousedown", () => dibujando = true);
+  canvas.addEventListener("mouseup", () => {
+    dibujando = false;
+    ctx.beginPath();
+  });
+
+  canvas.addEventListener("mousemove", dibujar);
+
+  canvas.addEventListener("touchstart", () => dibujando = true);
+  canvas.addEventListener("touchend", () => dibujando = false);
+  canvas.addEventListener("touchmove", dibujarTouch);
+
+  function dibujar(e){
+    if(!dibujando) return;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+  }
+
+  function dibujarTouch(e){
+    if(!dibujando) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left;
+    const y = e.touches[0].clientY - rect.top;
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+}
+
+window.limpiar = function(id){
+  const canvas = document.getElementById("canvas_" + id);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+};
+
+window.firmar = async function(id){
+
+  const canvas = document.getElementById("canvas_" + id);
+  const firma = canvas.toDataURL();
+
+  const { error } = await supabase
+    .from("albaranes_electronicos")
+    .update({
+      estado: "firmado",
+      firma: firma
+    })
+    .eq("id", id);
+
+  if(error){
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("Firmado correctamente");
+  cargar();
+};
+
+cargar();
+</script>
+
+</body>
+</html>
