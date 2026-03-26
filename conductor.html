@@ -861,7 +861,6 @@ window.guardarEntrega = async function () {
     const datosNuevaTabla = {
       fecha: new Date().toISOString().split("T")[0],
       cliente: cliente,
-      cliente_id: clienteIdActual || null,
       lugar_carga: lugarCarga,
       lugar_descarga: lugarDescarga,
       num_entregas: esDuttitransAlbepet() ? numEntregas : null,
