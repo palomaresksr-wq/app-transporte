@@ -1026,8 +1026,8 @@ function renderEntregas(lista) {
     const acciones = puedeEditarEntrega(entrega)
       ? `
         <div class="actions">
-          <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}')">Editar</button>
-          <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}')">Borrar</button>
+          <button class="smallBtn sec" onclick="editarEntrega('${entrega.id}','${entrega.source_table}')">Editar</button>
+          <button class="smallBtn sec" onclick="borrarEntrega('${entrega.id}','${entrega.source_table}')">Borrar</button>
         </div>
       `
       : `<span class="muted">Sin permiso</span>`;
@@ -1192,31 +1192,12 @@ async function cargarEntregas() {
     const nuevas = await cargarEntregasNuevaTabla();
     const legacy = await cargarEntregasLegacy();
 
-    const mapa = new Map();
+    const todas = [
+      ...legacy.map(item => ({ ...item, _clave: "deliveries-" + item.id })),
+      ...nuevas.map(item => ({ ...item, _clave: "entregas-" + item.id }))
+    ];
 
-    legacy.forEach(item => {
-      mapa.set("deliveries-" + item.id, item);
-    });
-
-    nuevas.forEach(item => {
-      const clavePosibleLegacy = Array.from(mapa.keys()).find(k => {
-        const l = mapa.get(k);
-        return String(l.empresa_id || "") === String(item.empresa_id || "")
-          && String(l.client_name || "").trim() === String(item.client_name || "").trim()
-          && String(l.vehicle_plate || "").trim() === String(item.vehicle_plate || "").trim()
-          && String(l.pickup_place || "").trim() === String(item.pickup_place || "").trim()
-          && String(l.dropoff_place || "").trim() === String(item.dropoff_place || "").trim()
-          && String(l.created_at || "").slice(0,10) === String(item.created_at || "").slice(0,10);
-      });
-
-      if (clavePosibleLegacy) {
-        mapa.delete(clavePosibleLegacy);
-      }
-
-      mapa.set("entregas-" + item.id, item);
-    });
-
-    entregasGlobal = Array.from(mapa.values()).sort((a, b) => {
+    entregasGlobal = todas.sort((a, b) => {
       const fa = new Date(a.created_at || 0).getTime();
       const fb = new Date(b.created_at || 0).getTime();
       return fb - fa;
@@ -1283,8 +1264,8 @@ function pintarVistaInditexEdicion(datos) {
   editInditexTotalKilos.innerText = totalKilos;
 }
 
-window.editarEntrega = function(id) {
-  const entrega = entregasGlobal.find(e => String(e.id) === String(id));
+window.editarEntrega = function(id, sourceTable) {
+  const entrega = entregasGlobal.find(e => String(e.id) === String(id) && String(e.source_table) === String(sourceTable));
 
   if (!entrega) {
     alert("No se encontró la entrega");
@@ -1296,7 +1277,7 @@ window.editarEntrega = function(id) {
     return;
   }
 
-  entregaEditandoId = id;
+  entregaEditandoId = `${sourceTable}-${id}`;
 
   const datosInditex = parsearObservacionesInditex(entrega.observations);
   datosInditexEditando = datosInditex;
@@ -1346,7 +1327,7 @@ window.guardarCambiosEntrega = async function() {
     return;
   }
 
-  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(entregaEditandoId));
+  const entregaOriginal = entregasGlobal.find(e => `${e.source_table}-${e.id}` === entregaEditandoId);
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega original");
@@ -1387,7 +1368,7 @@ window.guardarCambiosEntrega = async function() {
       let queryNueva = supabase
         .from("entregas")
         .update(datosActualizadosNueva)
-        .eq("id", entregaEditandoId);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
@@ -1422,7 +1403,7 @@ window.guardarCambiosEntrega = async function() {
       let queryLegacy = supabase
         .from("deliveries")
         .update(datosActualizadosLegacy)
-        .eq("id", entregaEditandoId);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
@@ -1446,8 +1427,8 @@ window.guardarCambiosEntrega = async function() {
   }
 };
 
-async function borrarEntrega(id) {
-  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(id));
+async function borrarEntrega(id, sourceTable) {
+  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(id) && String(e.source_table) === String(sourceTable));
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega");
@@ -1469,7 +1450,7 @@ async function borrarEntrega(id) {
       let queryNueva = supabase
         .from("entregas")
         .delete()
-        .eq("id", id);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
@@ -1486,7 +1467,7 @@ async function borrarEntrega(id) {
       let queryLegacy = supabase
         .from("deliveries")
         .delete()
-        .eq("id", id);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
