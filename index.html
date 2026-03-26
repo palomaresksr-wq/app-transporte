@@ -1622,9 +1622,10 @@ function renderUltimasEntregas(lista) {
         ${badgeBooleano(!!entrega.trampilla, "Trampilla")}
         ${badgeBooleano(!!entrega.urgente, "Urgente")}
       </td>
-      <td>
-        <button class="sec btnMini" onclick="editarEntregaConductor('${entrega.id}')">Editar</button>
-      </td>
+    <td>
+  <button class="sec btnMini" onclick="editarEntregaConductor('${entrega.id}')">Editar</button>
+  <button class="danger btnMini" onclick="borrarEntregaConductor('${entrega.id}')">Borrar</button>
+</td>
     </tr>
   `).join("");
 }
