@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Albaranes Electrónicos</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:12px;
+  max-width:900px;
+  margin:auto;
+}
+
+h1{
+  margin-top:0;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  padding:12px;
+  background:#ff7a18;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.list{
+  margin-top:20px;
+}
+
+.item{
+  background:#18233b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.estado{
+  font-size:12px;
+  opacity:.8;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <h1>Crear Albarán Electrónico</h1>
+
+  <label>Cliente</label>
+  <input id="cliente">
+
+  <label>Lugar de carga</label>
+  <input id="carga">
+
+  <label>Lugar de descarga</label>
+  <input id="descarga">
+
+  <label>Observaciones</label>
+  <textarea id="obs"></textarea>
+
+  <button onclick="crearAlbaran()">Crear albarán</button>
+
+  <div class="list" id="lista"></div>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const lista = document.getElementById("lista");
+
+async function crearAlbaran(){
+
+  const cliente = document.getElementById("cliente").value;
+  const carga = document.getElementById("carga").value;
+  const descarga = document.getElementById("descarga").value;
+  const obs = document.getElementById("obs").value;
+
+  if(!cliente || !carga || !descarga){
+    alert("Rellena los campos");
+    return;
+  }
+
+  const { error } = await supabase.from("albaranes_electronicos").insert({
+    cliente,
+    carga,
+    descarga,
+    observaciones: obs,
+    estado: "pendiente"
+  });
+
+  if(error){
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("Albarán creado");
+  cargarAlbaranes();
+}
+
+async function cargarAlbaranes(){
+
+  const { data } = await supabase
+    .from("albaranes_electronicos")
+    .select("*")
+    .order("created_at", { ascending:false });
+
+  lista.innerHTML = "";
+
+  data.forEach(a => {
+    lista.innerHTML += `
+      <div class="item">
+        <strong>${a.cliente}</strong><br>
+        ${a.carga} → ${a.descarga}<br>
+        <div class="estado">Estado: ${a.estado}</div>
+      </div>
+    `;
+  });
+}
+
+cargarAlbaranes();
+</script>
+
+</body>
+</html>
