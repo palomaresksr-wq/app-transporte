@@ -1622,10 +1622,10 @@ function renderUltimasEntregas(lista) {
         ${badgeBooleano(!!entrega.trampilla, "Trampilla")}
         ${badgeBooleano(!!entrega.urgente, "Urgente")}
       </td>
-    <td>
-  <button class="sec btnMini" onclick="editarEntregaConductor('${entrega.id}')">Editar</button>
-  <button class="danger btnMini" onclick="borrarEntregaConductor('${entrega.id}')">Borrar</button>
-</td>
+      <td>
+        <button class="sec btnMini" onclick="editarEntregaConductor('${entrega.id}')">Editar</button>
+        <button class="danger btnMini" onclick="borrarEntregaConductor('${entrega.id}')">Borrar</button>
+      </td>
     </tr>
   `).join("");
 }
@@ -1723,70 +1723,9 @@ window.editarEntregaConductor = function(id) {
 window.guardarCambiosEntregaConductor = async function() {
   if (!entregaEditandoActual) {
     alert("No hay entrega seleccionada");
-    window.borrarEntregaConductor = async function(id) {
-  const entrega = ultimasEntregas.find(e => e.id === id);
-
-  if (!entrega) {
-    alert("No se encontró la entrega");
     return;
   }
 
-  const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
-  if (!confirmar) return;
-
-  try {
-    setStatus("Borrando entrega...", "warn");
-
-    const { error } = await supabase
-      .from("deliveries")
-      .delete()
-      .eq("id", entrega.id);
-
-    if (error) {
-      throw new Error("Error borrando en deliveries: " + error.message);
-    }
-
-    await cargarUltimasEntregasConductor();
-    setStatus("Entrega borrada correctamente", "ok");
-  } catch (e) {
-    console.error(e);
-    setStatus("Fallo borrando: " + e.message, "error");
-    alert("Fallo borrando: " + e.message);
-  }
-};
-    return;
-  }
-window.borrarEntregaConductor = async function(id) {
-  const entrega = ultimasEntregas.find(e => e.id === id);
-
-  if (!entrega) {
-    alert("No se encontró la entrega");
-    return;
-  }
-
-  const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
-  if (!confirmar) return;
-
-  try {
-    setStatus("Borrando entrega...", "warn");
-
-    const { error } = await supabase
-      .from("deliveries")
-      .delete()
-      .eq("id", entrega.id);
-
-    if (error) {
-      throw new Error("Error borrando en deliveries: " + error.message);
-    }
-
-    await cargarUltimasEntregasConductor();
-    setStatus("Entrega borrada correctamente", "ok");
-  } catch (e) {
-    console.error(e);
-    setStatus("Fallo borrando: " + e.message, "error");
-    alert("Fallo borrando: " + e.message);
-  }
-};
   try {
     setStatus("Guardando cambios de la entrega...", "warn");
 
@@ -1827,6 +1766,38 @@ window.borrarEntregaConductor = async function(id) {
     console.error(e);
     setStatus("Fallo guardando cambios: " + e.message, "error");
     alert("Fallo guardando cambios: " + e.message);
+  }
+};
+
+window.borrarEntregaConductor = async function(id) {
+  const entrega = ultimasEntregas.find(e => e.id === id);
+
+  if (!entrega) {
+    alert("No se encontró la entrega");
+    return;
+  }
+
+  const confirmar = confirm("¿Seguro que quieres borrar esta entrega?");
+  if (!confirmar) return;
+
+  try {
+    setStatus("Borrando entrega...", "warn");
+
+    const { error } = await supabase
+      .from("deliveries")
+      .delete()
+      .eq("id", entrega.id);
+
+    if (error) {
+      throw new Error("Error borrando en deliveries: " + error.message);
+    }
+
+    await cargarUltimasEntregasConductor();
+    setStatus("Entrega borrada correctamente", "ok");
+  } catch (e) {
+    console.error(e);
+    setStatus("Fallo borrando: " + e.message, "error");
+    alert("Fallo borrando: " + e.message);
   }
 };
 
@@ -2040,4 +2011,3 @@ initApp();
 
 </body>
 </html>
-  
