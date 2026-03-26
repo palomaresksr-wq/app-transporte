@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crear Albarán Electrónico</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+
+.card{
+  background:#121b2f;
+  padding:20px;
+  border-radius:12px;
+  max-width:600px;
+  margin:auto;
+}
+
+h1{
+  margin-top:0;
+}
+
+label{
+  display:block;
+  margin-top:12px;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  margin-top:20px;
+  width:100%;
+  padding:14px;
+  background:#ff7a18;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#status{
+  margin-top:15px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Crear albarán electrónico</h1>
+
+  <label>Cliente</label>
+  <input id="cliente">
+
+  <label>Dirección entrega</label>
+  <input id="direccion">
+
+  <label>Conductor</label>
+  <input id="conductor">
+
+  <label>Bultos</label>
+  <input id="bultos" type="number">
+
+  <label>Observaciones</label>
+  <textarea id="observaciones"></textarea>
+
+  <button onclick="crearAlbaran()">Crear albarán</button>
+
+  <div id="status"></div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://jpnritlcfumjmdpoaytr.supabase.co",
+  "sb_publishable_6CF_v2_aPe5d3faZfQxAuw_f4epFsYr"
+);
+
+const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
+
+if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
+  window.location.href = "login.html";
+}
+
+const statusEl = document.getElementById("status");
+
+window.crearAlbaran = async function(){
+
+  const cliente = document.getElementById("cliente").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+  const conductor = document.getElementById("conductor").value.trim();
+  const bultos = document.getElementById("bultos").value;
+  const observaciones = document.getElementById("observaciones").value.trim();
+
+  if (!cliente || !direccion) {
+    statusEl.innerText = "Faltan datos";
+    return;
+  }
+
+  statusEl.innerText = "Creando albarán...";
+
+  const { error } = await supabase
+    .from("albaranes_electronicos")
+    .insert({
+      empresa_id: sesion.empresa_id || null,
+      cliente: cliente,
+      direccion: direccion,
+      conductor: conductor,
+      bultos: Number(bultos || 0),
+      observaciones: observaciones,
+      estado: "pendiente",
+      created_at: new Date().toISOString()
+    });
+
+  if (error) {
+    statusEl.innerText = "Error: " + error.message;
+    return;
+  }
+
+  statusEl.innerText = "✅ Albarán creado correctamente";
+
+  document.getElementById("cliente").value = "";
+  document.getElementById("direccion").value = "";
+  document.getElementById("conductor").value = "";
+  document.getElementById("bultos").value = "";
+  document.getElementById("observaciones").value = "";
+};
+</script>
+
+</body>
+</html>
