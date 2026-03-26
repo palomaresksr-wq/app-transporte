@@ -780,6 +780,18 @@ function claveEntrega(entrega) {
   return `${entrega.source_table}-${entrega.id}`;
 }
 
+function generarNumeroFactura() {
+  const hoy = new Date();
+  const año = hoy.getFullYear();
+
+  let contador = localStorage.getItem("contadorFacturas_" + año);
+  contador = contador ? parseInt(contador, 10) + 1 : 1;
+
+  localStorage.setItem("contadorFacturas_" + año, contador);
+
+  return `FAC-${año}-${String(contador).padStart(3, "0")}`;
+}
+
 function esEmpresaDuttitrans() {
   return String(sesion?.empresa_id || "") === DUTTITRANS_EMPRESA_ID;
 }
@@ -1203,10 +1215,10 @@ function renderFactura(lista) {
   }).join("");
 
   const seleccionadasEnFiltro = lista.filter(item => seleccionEntregas.has(claveEntrega(item))).length;
-  const loteActual = entregasCalculadas;
-  const base = loteActual.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
-  const ivaImporte = base * (numero(invoiceVat.value) / 100);
-  const total = base + ivaImporte;
+
+  const base = Number(entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0).toFixed(2));
+  const ivaImporte = Number((base * (numero(invoiceVat.value) / 100)).toFixed(2));
+  const total = Number((base + ivaImporte).toFixed(2));
 
   kpiEntregas.innerText = String(lista.length);
   kpiSeleccionadas.innerText = String(seleccionadasEnFiltro);
@@ -1269,14 +1281,20 @@ function construirHtmlFactura() {
   }
 
   const EMPRESA = obtenerEmpresaFactura();
-  const base = entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const base = Number(entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0).toFixed(2));
   const ivaPorcentaje = numero(invoiceVat.value);
-  const ivaImporte = base * (ivaPorcentaje / 100);
-  const total = base + ivaImporte;
+  const ivaImporte = Number((base * (ivaPorcentaje / 100)).toFixed(2));
+  const total = Number((base + ivaImporte).toFixed(2));
 
   const clienteAutomatico = clientFilter.value || "";
+
+  if (!invoiceConcept.value && clienteAutomatico) {
+    invoiceConcept.value = `Servicios de transporte para ${clienteAutomatico}`;
+  }
+
   const nombreClienteFinal = invoiceClientName.value.trim() || clienteAutomatico;
   const rangoFechas = `${dateFrom.value || "sin inicio"} - ${dateTo.value || "sin fin"}`;
+  const descripcionPeriodo = `Servicios realizados entre ${rangoFechas}`;
 
   const filas = entregasCalculadas.map((entrega, index) => `
     <tr>
@@ -1313,7 +1331,7 @@ function construirHtmlFactura() {
         <div class="invoiceTitle">FACTURA</div>
         <div><strong>Nº factura:</strong> ${escaparHtml(invoiceNumber.value || "")}</div>
         <div><strong>Fecha:</strong> ${escaparHtml(invoiceDate.value || "")}</div>
-        <div><strong>Concepto:</strong> ${escaparHtml(invoiceConcept.value || "Servicios de transporte")}</div>
+        <div><strong>Concepto:</strong> ${escaparHtml(invoiceConcept.value || descripcionPeriodo)}</div>
         <div><strong>Periodo:</strong> ${escaparHtml(rangoFechas)}</div>
       </div>
 
@@ -1713,31 +1731,12 @@ async function cargarDatos() {
     const nuevas = await cargarDatosNuevaTabla();
     const legacy = await cargarDatosLegacy();
 
-    const mapa = new Map();
+    const todas = [
+      ...legacy.map(item => ({ ...item, _clave: "deliveries-" + item.id })),
+      ...nuevas.map(item => ({ ...item, _clave: "entregas-" + item.id }))
+    ];
 
-    legacy.forEach(item => {
-      mapa.set("deliveries-" + item.id, item);
-    });
-
-    nuevas.forEach(item => {
-      const clavePosibleLegacy = Array.from(mapa.keys()).find(k => {
-        const l = mapa.get(k);
-        return String(l.empresa_id || "") === String(item.empresa_id || "")
-          && String(l.client_name || "").trim() === String(item.client_name || "").trim()
-          && String(l.vehicle_plate || "").trim() === String(item.vehicle_plate || "").trim()
-          && String(l.pickup_place || "").trim() === String(item.pickup_place || "").trim()
-          && String(l.dropoff_place || "").trim() === String(item.dropoff_place || "").trim()
-          && String(l.created_at || "").slice(0,10) === String(item.created_at || "").slice(0,10);
-      });
-
-      if (clavePosibleLegacy) {
-        mapa.delete(clavePosibleLegacy);
-      }
-
-      mapa.set("entregas-" + item.id, item);
-    });
-
-    entregasGlobal = Array.from(mapa.values()).sort((a, b) => {
+    entregasGlobal = todas.sort((a, b) => {
       const fa = new Date(a.created_at || 0).getTime();
       const fb = new Date(b.created_at || 0).getTime();
       return fb - fa;
@@ -1835,6 +1834,10 @@ cargarDatos();
 
 if (!invoiceDate.value) {
   invoiceDate.value = hoyISO();
+}
+
+if (!invoiceNumber.value) {
+  invoiceNumber.value = generarNumeroFactura();
 }
 </script>
 
