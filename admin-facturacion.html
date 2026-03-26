@@ -108,7 +108,7 @@ input, select, textarea{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1750px;
+  min-width:1850px;
   background:#121b2f;
 }
 
@@ -314,6 +314,23 @@ th{
   flex-wrap:wrap;
 }
 
+.selectorActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+.checkCenter{
+  text-align:center;
+}
+
+.checkMini{
+  width:18px;
+  height:18px;
+  cursor:pointer;
+}
+
 @media (max-width:700px){
   body{
     padding:12px;
@@ -513,8 +530,13 @@ th{
   <div class="card no-print">
     <div class="totalBox">
       <div class="kpi">
-        <div class="label">Entregas calculadas</div>
+        <div class="label">Entregas filtradas</div>
         <div class="value" id="kpiEntregas">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Entregas seleccionadas</div>
+        <div class="value" id="kpiSeleccionadas">0</div>
       </div>
 
       <div class="kpi">
@@ -535,10 +557,18 @@ th{
   </div>
 
   <div class="card no-print">
+    <div class="selectorActions">
+      <button onclick="seleccionarTodasFiltradas()">Seleccionar todas las filtradas</button>
+      <button class="sec" onclick="limpiarSeleccionFacturacion()">Quitar selección</button>
+    </div>
+
     <div class="tableWrap">
       <table>
         <thead>
           <tr>
+            <th class="checkCenter">
+              <input id="checkAllVisible" class="checkMini" type="checkbox" onclick="toggleSeleccionVisible(this.checked)">
+            </th>
             <th>Fecha</th>
             <th>Conductor</th>
             <th>Cliente</th>
@@ -559,7 +589,7 @@ th{
         </thead>
         <tbody id="tbodyFactura">
           <tr>
-            <td colspan="16">Cargando...</td>
+            <td colspan="17">Cargando...</td>
           </tr>
         </tbody>
       </table>
@@ -679,12 +709,14 @@ const clientFilter = document.getElementById("clientFilter");
 const dateFrom = document.getElementById("dateFrom");
 const dateTo = document.getElementById("dateTo");
 const kpiEntregas = document.getElementById("kpiEntregas");
+const kpiSeleccionadas = document.getElementById("kpiSeleccionadas");
 const kpiBase = document.getElementById("kpiBase");
 const kpiIva = document.getElementById("kpiIva");
 const kpiTotal = document.getElementById("kpiTotal");
 const invoicePreview = document.getElementById("invoicePreview");
 const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
+const checkAllVisible = document.getElementById("checkAllVisible");
 
 const tarifaBase = document.getElementById("tarifaBase");
 const tarifaBulto = document.getElementById("tarifaBulto");
@@ -724,9 +756,11 @@ const editTrampilla = document.getElementById("edit_trampilla");
 const editUrgente = document.getElementById("edit_urgente");
 
 let entregasGlobal = [];
+let entregasFiltradas = [];
 let entregasCalculadas = [];
 let empresaActual = null;
 let entregaEditandoId = null;
+let seleccionEntregas = new Set();
 
 window.cerrarSesion = function(){
   try {
@@ -741,6 +775,10 @@ window.cerrarSesion = function(){
 
   window.location.href = "login.html?logout=1&t=" + Date.now();
 };
+
+function claveEntrega(entrega) {
+  return `${entrega.source_table}-${entrega.id}`;
+}
 
 function esEmpresaDuttitrans() {
   return String(sesion?.empresa_id || "") === DUTTITRANS_EMPRESA_ID;
@@ -1057,13 +1095,45 @@ function rellenarFiltros(lista) {
   }
 }
 
+function obtenerSeleccionadasValidas() {
+  return entregasFiltradas
+    .filter(entrega => seleccionEntregas.has(claveEntrega(entrega)))
+    .map(entrega => ({
+      ...entrega,
+      importe_calculado: calcularImporte(entrega)
+    }));
+}
+
+function actualizarCheckGeneral() {
+  if (!entregasFiltradas.length) {
+    checkAllVisible.checked = false;
+    return;
+  }
+
+  const totalMarcadas = entregasFiltradas.filter(e => seleccionEntregas.has(claveEntrega(e))).length;
+  checkAllVisible.checked = totalMarcadas > 0 && totalMarcadas === entregasFiltradas.length;
+}
+
+function calcularLoteFacturable() {
+  const seleccionadas = obtenerSeleccionadasValidas();
+
+  if (seleccionadas.length > 0) {
+    entregasCalculadas = seleccionadas;
+  } else {
+    entregasCalculadas = entregasFiltradas.map(entrega => ({
+      ...entrega,
+      importe_calculado: calcularImporte(entrega)
+    }));
+  }
+}
+
 window.aplicarFiltrosYCalculo = function() {
   const driver = driverFilter.value;
   const client = clientFilter.value;
   const desde = dateFrom.value;
   const hasta = dateTo.value;
 
-  const lista = entregasGlobal.filter(entrega => {
+  entregasFiltradas = entregasGlobal.filter(entrega => {
     const fecha = entrega.created_at ? String(entrega.created_at).slice(0,10) : "";
 
     if (driver && entrega.driver_name !== driver) return false;
@@ -1074,25 +1144,23 @@ window.aplicarFiltrosYCalculo = function() {
     return true;
   });
 
-  entregasCalculadas = lista.map(entrega => ({
-    ...entrega,
-    importe_calculado: calcularImporte(entrega)
-  }));
-
-  renderFactura(entregasCalculadas);
+  calcularLoteFacturable();
+  renderFactura(entregasFiltradas);
 };
 
 function renderFactura(lista) {
   if (!lista.length) {
     tbodyFactura.innerHTML = `
       <tr>
-        <td colspan="16">No hay entregas para esos filtros.</td>
+        <td colspan="17">No hay entregas para esos filtros.</td>
       </tr>
     `;
     kpiEntregas.innerText = "0";
+    kpiSeleccionadas.innerText = "0";
     kpiBase.innerText = "0.00 €";
     kpiIva.innerText = "0.00 €";
     kpiTotal.innerText = "0.00 €";
+    checkAllVisible.checked = false;
     return;
   }
 
@@ -1102,11 +1170,18 @@ function renderFactura(lista) {
       : `<span class="nueva">Nueva</span>`;
 
     const acciones = puedeEditarEntrega(entrega)
-      ? `<button class="smallBtn sec" onclick="editarEntregaFactura('${entrega.id}')">Editar</button>`
+      ? `<button class="smallBtn sec" onclick="editarEntregaFactura('${entrega.id}','${entrega.source_table}')">Editar</button>`
       : `<span class="muted">Sin permiso</span>`;
+
+    const importe = calcularImporte(entrega);
+    const clave = claveEntrega(entrega);
+    const checked = seleccionEntregas.has(clave) ? "checked" : "";
 
     return `
       <tr>
+        <td class="checkCenter">
+          <input class="checkMini" type="checkbox" ${checked} onchange="toggleEntregaSeleccion('${entrega.id}','${entrega.source_table}', this.checked)">
+        </td>
         <td>${formatearFecha(entrega.created_at)}</td>
         <td>${escaparHtml(entrega.driver_name || "")}</td>
         <td>${escaparHtml(entrega.client_name || "")}</td>
@@ -1120,22 +1195,73 @@ function renderFactura(lista) {
         <td>${entrega.mozo ? "Sí" : "No"}</td>
         <td>${entrega.trampilla ? "Sí" : "No"}</td>
         <td>${entrega.urgente ? "Sí" : "No"}</td>
-        <td><strong>${formatearEuros(entrega.importe_calculado)}</strong></td>
+        <td><strong>${formatearEuros(importe)}</strong></td>
         <td>${origen}</td>
         <td>${acciones}</td>
       </tr>
     `;
   }).join("");
 
-  const base = lista.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
+  const seleccionadasEnFiltro = lista.filter(item => seleccionEntregas.has(claveEntrega(item))).length;
+  const loteActual = entregasCalculadas;
+  const base = loteActual.reduce((acc, item) => acc + numero(item.importe_calculado), 0);
   const ivaImporte = base * (numero(invoiceVat.value) / 100);
   const total = base + ivaImporte;
 
   kpiEntregas.innerText = String(lista.length);
+  kpiSeleccionadas.innerText = String(seleccionadasEnFiltro);
   kpiBase.innerText = formatearEuros(base);
   kpiIva.innerText = formatearEuros(ivaImporte);
   kpiTotal.innerText = formatearEuros(total);
+
+  actualizarCheckGeneral();
 }
+
+window.toggleEntregaSeleccion = function(id, sourceTable, checked) {
+  const clave = `${sourceTable}-${id}`;
+  if (checked) {
+    seleccionEntregas.add(clave);
+  } else {
+    seleccionEntregas.delete(clave);
+  }
+
+  calcularLoteFacturable();
+  renderFactura(entregasFiltradas);
+};
+
+window.toggleSeleccionVisible = function(checked) {
+  entregasFiltradas.forEach(entrega => {
+    const clave = claveEntrega(entrega);
+    if (checked) {
+      seleccionEntregas.add(clave);
+    } else {
+      seleccionEntregas.delete(clave);
+    }
+  });
+
+  calcularLoteFacturable();
+  renderFactura(entregasFiltradas);
+};
+
+window.seleccionarTodasFiltradas = function() {
+  entregasFiltradas.forEach(entrega => {
+    seleccionEntregas.add(claveEntrega(entrega));
+  });
+
+  calcularLoteFacturable();
+  renderFactura(entregasFiltradas);
+  statusEl.innerText = "Se han seleccionado todas las entregas filtradas";
+};
+
+window.limpiarSeleccionFacturacion = function() {
+  entregasFiltradas.forEach(entrega => {
+    seleccionEntregas.delete(claveEntrega(entrega));
+  });
+
+  calcularLoteFacturable();
+  renderFactura(entregasFiltradas);
+  statusEl.innerText = "Selección limpiada";
+};
 
 function construirHtmlFactura() {
   if (!entregasCalculadas.length) {
@@ -1250,7 +1376,7 @@ function construirHtmlFactura() {
 
 window.generarFacturaPreview = function() {
   if (!entregasCalculadas.length) {
-    alert("No hay entregas filtradas para generar la factura.");
+    alert("No hay entregas para generar la factura.");
     return;
   }
 
@@ -1264,7 +1390,7 @@ window.generarFacturaPreview = function() {
 
 window.imprimirFactura = function() {
   if (!entregasCalculadas.length) {
-    alert("No hay entregas filtradas para imprimir.");
+    alert("No hay entregas para imprimir.");
     return;
   }
 
@@ -1374,8 +1500,8 @@ window.cerrarEditModalSiFondo = function(event) {
   }
 };
 
-window.editarEntregaFactura = function(id) {
-  const entrega = entregasGlobal.find(e => String(e.id) === String(id));
+window.editarEntregaFactura = function(id, sourceTable) {
+  const entrega = entregasGlobal.find(e => String(e.id) === String(id) && e.source_table === sourceTable);
 
   if (!entrega) {
     alert("No se encontró la entrega");
@@ -1387,7 +1513,7 @@ window.editarEntregaFactura = function(id) {
     return;
   }
 
-  entregaEditandoId = id;
+  entregaEditandoId = `${sourceTable}-${id}`;
 
   editDriverName.value = entrega.driver_name || "";
   editClientName.value = entrega.client_name || "";
@@ -1412,7 +1538,7 @@ window.guardarCambiosEntregaFactura = async function() {
     return;
   }
 
-  const entregaOriginal = entregasGlobal.find(e => String(e.id) === String(entregaEditandoId));
+  const entregaOriginal = entregasGlobal.find(e => claveEntrega(e) === entregaEditandoId);
 
   if (!entregaOriginal) {
     alert("No se encontró la entrega original");
@@ -1447,7 +1573,7 @@ window.guardarCambiosEntregaFactura = async function() {
       let queryNueva = supabase
         .from("entregas")
         .update(datosActualizadosNueva)
-        .eq("id", entregaEditandoId);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryNueva = queryNueva.eq("empresa_id", sesion.empresa_id);
@@ -1480,7 +1606,7 @@ window.guardarCambiosEntregaFactura = async function() {
       let queryLegacy = supabase
         .from("deliveries")
         .update(datosActualizadosLegacy)
-        .eq("id", entregaEditandoId);
+        .eq("id", entregaOriginal.id);
 
       if (sesion.role === "admin_empresa") {
         queryLegacy = queryLegacy.eq("empresa_id", sesion.empresa_id);
@@ -1627,7 +1753,7 @@ async function cargarDatos() {
     statusEl.innerText = "Fallo cargando datos: " + e.message;
     tbodyFactura.innerHTML = `
       <tr>
-        <td colspan="16">No se pudieron cargar las entregas.</td>
+        <td colspan="17">No se pudieron cargar las entregas.</td>
       </tr>
     `;
   }
