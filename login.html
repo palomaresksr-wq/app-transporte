@@ -75,6 +75,8 @@ const usernameEl = document.getElementById("username");
 const passwordEl = document.getElementById("password");
 const btnEntrar = document.getElementById("btnEntrar");
 
+const DUTTITRANS_EMPRESA_ID = "397effd1-8482-41af-a549-76f55aa78a87";
+
 const SUPERADMIN_FIJO = {
   username: "superadmin",
   password: "1234",
@@ -84,7 +86,9 @@ const SUPERADMIN_FIJO = {
 const ADMIN_FIJO = {
   username: "oficina",
   password: "1234",
-  role: "admin_global"
+  role: "admin_empresa",
+  empresa_id: DUTTITRANS_EMPRESA_ID,
+  nombre: "Oficina"
 };
 
 const params = new URLSearchParams(window.location.search);
@@ -202,9 +206,9 @@ async function entrar() {
     if (username === ADMIN_FIJO.username && password === ADMIN_FIJO.password) {
       guardarSesion({
         username: ADMIN_FIJO.username,
-        role: "admin_global",
-        nombre: "Oficina",
-        empresa_id: null
+        role: "admin_empresa",
+        nombre: ADMIN_FIJO.nombre,
+        empresa_id: ADMIN_FIJO.empresa_id
       });
       window.location.replace("menu-admin.html");
       return;
