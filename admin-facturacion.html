@@ -1215,7 +1215,6 @@ function renderFactura(lista) {
   }).join("");
 
   const seleccionadasEnFiltro = lista.filter(item => seleccionEntregas.has(claveEntrega(item))).length;
-
   const base = Number(entregasCalculadas.reduce((acc, item) => acc + numero(item.importe_calculado), 0).toFixed(2));
   const ivaImporte = Number((base * (numero(invoiceVat.value) / 100)).toFixed(2));
   const total = Number((base + ivaImporte).toFixed(2));
