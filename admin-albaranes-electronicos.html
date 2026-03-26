@@ -36,12 +36,14 @@ input, textarea{
 }
 
 button{
-  padding:12px;
+  padding:10px;
   background:#ff7a18;
   border:none;
   border-radius:8px;
   font-weight:bold;
   cursor:pointer;
+  margin-right:6px;
+  margin-top:6px;
 }
 
 .list{
@@ -52,12 +54,16 @@ button{
   background:#18233b;
   padding:12px;
   border-radius:10px;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 
 .estado{
   font-size:12px;
   opacity:.8;
+}
+
+.firma{
+  margin-top:10px;
 }
 </style>
 </head>
@@ -121,6 +127,12 @@ async function crearAlbaran(){
   }
 
   alert("Albarán creado");
+
+  document.getElementById("cliente").value = "";
+  document.getElementById("carga").value = "";
+  document.getElementById("descarga").value = "";
+  document.getElementById("obs").value = "";
+
   cargarAlbaranes();
 }
 
@@ -134,15 +146,73 @@ async function cargarAlbaranes(){
   lista.innerHTML = "";
 
   data.forEach(a => {
+
+    let firmaHtml = "";
+
+    if(a.firma){
+      firmaHtml = `
+        <div class="firma">
+          <strong>Firma:</strong><br>
+          <img src="${a.firma}" style="width:200px;border-radius:8px;">
+        </div>
+      `;
+    }
+
     lista.innerHTML += `
-      <div class="item">
+      <div class="item" id="alb_${a.id}">
         <strong>${a.cliente}</strong><br>
         ${a.carga} → ${a.descarga}<br>
+
         <div class="estado">Estado: ${a.estado}</div>
+
+        ${firmaHtml}
+
+        <button onclick="verPDF('${a.id}')">Ver PDF</button>
       </div>
     `;
   });
 }
+
+window.verPDF = function(id){
+
+  const albaran = document.getElementById("alb_" + id);
+
+  if(!albaran){
+    alert("Error generando PDF");
+    return;
+  }
+
+  const contenido = albaran.innerHTML;
+
+  const ventana = window.open("", "_blank");
+
+  ventana.document.write(`
+    <html>
+    <head>
+      <title>Albarán</title>
+      <style>
+        body{
+          font-family: Arial;
+          padding:30px;
+        }
+        img{
+          max-width:250px;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Albarán electrónico</h1>
+      ${contenido}
+    </body>
+    </html>
+  `);
+
+  ventana.document.close();
+
+  setTimeout(() => {
+    ventana.print();
+  }, 300);
+};
 
 cargarAlbaranes();
 </script>
