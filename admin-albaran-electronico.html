@@ -3,77 +3,211 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crear Albarán Electrónico</title>
+<title>Admin Albaranes Electrónicos</title>
 
 <style>
+:root{
+  --bg:#0b1220;
+  --card:#121b2f;
+  --soft:#18233b;
+  --accent:#ff7a18;
+  --text:#ffffff;
+  --muted:#b7c3dd;
+  --line:rgba(255,255,255,.08);
+  --ok:#1f8b4c;
+  --warn:#a66a00;
+  --danger:#a83232;
+}
+
+*{ box-sizing:border-box; }
+
 body{
-  font-family:Arial;
-  background:#0b1220;
-  color:white;
   margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
+  color:var(--text);
   padding:20px;
 }
 
 .wrap{
-  max-width:600px;
-  margin:auto;
-}
-
-.topActions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:15px;
+  max-width:1400px;
+  margin:0 auto;
 }
 
 .card{
-  background:#121b2f;
-  padding:20px;
-  border-radius:12px;
+  background:var(--card);
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 h1{
-  margin-top:0;
+  margin:0 0 8px 0;
+  font-size:28px;
 }
 
-label{
-  display:block;
-  margin-top:12px;
+h3{
+  margin:0 0 12px 0;
 }
 
-input, textarea{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:8px;
-  border:none;
-  box-sizing:border-box;
+.sub{
+  color:var(--muted);
+  font-size:14px;
 }
 
 button, .btn{
-  padding:14px;
+  padding:10px 14px;
   border:none;
   border-radius:10px;
+  background:var(--accent);
+  color:#1b0c02;
   font-weight:bold;
   cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
 }
 
-.btnPrimary{
-  width:100%;
-  background:#ff7a18;
-  color:#1b0c02;
-  margin-top:20px;
-}
-
-.btnSec{
+button.sec, .btn.sec{
   background:#24314f;
   color:white;
 }
 
+button.danger{
+  background:var(--danger);
+  color:white;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+}
+
+input, select, textarea{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
 #status{
-  margin-top:15px;
+  margin-top:12px;
   font-weight:bold;
   white-space:pre-line;
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+}
+
+.kpi{
+  background:var(--soft);
+  border-radius:12px;
+  padding:14px;
+}
+
+.kpi .label{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.kpi .value{
+  font-size:26px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1200px;
+}
+
+th, td{
+  padding:10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  vertical-align:top;
+  font-size:14px;
+}
+
+th{
+  background:#18233b;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badgePendiente{
+  background:rgba(166,106,0,.2);
+  color:#ffd995;
+}
+
+.badgeFirmado{
+  background:rgba(31,139,76,.2);
+  color:#c7ffd8;
+}
+
+.badgeOtro{
+  background:rgba(39,77,138,.2);
+  color:#d7e8ff;
+}
+
+.firmaMini{
+  width:180px;
+  max-width:100%;
+  background:white;
+  border-radius:8px;
+  display:block;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.empty{
+  opacity:.8;
+  padding:20px;
+}
+
+@media (max-width:700px){
+  body{ padding:12px; }
+  h1{ font-size:24px; }
 }
 </style>
 </head>
@@ -81,32 +215,139 @@ button, .btn{
 
 <div class="wrap">
 
-  <div class="topActions">
-    <button class="btn btnSec" onclick="volverAtras()">← Volver</button>
-    <button class="btn btnSec" onclick="cerrarSesion()">Salir</button>
+  <div class="card">
+    <div class="topbar">
+      <div>
+        <h1>Admin albaranes electrónicos</h1>
+        <div class="sub" id="panelSubtitle">Crear, asignar y revisar albaranes electrónicos</div>
+      </div>
+
+      <div class="actions">
+        <a class="btn sec" href="menu-admin.html">← Volver al menú</a>
+        <button class="sec" onclick="cargarTodo()">Actualizar</button>
+        <button class="sec" onclick="cerrarSesion()">Salir</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
-    <h1>Crear albarán electrónico</h1>
+    <h3>Crear albarán</h3>
 
-    <label>Cliente</label>
-    <input id="cliente">
+    <div class="grid">
+      <div>
+        <label>Cliente</label>
+        <input id="clienteInput" placeholder="Ej: Albepet">
+      </div>
 
-    <label>Dirección entrega</label>
-    <input id="direccion">
+      <div>
+        <label>Dirección entrega</label>
+        <input id="direccionInput" placeholder="Ej: Getafe">
+      </div>
 
-    <label>Conductor</label>
-    <input id="conductor">
+      <div>
+        <label>Conductor</label>
+        <select id="conductorSelect">
+          <option value="">Seleccionar conductor</option>
+        </select>
+      </div>
 
-    <label>Bultos</label>
-    <input id="bultos" type="number">
+      <div>
+        <label>Fecha servicio</label>
+        <input id="fechaServicioInput" type="date">
+      </div>
 
-    <label>Observaciones</label>
-    <textarea id="observaciones"></textarea>
+      <div>
+        <label>Bultos</label>
+        <input id="bultosInput" type="number" min="0">
+      </div>
 
-    <button class="btnPrimary" onclick="crearAlbaran()">Crear albarán</button>
+      <div>
+        <label>Estado inicial</label>
+        <select id="estadoInput">
+          <option value="pendiente">Pendiente</option>
+          <option value="firmado">Firmado</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Observaciones</label>
+      <textarea id="observacionesInput" placeholder="Observaciones del servicio"></textarea>
+    </div>
+
+    <div class="actions" style="margin-top:14px;">
+      <button onclick="crearAlbaran()">Crear albarán</button>
+      <button class="sec" onclick="limpiarFormulario()">Limpiar</button>
+    </div>
 
     <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Total</div>
+        <div class="value" id="kpiTotal">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Pendientes</div>
+        <div class="value" id="kpiPendientes">0</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Firmados</div>
+        <div class="value" id="kpiFirmados">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Filtros</h3>
+
+    <div class="grid2">
+      <div>
+        <label>Buscar</label>
+        <input id="searchInput" placeholder="Cliente, dirección, conductor...">
+      </div>
+
+      <div>
+        <label>Estado</label>
+        <select id="estadoFilter">
+          <option value="">Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="firmado">Firmado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Listado</h3>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha creación</th>
+            <th>Fecha servicio</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Conductor</th>
+            <th>Bultos</th>
+            <th>Observaciones</th>
+            <th>Estado</th>
+            <th>Firma</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyAlbaranes">
+          <tr>
+            <td colspan="10" class="empty">Cargando albaranes...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </div>
@@ -126,15 +367,149 @@ if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa
 }
 
 const statusEl = document.getElementById("status");
-const clienteEl = document.getElementById("cliente");
-const direccionEl = document.getElementById("direccion");
-const conductorEl = document.getElementById("conductor");
-const bultosEl = document.getElementById("bultos");
-const observacionesEl = document.getElementById("observaciones");
+const panelSubtitle = document.getElementById("panelSubtitle");
 
-window.volverAtras = function(){
-  window.location.href = "menu-admin.html";
-};
+const clienteInput = document.getElementById("clienteInput");
+const direccionInput = document.getElementById("direccionInput");
+const conductorSelect = document.getElementById("conductorSelect");
+const fechaServicioInput = document.getElementById("fechaServicioInput");
+const bultosInput = document.getElementById("bultosInput");
+const estadoInput = document.getElementById("estadoInput");
+const observacionesInput = document.getElementById("observacionesInput");
+
+const searchInput = document.getElementById("searchInput");
+const estadoFilter = document.getElementById("estadoFilter");
+
+const tbodyAlbaranes = document.getElementById("tbodyAlbaranes");
+
+const kpiTotal = document.getElementById("kpiTotal");
+const kpiPendientes = document.getElementById("kpiPendientes");
+const kpiFirmados = document.getElementById("kpiFirmados");
+
+let albaranesGlobal = [];
+let conductoresGlobal = [];
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "";
+  const fecha = new Date(fechaIso);
+  if (isNaN(fecha.getTime())) return fechaIso;
+  return fecha.toLocaleString("es-ES");
+}
+
+function escapeHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function actualizarKpis(lista) {
+  kpiTotal.innerText = String(lista.length);
+  kpiPendientes.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "pendiente").length);
+  kpiFirmados.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "firmado").length);
+}
+
+function renderConductores(lista) {
+  conductorSelect.innerHTML = `<option value="">Seleccionar conductor</option>`;
+
+  lista.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = item.nombre || item.usuario || "Sin nombre";
+    option.dataset.nombre = item.nombre || item.usuario || "";
+    conductorSelect.appendChild(option);
+  });
+}
+
+function badgeEstado(estadoRaw) {
+  const estado = String(estadoRaw || "").toLowerCase();
+
+  if (estado === "pendiente") {
+    return `<span class="badge badgePendiente">Pendiente</span>`;
+  }
+
+  if (estado === "firmado") {
+    return `<span class="badge badgeFirmado">Firmado</span>`;
+  }
+
+  return `<span class="badge badgeOtro">${escapeHtml(estadoRaw || "Sin estado")}</span>`;
+}
+
+function renderAlbaranes(lista) {
+  actualizarKpis(lista);
+
+  if (!lista.length) {
+    tbodyAlbaranes.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">No hay albaranes para esos filtros.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbodyAlbaranes.innerHTML = lista.map(item => {
+    const firmaHtml = item.firma_url
+      ? `<img class="firmaMini" src="${escapeHtml(item.firma_url)}" alt="Firma">`
+      : `<span style="color:#b7c3dd;">Sin firma</span>`;
+
+    return `
+      <tr>
+        <td>${formatearFecha(item.created_at)}</td>
+        <td>${escapeHtml(item.fecha_servicio || "")}</td>
+        <td>${escapeHtml(item.cliente || "")}</td>
+        <td>${escapeHtml(item.direccion || "")}</td>
+        <td>${escapeHtml(item.conductor || "")}</td>
+        <td>${escapeHtml(item.bultos ?? "")}</td>
+        <td>${escapeHtml(item.observaciones || "")}</td>
+        <td>${badgeEstado(item.estado)}</td>
+        <td>${firmaHtml}</td>
+        <td>
+          <div class="actions">
+            <button class="danger" onclick="borrarAlbaran('${item.id}')">Borrar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function aplicarFiltros() {
+  const texto = searchInput.value.trim().toLowerCase();
+  const estado = estadoFilter.value.trim().toLowerCase();
+
+  const filtrados = albaranesGlobal.filter(item => {
+    const bloque = [
+      item.cliente,
+      item.direccion,
+      item.conductor,
+      item.observaciones,
+      item.estado,
+      item.fecha_servicio
+    ].map(v => String(v || "").toLowerCase()).join(" ");
+
+    const pasaTexto = !texto || bloque.includes(texto);
+    const pasaEstado = !estado || String(item.estado || "").toLowerCase() === estado;
+
+    return pasaTexto && pasaEstado;
+  });
+
+  renderAlbaranes(filtrados);
+}
+
+function limpiarFormulario() {
+  clienteInput.value = "";
+  direccionInput.value = "";
+  conductorSelect.value = "";
+  fechaServicioInput.value = "";
+  bultosInput.value = "";
+  estadoInput.value = "pendiente";
+  observacionesInput.value = "";
+  statusEl.innerText = "";
+}
+
+window.limpiarFormulario = limpiarFormulario;
 
 window.cerrarSesion = function(){
   try{
@@ -149,46 +524,166 @@ window.cerrarSesion = function(){
   window.location.href = "login.html?logout=1&t=" + Date.now();
 };
 
-window.crearAlbaran = async function(){
-  const cliente = clienteEl.value.trim();
-  const direccion = direccionEl.value.trim();
-  const conductor = conductorEl.value.trim();
-  const bultos = bultosEl.value;
-  const observaciones = observacionesEl.value.trim();
+async function cargarConductores() {
+  try {
+    let query = supabase
+      .from("conductores")
+      .select("id,nombre,usuario,empresa_id")
+      .order("nombre", { ascending: true });
 
-  if (!cliente || !direccion) {
-    statusEl.innerText = "Faltan datos";
-    return;
+    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(error);
+      statusEl.innerText = "Error cargando conductores: " + error.message;
+      return;
+    }
+
+    conductoresGlobal = data || [];
+    renderConductores(conductoresGlobal);
+  } catch (e) {
+    console.error(e);
+    statusEl.innerText = "Fallo cargando conductores: " + e.message;
   }
+}
 
-  statusEl.innerText = "Creando albarán...";
+async function cargarAlbaranes() {
+  try {
+    let query = supabase
+      .from("albaranes_electronicos")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  const { error } = await supabase
-    .from("albaranes_electronicos")
-    .insert({
-      empresa_id: sesion.empresa_id || null,
-      cliente: cliente,
-      direccion: direccion,
-      conductor: conductor,
-      bultos: Number(bultos || 0),
-      observaciones: observaciones,
-      estado: "pendiente",
-      created_at: new Date().toISOString()
-    });
+    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
 
-  if (error) {
-    statusEl.innerText = "Error: " + error.message;
-    return;
+    const { data, error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error cargando albaranes: " + error.message;
+      tbodyAlbaranes.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty">No se pudieron cargar los albaranes.</td>
+        </tr>
+      `;
+      actualizarKpis([]);
+      return;
+    }
+
+    albaranesGlobal = data || [];
+    aplicarFiltros();
+  } catch (e) {
+    statusEl.innerText = "Fallo cargando albaranes: " + e.message;
+    tbodyAlbaranes.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">Error inesperado cargando albaranes.</td>
+      </tr>
+    `;
+    actualizarKpis([]);
   }
+}
 
-  statusEl.innerText = "✅ Albarán creado correctamente";
+window.borrarAlbaran = async function(id) {
+  const confirmar = confirm("¿Seguro que quieres borrar este albarán?");
+  if (!confirmar) return;
 
-  clienteEl.value = "";
-  direccionEl.value = "";
-  conductorEl.value = "";
-  bultosEl.value = "";
-  observacionesEl.value = "";
+  try {
+    statusEl.innerText = "Borrando albarán...";
+
+    let query = supabase
+      .from("albaranes_electronicos")
+      .delete()
+      .eq("id", id);
+
+    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+      query = query.eq("empresa_id", sesion.empresa_id);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      statusEl.innerText = "Error borrando albarán: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = "Albarán borrado correctamente";
+    await cargarAlbaranes();
+  } catch (e) {
+    statusEl.innerText = "Fallo borrando albarán: " + e.message;
+  }
 };
+
+window.crearAlbaran = async function() {
+  const cliente = clienteInput.value.trim();
+  const direccion = direccionInput.value.trim();
+  const conductorId = conductorSelect.value;
+  const conductorNombre = conductorSelect.options[conductorSelect.selectedIndex]?.dataset?.nombre || "";
+  const fechaServicio = fechaServicioInput.value || null;
+  const bultos = bultosInput.value ? Number(bultosInput.value) : 0;
+  const estado = estadoInput.value || "pendiente";
+  const observaciones = observacionesInput.value.trim();
+
+  if (!cliente || !direccion || !conductorId) {
+    statusEl.innerText = "Faltan datos. Cliente, dirección y conductor son obligatorios.";
+    return;
+  }
+
+  try {
+    statusEl.innerText = "Creando albarán...";
+
+    const { error } = await supabase
+      .from("albaranes_electronicos")
+      .insert({
+        empresa_id: sesion.empresa_id || null,
+        cliente: cliente,
+        direccion: direccion,
+        conductor_id: conductorId,
+        conductor: conductorNombre,
+        fecha_servicio: fechaServicio,
+        bultos: bultos,
+        observaciones: observaciones,
+        estado: estado,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      statusEl.innerText = "Error creando albarán: " + error.message;
+      return;
+    }
+
+    statusEl.innerText = "✅ Albarán creado correctamente";
+    limpiarFormulario();
+    await cargarAlbaranes();
+  } catch (e) {
+    statusEl.innerText = "Fallo creando albarán: " + e.message;
+  }
+};
+
+async function cargarTodo() {
+  statusEl.innerText = "Cargando datos...";
+
+  if (sesion.role === "admin_empresa") {
+    panelSubtitle.innerText = "Empresa: " + (sesion.nombre || sesion.username || "Admin empresa");
+  } else {
+    panelSubtitle.innerText = "Administrador global";
+  }
+
+  await cargarConductores();
+  await cargarAlbaranes();
+  statusEl.innerText = "Datos cargados correctamente";
+}
+
+window.cargarTodo = cargarTodo;
+
+searchInput.addEventListener("input", aplicarFiltros);
+estadoFilter.addEventListener("change", aplicarFiltros);
+
+await cargarTodo();
 </script>
 
 </body>
