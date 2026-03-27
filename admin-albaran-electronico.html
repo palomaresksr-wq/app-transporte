@@ -14,12 +14,22 @@ body{
   padding:20px;
 }
 
+.wrap{
+  max-width:600px;
+  margin:auto;
+}
+
+.topActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
 .card{
   background:#121b2f;
   padding:20px;
   border-radius:12px;
-  max-width:600px;
-  margin:auto;
 }
 
 h1{
@@ -37,48 +47,68 @@ input, textarea{
   margin-top:5px;
   border-radius:8px;
   border:none;
+  box-sizing:border-box;
 }
 
-button{
-  margin-top:20px;
-  width:100%;
+button, .btn{
   padding:14px;
-  background:#ff7a18;
   border:none;
   border-radius:10px;
   font-weight:bold;
   cursor:pointer;
 }
 
+.btnPrimary{
+  width:100%;
+  background:#ff7a18;
+  color:#1b0c02;
+  margin-top:20px;
+}
+
+.btnSec{
+  background:#24314f;
+  color:white;
+}
+
 #status{
   margin-top:15px;
   font-weight:bold;
+  white-space:pre-line;
 }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>Crear albarán electrónico</h1>
+<div class="wrap">
 
-  <label>Cliente</label>
-  <input id="cliente">
+  <div class="topActions">
+    <button class="btn btnSec" onclick="volverAtras()">← Volver</button>
+    <button class="btn btnSec" onclick="cerrarSesion()">Salir</button>
+  </div>
 
-  <label>Dirección entrega</label>
-  <input id="direccion">
+  <div class="card">
+    <h1>Crear albarán electrónico</h1>
 
-  <label>Conductor</label>
-  <input id="conductor">
+    <label>Cliente</label>
+    <input id="cliente">
 
-  <label>Bultos</label>
-  <input id="bultos" type="number">
+    <label>Dirección entrega</label>
+    <input id="direccion">
 
-  <label>Observaciones</label>
-  <textarea id="observaciones"></textarea>
+    <label>Conductor</label>
+    <input id="conductor">
 
-  <button onclick="crearAlbaran()">Crear albarán</button>
+    <label>Bultos</label>
+    <input id="bultos" type="number">
 
-  <div id="status"></div>
+    <label>Observaciones</label>
+    <textarea id="observaciones"></textarea>
+
+    <button class="btnPrimary" onclick="crearAlbaran()">Crear albarán</button>
+
+    <div id="status"></div>
+  </div>
+
 </div>
 
 <script type="module">
@@ -92,18 +122,39 @@ const supabase = createClient(
 const sesion = JSON.parse(localStorage.getItem("sesionAppTransporte") || "null");
 
 if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa")) {
-  window.location.href = "login.html";
+  window.location.href = "login.html?logout=1";
 }
 
 const statusEl = document.getElementById("status");
+const clienteEl = document.getElementById("cliente");
+const direccionEl = document.getElementById("direccion");
+const conductorEl = document.getElementById("conductor");
+const bultosEl = document.getElementById("bultos");
+const observacionesEl = document.getElementById("observaciones");
+
+window.volverAtras = function(){
+  window.location.href = "menu-admin.html";
+};
+
+window.cerrarSesion = function(){
+  try{
+    localStorage.removeItem("sesionAppTransporte");
+    localStorage.removeItem("clienteSeleccionadoAppTransporte");
+    localStorage.removeItem("cliente_id_actual");
+    localStorage.removeItem("cliente_nombre_actual");
+    sessionStorage.clear();
+  }catch(e){
+    console.error(e);
+  }
+  window.location.href = "login.html?logout=1&t=" + Date.now();
+};
 
 window.crearAlbaran = async function(){
-
-  const cliente = document.getElementById("cliente").value.trim();
-  const direccion = document.getElementById("direccion").value.trim();
-  const conductor = document.getElementById("conductor").value.trim();
-  const bultos = document.getElementById("bultos").value;
-  const observaciones = document.getElementById("observaciones").value.trim();
+  const cliente = clienteEl.value.trim();
+  const direccion = direccionEl.value.trim();
+  const conductor = conductorEl.value.trim();
+  const bultos = bultosEl.value;
+  const observaciones = observacionesEl.value.trim();
 
   if (!cliente || !direccion) {
     statusEl.innerText = "Faltan datos";
@@ -132,11 +183,11 @@ window.crearAlbaran = async function(){
 
   statusEl.innerText = "✅ Albarán creado correctamente";
 
-  document.getElementById("cliente").value = "";
-  document.getElementById("direccion").value = "";
-  document.getElementById("conductor").value = "";
-  document.getElementById("bultos").value = "";
-  document.getElementById("observaciones").value = "";
+  clienteEl.value = "";
+  direccionEl.value = "";
+  conductorEl.value = "";
+  bultosEl.value = "";
+  observacionesEl.value = "";
 };
 </script>
 
