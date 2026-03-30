@@ -3,45 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin Albaran Electrónico</title>
+<title>Admin Albarán Electrónico</title>
 
 <style>
 :root{
   --bg:#0b1220;
   --card:#121b2f;
   --soft:#18233b;
-  --accent:#ff7a18;
   --text:#ffffff;
   --muted:#b7c3dd;
+  --accent:#ff7a18;
   --line:rgba(255,255,255,.08);
   --ok:#1f8b4c;
-  --warn:#a66a00;
   --danger:#a83232;
 }
-
 *{ box-sizing:border-box; }
-
 body{
-  margin:0;
   font-family:Arial, sans-serif;
-  background:linear-gradient(180deg,#0b1220 0%, #121b2f 45%, #18233b 100%);
-  color:var(--text);
+  background:var(--bg);
+  color:white;
+  margin:0;
   padding:20px;
 }
-
 .wrap{
   max-width:1400px;
   margin:0 auto;
 }
-
 .card{
   background:var(--card);
-  border-radius:16px;
+  border-radius:14px;
   padding:18px;
   margin-bottom:18px;
-  box-shadow:0 10px 28px rgba(0,0,0,.18);
 }
-
 .topbar{
   display:flex;
   justify-content:space-between;
@@ -49,21 +42,44 @@ body{
   gap:10px;
   flex-wrap:wrap;
 }
-
 h1{
-  margin:0 0 8px 0;
+  margin:0;
   font-size:28px;
 }
-
 h3{
   margin:0 0 12px 0;
 }
-
-.sub{
+.muted{
   color:var(--muted);
+  font-size:13px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+.grid2{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+}
+label{
+  display:block;
+  margin-bottom:6px;
+  font-weight:bold;
   font-size:14px;
 }
-
+input, textarea, select{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+}
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
 button, .btn{
   padding:10px 14px;
   border:none;
@@ -75,82 +91,47 @@ button, .btn{
   text-decoration:none;
   display:inline-block;
 }
-
 button.sec, .btn.sec{
   background:#24314f;
   color:white;
 }
-
 button.danger{
   background:var(--danger);
   color:white;
 }
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
 }
-
-.grid2{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-}
-
-input, select, textarea{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  box-sizing:border-box;
-}
-
-textarea{
-  min-height:90px;
-  resize:vertical;
-}
-
-#status{
-  margin-top:12px;
-  font-weight:bold;
-  white-space:pre-line;
-}
-
 .kpis{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:12px;
 }
-
 .kpi{
   background:var(--soft);
   border-radius:12px;
   padding:14px;
 }
-
 .kpi .label{
   color:var(--muted);
   font-size:13px;
 }
-
 .kpi .value{
   font-size:26px;
   font-weight:bold;
   margin-top:8px;
 }
-
 .tableWrap{
   overflow:auto;
   border-radius:12px;
 }
-
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1200px;
+  min-width:1500px;
 }
-
 th, td{
   padding:10px;
   border-bottom:1px solid var(--line);
@@ -158,11 +139,9 @@ th, td{
   vertical-align:top;
   font-size:14px;
 }
-
 th{
   background:#18233b;
 }
-
 .badge{
   display:inline-block;
   padding:5px 10px;
@@ -170,22 +149,14 @@ th{
   font-size:12px;
   font-weight:bold;
 }
-
 .badgePendiente{
   background:rgba(166,106,0,.2);
   color:#ffd995;
 }
-
 .badgeFirmado{
   background:rgba(31,139,76,.2);
   color:#c7ffd8;
 }
-
-.badgeOtro{
-  background:rgba(39,77,138,.2);
-  color:#d7e8ff;
-}
-
 .firmaMini{
   width:180px;
   max-width:100%;
@@ -193,18 +164,15 @@ th{
   border-radius:8px;
   display:block;
 }
-
-.actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
 .empty{
-  opacity:.8;
+  opacity:.85;
   padding:20px;
 }
-
+#status{
+  margin-top:12px;
+  font-weight:bold;
+  white-space:pre-line;
+}
 @media (max-width:700px){
   body{ padding:12px; }
   h1{ font-size:24px; }
@@ -218,8 +186,8 @@ th{
   <div class="card">
     <div class="topbar">
       <div>
-        <h1>Admin albaran electrónico</h1>
-        <div class="sub" id="panelSubtitle">Crear, asignar y revisar albaranes electrónicos</div>
+        <h1>Admin albarán electrónico</h1>
+        <div class="muted">Crear, revisar y pasar a facturación</div>
       </div>
 
       <div class="actions">
@@ -240,11 +208,6 @@ th{
       </div>
 
       <div>
-        <label>Dirección entrega</label>
-        <input id="direccionInput" placeholder="Ej: Getafe">
-      </div>
-
-      <div>
         <label>Conductor</label>
         <select id="conductorSelect">
           <option value="">Seleccionar conductor</option>
@@ -257,8 +220,43 @@ th{
       </div>
 
       <div>
+        <label>Matrícula</label>
+        <input id="matriculaInput" placeholder="1234ABC">
+      </div>
+
+      <div>
+        <label>Lugar de carga</label>
+        <input id="cargaInput" placeholder="Coslada">
+      </div>
+
+      <div>
+        <label>Lugar de descarga</label>
+        <input id="descargaInput" placeholder="Getafe">
+      </div>
+
+      <div>
+        <label>Dirección entrega</label>
+        <input id="direccionInput" placeholder="Dirección exacta">
+      </div>
+
+      <div>
+        <label>Nº entregas</label>
+        <input id="numEntregasInput" type="number" min="0">
+      </div>
+
+      <div>
         <label>Bultos</label>
         <input id="bultosInput" type="number" min="0">
+      </div>
+
+      <div>
+        <label>Kg</label>
+        <input id="kgInput" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>M3</label>
+        <input id="m3Input" type="number" step="0.01">
       </div>
 
       <div>
@@ -272,7 +270,7 @@ th{
 
     <div style="margin-top:12px;">
       <label>Observaciones</label>
-      <textarea id="observacionesInput" placeholder="Observaciones del servicio"></textarea>
+      <textarea id="observacionesInput" placeholder="Observaciones"></textarea>
     </div>
 
     <div class="actions" style="margin-top:14px;">
@@ -289,26 +287,27 @@ th{
         <div class="label">Total</div>
         <div class="value" id="kpiTotal">0</div>
       </div>
-
       <div class="kpi">
         <div class="label">Pendientes</div>
         <div class="value" id="kpiPendientes">0</div>
       </div>
-
       <div class="kpi">
         <div class="label">Firmados</div>
         <div class="value" id="kpiFirmados">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Pasados a entrega</div>
+        <div class="value" id="kpiFacturables">0</div>
       </div>
     </div>
   </div>
 
   <div class="card">
     <h3>Filtros</h3>
-
     <div class="grid2">
       <div>
         <label>Buscar</label>
-        <input id="searchInput" placeholder="Cliente, dirección, conductor...">
+        <input id="searchInput" placeholder="Cliente, conductor, matrícula...">
       </div>
 
       <div>
@@ -332,18 +331,25 @@ th{
             <th>Fecha creación</th>
             <th>Fecha servicio</th>
             <th>Cliente</th>
-            <th>Dirección</th>
             <th>Conductor</th>
+            <th>Matrícula</th>
+            <th>Carga</th>
+            <th>Descarga</th>
+            <th>Dirección</th>
+            <th>Nº entregas</th>
             <th>Bultos</th>
+            <th>Kg</th>
+            <th>M3</th>
             <th>Observaciones</th>
             <th>Estado</th>
             <th>Firma</th>
+            <th>Delivery ID</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tbodyAlbaranes">
           <tr>
-            <td colspan="10" class="empty">Cargando albaranes...</td>
+            <td colspan="17" class="empty">Cargando albaranes...</td>
           </tr>
         </tbody>
       </table>
@@ -367,27 +373,30 @@ if (!sesion || (sesion.role !== "admin_global" && sesion.role !== "admin_empresa
 }
 
 const statusEl = document.getElementById("status");
-const panelSubtitle = document.getElementById("panelSubtitle");
-
 const clienteInput = document.getElementById("clienteInput");
-const direccionInput = document.getElementById("direccionInput");
 const conductorSelect = document.getElementById("conductorSelect");
 const fechaServicioInput = document.getElementById("fechaServicioInput");
+const matriculaInput = document.getElementById("matriculaInput");
+const cargaInput = document.getElementById("cargaInput");
+const descargaInput = document.getElementById("descargaInput");
+const direccionInput = document.getElementById("direccionInput");
+const numEntregasInput = document.getElementById("numEntregasInput");
 const bultosInput = document.getElementById("bultosInput");
+const kgInput = document.getElementById("kgInput");
+const m3Input = document.getElementById("m3Input");
 const estadoInput = document.getElementById("estadoInput");
 const observacionesInput = document.getElementById("observacionesInput");
 
 const searchInput = document.getElementById("searchInput");
 const estadoFilter = document.getElementById("estadoFilter");
-
 const tbodyAlbaranes = document.getElementById("tbodyAlbaranes");
 
 const kpiTotal = document.getElementById("kpiTotal");
 const kpiPendientes = document.getElementById("kpiPendientes");
 const kpiFirmados = document.getElementById("kpiFirmados");
+const kpiFacturables = document.getElementById("kpiFacturables");
 
 let albaranesGlobal = [];
-let conductoresGlobal = [];
 
 function formatearFecha(fechaIso) {
   if (!fechaIso) return "";
@@ -405,15 +414,18 @@ function escapeHtml(valor) {
     .replaceAll("'", "&#039;");
 }
 
-function actualizarKpis(lista) {
-  kpiTotal.innerText = String(lista.length);
-  kpiPendientes.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "pendiente").length);
-  kpiFirmados.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "firmado").length);
+function valorSeguro(v) {
+  return v === null || v === undefined || v === "" ? "—" : escapeHtml(v);
+}
+
+function numeroSeguro(v) {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(String(v).replace(",", "."));
+  return Number.isNaN(n) ? null : n;
 }
 
 function renderConductores(lista) {
   conductorSelect.innerHTML = `<option value="">Seleccionar conductor</option>`;
-
   lista.forEach(item => {
     const option = document.createElement("option");
     option.value = item.id;
@@ -423,18 +435,17 @@ function renderConductores(lista) {
   });
 }
 
+function actualizarKpis(lista) {
+  kpiTotal.innerText = String(lista.length);
+  kpiPendientes.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "pendiente").length);
+  kpiFirmados.innerText = String(lista.filter(x => String(x.estado || "").toLowerCase() === "firmado").length);
+  kpiFacturables.innerText = String(lista.filter(x => !!x.delivery_id).length);
+}
+
 function badgeEstado(estadoRaw) {
   const estado = String(estadoRaw || "").toLowerCase();
-
-  if (estado === "pendiente") {
-    return `<span class="badge badgePendiente">Pendiente</span>`;
-  }
-
-  if (estado === "firmado") {
-    return `<span class="badge badgeFirmado">Firmado</span>`;
-  }
-
-  return `<span class="badge badgeOtro">${escapeHtml(estadoRaw || "Sin estado")}</span>`;
+  if (estado === "firmado") return `<span class="badge badgeFirmado">Firmado</span>`;
+  return `<span class="badge badgePendiente">Pendiente</span>`;
 }
 
 function renderAlbaranes(lista) {
@@ -443,7 +454,7 @@ function renderAlbaranes(lista) {
   if (!lista.length) {
     tbodyAlbaranes.innerHTML = `
       <tr>
-        <td colspan="10" class="empty">No hay albaranes para esos filtros.</td>
+        <td colspan="17" class="empty">No hay albaranes para esos filtros.</td>
       </tr>
     `;
     return;
@@ -452,24 +463,34 @@ function renderAlbaranes(lista) {
   tbodyAlbaranes.innerHTML = lista.map(item => {
     const firmaHtml = item.firma_url
       ? `<img class="firmaMini" src="${escapeHtml(item.firma_url)}" alt="Firma">`
-      : `<span style="color:#b7c3dd;">Sin firma</span>`;
+      : `<span class="muted">Sin firma</span>`;
+
+    const acciones = `
+      <div class="actions">
+        ${item.estado === "firmado" && !item.delivery_id ? `<button onclick="pasarAFacturacion('${item.id}')">Pasar a entrega</button>` : ``}
+        <button class="danger" onclick="borrarAlbaran('${item.id}')">Borrar</button>
+      </div>
+    `;
 
     return `
       <tr>
         <td>${formatearFecha(item.created_at)}</td>
-        <td>${escapeHtml(item.fecha_servicio || "")}</td>
-        <td>${escapeHtml(item.cliente || "")}</td>
-        <td>${escapeHtml(item.direccion || "")}</td>
-        <td>${escapeHtml(item.conductor || "")}</td>
-        <td>${escapeHtml(item.bultos ?? "")}</td>
-        <td>${escapeHtml(item.observaciones || "")}</td>
+        <td>${valorSeguro(item.fecha_servicio)}</td>
+        <td>${valorSeguro(item.cliente)}</td>
+        <td>${valorSeguro(item.conductor)}</td>
+        <td>${valorSeguro(item.matricula)}</td>
+        <td>${valorSeguro(item.lugar_carga)}</td>
+        <td>${valorSeguro(item.lugar_descarga)}</td>
+        <td>${valorSeguro(item.direccion)}</td>
+        <td>${valorSeguro(item.num_entregas)}</td>
+        <td>${valorSeguro(item.bultos)}</td>
+        <td>${valorSeguro(item.kg)}</td>
+        <td>${valorSeguro(item.m3)}</td>
+        <td>${valorSeguro(item.observaciones)}</td>
         <td>${badgeEstado(item.estado)}</td>
         <td>${firmaHtml}</td>
-        <td>
-          <div class="actions">
-            <button class="danger" onclick="borrarAlbaran('${item.id}')">Borrar</button>
-          </div>
-        </td>
+        <td>${valorSeguro(item.delivery_id)}</td>
+        <td>${acciones}</td>
       </tr>
     `;
   }).join("");
@@ -482,11 +503,13 @@ function aplicarFiltros() {
   const filtrados = albaranesGlobal.filter(item => {
     const bloque = [
       item.cliente,
-      item.direccion,
       item.conductor,
+      item.matricula,
+      item.lugar_carga,
+      item.lugar_descarga,
+      item.direccion,
       item.observaciones,
-      item.estado,
-      item.fecha_servicio
+      item.estado
     ].map(v => String(v || "").toLowerCase()).join(" ");
 
     const pasaTexto = !texto || bloque.includes(texto);
@@ -497,19 +520,6 @@ function aplicarFiltros() {
 
   renderAlbaranes(filtrados);
 }
-
-function limpiarFormulario() {
-  clienteInput.value = "";
-  direccionInput.value = "";
-  conductorSelect.value = "";
-  fechaServicioInput.value = "";
-  bultosInput.value = "";
-  estadoInput.value = "pendiente";
-  observacionesInput.value = "";
-  statusEl.innerText = "";
-}
-
-window.limpiarFormulario = limpiarFormulario;
 
 window.cerrarSesion = function(){
   try{
@@ -524,155 +534,189 @@ window.cerrarSesion = function(){
   window.location.href = "login.html?logout=1&t=" + Date.now();
 };
 
+window.limpiarFormulario = function() {
+  clienteInput.value = "";
+  conductorSelect.value = "";
+  fechaServicioInput.value = "";
+  matriculaInput.value = "";
+  cargaInput.value = "";
+  descargaInput.value = "";
+  direccionInput.value = "";
+  numEntregasInput.value = "";
+  bultosInput.value = "";
+  kgInput.value = "";
+  m3Input.value = "";
+  estadoInput.value = "pendiente";
+  observacionesInput.value = "";
+  statusEl.innerText = "";
+};
+
 async function cargarConductores() {
-  try {
-    let query = supabase
-      .from("conductores")
-      .select("id,nombre,usuario,empresa_id")
-      .order("nombre", { ascending: true });
-
-    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error(error);
-      statusEl.innerText = "Error cargando conductores: " + error.message;
-      return;
-    }
-
-    conductoresGlobal = data || [];
-    renderConductores(conductoresGlobal);
-  } catch (e) {
-    console.error(e);
-    statusEl.innerText = "Fallo cargando conductores: " + e.message;
+  let query = supabase.from("conductores").select("id,nombre,usuario,empresa_id").order("nombre", { ascending: true });
+  if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+    query = query.eq("empresa_id", sesion.empresa_id);
   }
+  const { data, error } = await query;
+  if (error) {
+    statusEl.innerText = "Error cargando conductores: " + error.message;
+    return;
+  }
+  renderConductores(data || []);
 }
 
 async function cargarAlbaranes() {
-  try {
-    let query = supabase
-      .from("albaranes_electronicos")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      statusEl.innerText = "Error cargando albaranes: " + error.message;
-      tbodyAlbaranes.innerHTML = `
-        <tr>
-          <td colspan="10" class="empty">No se pudieron cargar los albaranes.</td>
-        </tr>
-      `;
-      actualizarKpis([]);
-      return;
-    }
-
-    albaranesGlobal = data || [];
-    aplicarFiltros();
-  } catch (e) {
-    statusEl.innerText = "Fallo cargando albaranes: " + e.message;
-    tbodyAlbaranes.innerHTML = `
-      <tr>
-        <td colspan="10" class="empty">Error inesperado cargando albaranes.</td>
-      </tr>
-    `;
-    actualizarKpis([]);
+  let query = supabase.from("albaranes_electronicos").select("*").order("created_at", { ascending: false });
+  if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+    query = query.eq("empresa_id", sesion.empresa_id);
   }
+  const { data, error } = await query;
+
+  if (error) {
+    statusEl.innerText = "Error cargando albaranes: " + error.message;
+    tbodyAlbaranes.innerHTML = `<tr><td colspan="17" class="empty">No se pudieron cargar los albaranes.</td></tr>`;
+    return;
+  }
+
+  albaranesGlobal = data || [];
+  aplicarFiltros();
 }
+
+window.crearAlbaran = async function() {
+  const cliente = clienteInput.value.trim();
+  const conductorId = conductorSelect.value;
+  const conductorNombre = conductorSelect.options[conductorSelect.selectedIndex]?.dataset?.nombre || "";
+  const fechaServicio = fechaServicioInput.value || null;
+  const matricula = matriculaInput.value.trim().toUpperCase() || null;
+  const lugarCarga = cargaInput.value.trim() || null;
+  const lugarDescarga = descargaInput.value.trim() || null;
+  const direccion = direccionInput.value.trim() || null;
+  const numEntregas = numeroSeguro(numEntregasInput.value);
+  const bultos = numeroSeguro(bultosInput.value);
+  const kg = numeroSeguro(kgInput.value);
+  const m3 = numeroSeguro(m3Input.value);
+  const estado = estadoInput.value || "pendiente";
+  const observaciones = observacionesInput.value.trim() || null;
+
+  if (!cliente || !conductorId || !direccion) {
+    statusEl.innerText = "Faltan datos obligatorios: cliente, conductor y dirección.";
+    return;
+  }
+
+  statusEl.innerText = "Creando albarán...";
+
+  const { error } = await supabase
+    .from("albaranes_electronicos")
+    .insert({
+      empresa_id: sesion.empresa_id || null,
+      cliente,
+      conductor_id: conductorId,
+      conductor: conductorNombre,
+      fecha_servicio: fechaServicio,
+      matricula,
+      lugar_carga: lugarCarga,
+      lugar_descarga: lugarDescarga,
+      direccion,
+      num_entregas: numEntregas,
+      bultos,
+      kg,
+      m3,
+      observaciones,
+      estado,
+      created_at: new Date().toISOString()
+    });
+
+  if (error) {
+    statusEl.innerText = "Error creando albarán: " + error.message;
+    return;
+  }
+
+  statusEl.innerText = "✅ Albarán creado correctamente";
+  limpiarFormulario();
+  await cargarAlbaranes();
+};
 
 window.borrarAlbaran = async function(id) {
   const confirmar = confirm("¿Seguro que quieres borrar este albarán?");
   if (!confirmar) return;
 
-  try {
-    statusEl.innerText = "Borrando albarán...";
+  statusEl.innerText = "Borrando albarán...";
 
-    let query = supabase
-      .from("albaranes_electronicos")
-      .delete()
-      .eq("id", id);
-
-    if (sesion.role === "admin_empresa" && sesion.empresa_id) {
-      query = query.eq("empresa_id", sesion.empresa_id);
-    }
-
-    const { error } = await query;
-
-    if (error) {
-      statusEl.innerText = "Error borrando albarán: " + error.message;
-      return;
-    }
-
-    statusEl.innerText = "Albarán borrado correctamente";
-    await cargarAlbaranes();
-  } catch (e) {
-    statusEl.innerText = "Fallo borrando albarán: " + e.message;
+  let query = supabase.from("albaranes_electronicos").delete().eq("id", id);
+  if (sesion.role === "admin_empresa" && sesion.empresa_id) {
+    query = query.eq("empresa_id", sesion.empresa_id);
   }
-};
 
-window.crearAlbaran = async function() {
-  const cliente = clienteInput.value.trim();
-  const direccion = direccionInput.value.trim();
-  const conductorId = conductorSelect.value;
-  const conductorNombre = conductorSelect.options[conductorSelect.selectedIndex]?.dataset?.nombre || "";
-  const fechaServicio = fechaServicioInput.value || null;
-  const bultos = bultosInput.value ? Number(bultosInput.value) : 0;
-  const estado = estadoInput.value || "pendiente";
-  const observaciones = observacionesInput.value.trim();
-
-  if (!cliente || !direccion || !conductorId) {
-    statusEl.innerText = "Faltan datos. Cliente, dirección y conductor son obligatorios.";
+  const { error } = await query;
+  if (error) {
+    statusEl.innerText = "Error borrando albarán: " + error.message;
     return;
   }
 
-  try {
-    statusEl.innerText = "Creando albarán...";
+  statusEl.innerText = "Albarán borrado correctamente";
+  await cargarAlbaranes();
+};
 
-    const { error } = await supabase
-      .from("albaranes_electronicos")
-      .insert({
-        empresa_id: sesion.empresa_id || null,
-        cliente: cliente,
-        direccion: direccion,
-        conductor_id: conductorId,
-        conductor: conductorNombre,
-        fecha_servicio: fechaServicio,
-        bultos: bultos,
-        observaciones: observaciones,
-        estado: estado,
-        created_at: new Date().toISOString()
-      });
-
-    if (error) {
-      statusEl.innerText = "Error creando albarán: " + error.message;
-      return;
-    }
-
-    statusEl.innerText = "✅ Albarán creado correctamente";
-    limpiarFormulario();
-    await cargarAlbaranes();
-  } catch (e) {
-    statusEl.innerText = "Fallo creando albarán: " + e.message;
+window.pasarAFacturacion = async function(id) {
+  const albaran = albaranesGlobal.find(x => String(x.id) === String(id));
+  if (!albaran) {
+    alert("No se encontró el albarán");
+    return;
   }
+
+  if (albaran.delivery_id) {
+    alert("Este albarán ya fue pasado a entregas");
+    return;
+  }
+
+  if (String(albaran.estado || "").toLowerCase() !== "firmado") {
+    alert("Primero debe estar firmado");
+    return;
+  }
+
+  statusEl.innerText = "Pasando a entregas...";
+
+  const datosDelivery = {
+    empresa_id: albaran.empresa_id || sesion.empresa_id || null,
+    driver_name: albaran.conductor || "",
+    vehicle_plate: albaran.matricula || null,
+    client_name: albaran.cliente || null,
+    pickup_place: albaran.lugar_carga || null,
+    dropoff_place: albaran.lugar_descarga || albaran.direccion || null,
+    num_entregas: albaran.num_entregas ?? null,
+    bultos: albaran.bultos ?? null,
+    kg: albaran.kg ?? null,
+    m3: albaran.m3 ?? null,
+    observations: albaran.observaciones || null,
+    mozo: false,
+    trampilla: false,
+    urgente: false,
+    distance_km: 0,
+    price_eur: 0,
+    photo_url: albaran.firma_url || null
+  };
+
+  const { data, error } = await supabase.from("deliveries").insert(datosDelivery).select("id").single();
+  if (error) {
+    statusEl.innerText = "Error creando la entrega: " + error.message;
+    return;
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from("albaranes_electronicos")
+    .update({ delivery_id: data.id })
+    .eq("id", albaran.id);
+
+  if (errorUpdate) {
+    statusEl.innerText = "Entrega creada, pero no se pudo enlazar: " + errorUpdate.message;
+    return;
+  }
+
+  statusEl.innerText = "✅ Albarán pasado a entregas correctamente";
+  await cargarAlbaranes();
 };
 
 async function cargarTodo() {
   statusEl.innerText = "Cargando datos...";
-
-  if (sesion.role === "admin_empresa") {
-    panelSubtitle.innerText = "Empresa: " + (sesion.nombre || sesion.username || "Admin empresa");
-  } else {
-    panelSubtitle.innerText = "Administrador global";
-  }
-
   await cargarConductores();
   await cargarAlbaranes();
   statusEl.innerText = "Datos cargados correctamente";
