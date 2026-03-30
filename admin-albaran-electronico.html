@@ -130,7 +130,7 @@ button.danger{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1500px;
+  min-width:1450px;
 }
 th, td{
   padding:10px;
@@ -187,7 +187,7 @@ th{
     <div class="topbar">
       <div>
         <h1>Admin albarán electrónico</h1>
-        <div class="muted">Crear, revisar y pasar a facturación</div>
+        <div class="muted">Crear albaranes, asignar conductor y revisar firmas</div>
       </div>
 
       <div class="actions">
@@ -258,14 +258,6 @@ th{
         <label>M3</label>
         <input id="m3Input" type="number" step="0.01">
       </div>
-
-      <div>
-        <label>Estado inicial</label>
-        <select id="estadoInput">
-          <option value="pendiente">Pendiente</option>
-          <option value="firmado">Firmado</option>
-        </select>
-      </div>
     </div>
 
     <div style="margin-top:12px;">
@@ -296,7 +288,7 @@ th{
         <div class="value" id="kpiFirmados">0</div>
       </div>
       <div class="kpi">
-        <div class="label">Pasados a entrega</div>
+        <div class="label">Con entrega creada</div>
         <div class="value" id="kpiFacturables">0</div>
       </div>
     </div>
@@ -384,7 +376,6 @@ const numEntregasInput = document.getElementById("numEntregasInput");
 const bultosInput = document.getElementById("bultosInput");
 const kgInput = document.getElementById("kgInput");
 const m3Input = document.getElementById("m3Input");
-const estadoInput = document.getElementById("estadoInput");
 const observacionesInput = document.getElementById("observacionesInput");
 
 const searchInput = document.getElementById("searchInput");
@@ -467,7 +458,6 @@ function renderAlbaranes(lista) {
 
     const acciones = `
       <div class="actions">
-        ${item.estado === "firmado" && !item.delivery_id ? `<button onclick="pasarAFacturacion('${item.id}')">Pasar a entrega</button>` : ``}
         <button class="danger" onclick="borrarAlbaran('${item.id}')">Borrar</button>
       </div>
     `;
@@ -546,7 +536,6 @@ window.limpiarFormulario = function() {
   bultosInput.value = "";
   kgInput.value = "";
   m3Input.value = "";
-  estadoInput.value = "pendiente";
   observacionesInput.value = "";
   statusEl.innerText = "";
 };
@@ -594,7 +583,6 @@ window.crearAlbaran = async function() {
   const bultos = numeroSeguro(bultosInput.value);
   const kg = numeroSeguro(kgInput.value);
   const m3 = numeroSeguro(m3Input.value);
-  const estado = estadoInput.value || "pendiente";
   const observaciones = observacionesInput.value.trim() || null;
 
   if (!cliente || !conductorId || !direccion) {
@@ -621,7 +609,7 @@ window.crearAlbaran = async function() {
       kg,
       m3,
       observaciones,
-      estado,
+      estado: "pendiente",
       created_at: new Date().toISOString()
     });
 
@@ -653,65 +641,6 @@ window.borrarAlbaran = async function(id) {
   }
 
   statusEl.innerText = "Albarán borrado correctamente";
-  await cargarAlbaranes();
-};
-
-window.pasarAFacturacion = async function(id) {
-  const albaran = albaranesGlobal.find(x => String(x.id) === String(id));
-  if (!albaran) {
-    alert("No se encontró el albarán");
-    return;
-  }
-
-  if (albaran.delivery_id) {
-    alert("Este albarán ya fue pasado a entregas");
-    return;
-  }
-
-  if (String(albaran.estado || "").toLowerCase() !== "firmado") {
-    alert("Primero debe estar firmado");
-    return;
-  }
-
-  statusEl.innerText = "Pasando a entregas...";
-
-  const datosDelivery = {
-    empresa_id: albaran.empresa_id || sesion.empresa_id || null,
-    driver_name: albaran.conductor || "",
-    vehicle_plate: albaran.matricula || null,
-    client_name: albaran.cliente || null,
-    pickup_place: albaran.lugar_carga || null,
-    dropoff_place: albaran.lugar_descarga || albaran.direccion || null,
-    num_entregas: albaran.num_entregas ?? null,
-    bultos: albaran.bultos ?? null,
-    kg: albaran.kg ?? null,
-    m3: albaran.m3 ?? null,
-    observations: albaran.observaciones || null,
-    mozo: false,
-    trampilla: false,
-    urgente: false,
-    distance_km: 0,
-    price_eur: 0,
-    photo_url: albaran.firma_url || null
-  };
-
-  const { data, error } = await supabase.from("deliveries").insert(datosDelivery).select("id").single();
-  if (error) {
-    statusEl.innerText = "Error creando la entrega: " + error.message;
-    return;
-  }
-
-  const { error: errorUpdate } = await supabase
-    .from("albaranes_electronicos")
-    .update({ delivery_id: data.id })
-    .eq("id", albaran.id);
-
-  if (errorUpdate) {
-    statusEl.innerText = "Entrega creada, pero no se pudo enlazar: " + errorUpdate.message;
-    return;
-  }
-
-  statusEl.innerText = "✅ Albarán pasado a entregas correctamente";
   await cargarAlbaranes();
 };
 
