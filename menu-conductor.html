@@ -14,11 +14,9 @@
   --text:#ffffff;
   --muted:#b7c3dd;
 }
-
 *{
   box-sizing:border-box;
 }
-
 body{
   margin:0;
   font-family:Arial, sans-serif;
@@ -27,34 +25,28 @@ body{
   min-height:100vh;
   padding:20px;
 }
-
 .wrap{
   max-width:520px;
   margin:0 auto;
 }
-
 .topCard{
   background:var(--card);
   border-radius:16px;
   padding:20px;
   margin-bottom:20px;
 }
-
 h1{
   margin:0 0 8px 0;
   font-size:28px;
 }
-
 .sub{
   color:var(--muted);
   font-size:14px;
 }
-
 .menuGrid{
   display:grid;
   gap:14px;
 }
-
 .menuBtn{
   display:block;
   width:100%;
@@ -67,31 +59,26 @@ h1{
   transition:transform .15s ease, box-shadow .15s ease;
   box-shadow:0 8px 22px rgba(0,0,0,.22);
 }
-
 .menuBtn:hover{
   transform:translateY(-2px);
   box-shadow:0 12px 28px rgba(0,0,0,.28);
 }
-
 .menuBtn .title{
   font-size:20px;
   font-weight:800;
   margin-bottom:6px;
 }
-
 .menuBtn .desc{
   color:var(--muted);
   font-size:14px;
   line-height:1.4;
 }
-
 .actions{
   margin-top:20px;
   display:flex;
   gap:10px;
   flex-wrap:wrap;
 }
-
 .btnSec{
   background:#24314f;
   color:white;
@@ -101,7 +88,6 @@ h1{
   font-weight:bold;
   cursor:pointer;
 }
-
 .badge{
   display:inline-block;
   margin-top:10px;
@@ -112,7 +98,6 @@ h1{
   font-size:12px;
   font-weight:bold;
 }
-
 .badgeEmpresa{
   display:inline-block;
   margin-top:10px;
@@ -124,15 +109,9 @@ h1{
   font-size:12px;
   font-weight:bold;
 }
-
 @media (max-width:700px){
-  body{
-    padding:12px;
-  }
-
-  h1{
-    font-size:24px;
-  }
+  body{ padding:12px; }
+  h1{ font-size:24px; }
 }
 </style>
 </head>
@@ -154,31 +133,25 @@ h1{
   </div>
 
   <div class="menuGrid">
-
-    <!-- FICHAJES -->
     <a class="menuBtn" href="fichajes.html">
       <div class="title">Fichar entrada y salida</div>
       <div class="desc">Registrar hora de entrada, salida y futuros fichajes.</div>
     </a>
 
-    <!-- ALBARANES NORMALES -->
     <a class="menuBtn" href="selector-cliente.html">
       <div class="title">Albaranes</div>
       <div class="desc">Elegir cliente y registrar entregas en el nuevo formulario único.</div>
     </a>
 
-    <!-- 🔥 NUEVO: ALBARÁN ELECTRÓNICO -->
     <a class="menuBtn" href="conductor-albaranes-electronicos.html">
-      <div class="title">Firmar albarán electrónico</div>
-      <div class="desc">Ver albaranes pendientes y recoger firma del cliente en pantalla.</div>
+      <div class="title">Albaranes electrónicos</div>
+      <div class="desc">Ver los albaranes asignados y firmarlos desde el móvil.</div>
     </a>
 
-    <!-- VACACIONES -->
     <a class="menuBtn" href="vacaciones.html">
       <div class="title">Vacaciones</div>
       <div class="desc">Solicitar vacaciones o consultar futuras solicitudes.</div>
     </a>
-
   </div>
 
 </div>
