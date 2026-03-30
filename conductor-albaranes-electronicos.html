@@ -15,14 +15,9 @@
   --muted:#b7c3dd;
   --accent:#ff7a18;
   --ok:#1f8b4c;
-  --warn:#a66a00;
   --border:rgba(255,255,255,.08);
 }
-
-*{
-  box-sizing:border-box;
-}
-
+*{ box-sizing:border-box; }
 body{
   font-family:Arial, sans-serif;
   background:var(--bg);
@@ -30,12 +25,10 @@ body{
   margin:0;
   padding:20px;
 }
-
 .wrap{
   max-width:950px;
   margin:0 auto;
 }
-
 .topbar{
   background:var(--card);
   border-radius:14px;
@@ -47,24 +40,20 @@ body{
   gap:12px;
   flex-wrap:wrap;
 }
-
 .topbar h1{
   margin:0;
   font-size:28px;
 }
-
 .muted{
   color:var(--muted);
   font-size:13px;
 }
-
 .card{
   background:var(--card);
   padding:20px;
   border-radius:14px;
   margin-bottom:18px;
 }
-
 .item{
   background:var(--soft);
   padding:16px;
@@ -72,11 +61,9 @@ body{
   margin-bottom:14px;
   border:1px solid var(--border);
 }
-
 .item:last-child{
   margin-bottom:0;
 }
-
 .itemHeader{
   display:flex;
   justify-content:space-between;
@@ -85,12 +72,10 @@ body{
   flex-wrap:wrap;
   margin-bottom:12px;
 }
-
 .itemTitle{
   font-size:20px;
   font-weight:bold;
 }
-
 .badge{
   display:inline-block;
   padding:5px 10px;
@@ -98,43 +83,32 @@ body{
   font-size:12px;
   font-weight:bold;
 }
-
 .badgePendiente{
   background:rgba(166,106,0,.2);
   color:#ffd995;
 }
-
-.badgeFirmado{
-  background:rgba(31,139,76,.2);
-  color:#c7ffd8;
-}
-
 .dataGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
   gap:10px;
   margin-bottom:12px;
 }
-
 .dataBox{
   background:var(--soft2);
   border-radius:10px;
   padding:12px;
   border:1px solid var(--border);
 }
-
 .dataLabel{
   font-size:12px;
   color:var(--muted);
   margin-bottom:6px;
 }
-
 .dataValue{
   font-size:15px;
   line-height:1.45;
   word-break:break-word;
 }
-
 .obsBox{
   background:var(--soft2);
   border-radius:10px;
@@ -142,13 +116,11 @@ body{
   border:1px solid var(--border);
   margin-top:10px;
 }
-
 .obsTitle{
   font-size:12px;
   color:var(--muted);
   margin-bottom:6px;
 }
-
 canvas{
   width:100%;
   height:200px;
@@ -157,14 +129,12 @@ canvas{
   margin-top:14px;
   touch-action:none;
 }
-
 .actions{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   margin-top:12px;
 }
-
 button, .btn{
   padding:12px 14px;
   border:none;
@@ -176,23 +146,19 @@ button, .btn{
   text-decoration:none;
   display:inline-block;
 }
-
 button.sec, .btn.sec{
   background:#24314f;
   color:white;
 }
-
 button.ok{
   background:var(--ok);
   color:white;
 }
-
 #status{
   margin-top:12px;
   font-weight:bold;
   white-space:pre-line;
 }
-
 .empty{
   opacity:.85;
   padding:18px;
@@ -201,15 +167,9 @@ button.ok{
   border-radius:12px;
   border:1px solid var(--border);
 }
-
 @media (max-width:700px){
-  body{
-    padding:12px;
-  }
-
-  .topbar h1{
-    font-size:24px;
-  }
+  body{ padding:12px; }
+  .topbar h1{ font-size:24px; }
 }
 </style>
 </head>
@@ -220,7 +180,7 @@ button.ok{
   <div class="topbar">
     <div>
       <h1>Albaranes pendientes</h1>
-      <div class="muted">El cliente puede revisar todos los datos antes de firmar</div>
+      <div class="muted">El cliente revisa los datos antes de firmar</div>
     </div>
 
     <div class="actions" style="margin-top:0;">
@@ -251,7 +211,6 @@ if (!sesion || sesion.role !== "driver") {
 
 const lista = document.getElementById("lista");
 const statusEl = document.getElementById("status");
-
 let albaranesGlobal = [];
 
 function escapeHtml(valor) {
@@ -270,16 +229,8 @@ function formatearFecha(fechaIso) {
   return fecha.toLocaleString("es-ES");
 }
 
-function obtenerEstadoBadge(estado) {
-  const e = String(estado || "").toLowerCase();
-  if (e === "firmado") {
-    return `<span class="badge badgeFirmado">Firmado</span>`;
-  }
-  return `<span class="badge badgePendiente">Pendiente</span>`;
-}
-
-function valorSeguro(valor) {
-  return valor === null || valor === undefined || valor === "" ? "—" : escapeHtml(valor);
+function valorSeguro(v) {
+  return v === null || v === undefined || v === "" ? "—" : escapeHtml(v);
 }
 
 async function cargar() {
@@ -316,105 +267,41 @@ async function cargar() {
       return;
     }
 
-    lista.innerHTML = albaranesGlobal.map(a => {
-      const id = a.id;
-
-      const cliente = a.cliente || a.client_name || "";
-      const direccion = a.direccion || a.dropoff_place || a.lugar_descarga || "";
-      const conductor = a.conductor || a.driver_name || "";
-      const fechaServicio = a.fecha_servicio || a.fecha || "";
-      const observaciones = a.observaciones || a.observations || "";
-      const bultos = a.bultos ?? "";
-      const kg = a.kg ?? "";
-      const m3 = a.m3 ?? "";
-      const carga = a.carga || a.pickup_place || a.lugar_carga || "";
-      const descarga = a.descarga || a.dropoff_place || a.lugar_descarga || direccion || "";
-      const matricula = a.matricula || a.vehicle_plate || "";
-      const numEntregas = a.num_entregas ?? "";
-
-      return `
-        <div class="item">
-          <div class="itemHeader">
-            <div class="itemTitle">${escapeHtml(cliente || "Sin cliente")}</div>
-            <div>${obtenerEstadoBadge(a.estado)}</div>
-          </div>
-
-          <div class="dataGrid">
-            <div class="dataBox">
-              <div class="dataLabel">Cliente</div>
-              <div class="dataValue">${valorSeguro(cliente)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Conductor</div>
-              <div class="dataValue">${valorSeguro(conductor)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Fecha servicio</div>
-              <div class="dataValue">${valorSeguro(fechaServicio)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Matrícula</div>
-              <div class="dataValue">${valorSeguro(matricula)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Lugar de carga</div>
-              <div class="dataValue">${valorSeguro(carga)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Lugar de descarga</div>
-              <div class="dataValue">${valorSeguro(descarga)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Dirección entrega</div>
-              <div class="dataValue">${valorSeguro(direccion)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Nº entregas</div>
-              <div class="dataValue">${valorSeguro(numEntregas)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Bultos</div>
-              <div class="dataValue">${valorSeguro(bultos)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Kg</div>
-              <div class="dataValue">${valorSeguro(kg)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">M3</div>
-              <div class="dataValue">${valorSeguro(m3)}</div>
-            </div>
-
-            <div class="dataBox">
-              <div class="dataLabel">Creado</div>
-              <div class="dataValue">${valorSeguro(formatearFecha(a.created_at))}</div>
-            </div>
-          </div>
-
-          <div class="obsBox">
-            <div class="obsTitle">Observaciones</div>
-            <div class="dataValue">${valorSeguro(observaciones)}</div>
-          </div>
-
-          <canvas id="canvas_${id}" width="800" height="200"></canvas>
-
-          <div class="actions">
-            <button class="sec" onclick="limpiar('${id}')">Limpiar firma</button>
-            <button class="ok" onclick="firmar('${id}')">Firmar</button>
-          </div>
+    lista.innerHTML = albaranesGlobal.map(a => `
+      <div class="item">
+        <div class="itemHeader">
+          <div class="itemTitle">${escapeHtml(a.cliente || "Sin cliente")}</div>
+          <div><span class="badge badgePendiente">Pendiente</span></div>
         </div>
-      `;
-    }).join("");
+
+        <div class="dataGrid">
+          <div class="dataBox"><div class="dataLabel">Cliente</div><div class="dataValue">${valorSeguro(a.cliente)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Conductor</div><div class="dataValue">${valorSeguro(a.conductor)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Fecha servicio</div><div class="dataValue">${valorSeguro(a.fecha_servicio)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Matrícula</div><div class="dataValue">${valorSeguro(a.matricula)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Lugar de carga</div><div class="dataValue">${valorSeguro(a.lugar_carga)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Lugar de descarga</div><div class="dataValue">${valorSeguro(a.lugar_descarga)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Dirección entrega</div><div class="dataValue">${valorSeguro(a.direccion)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Nº entregas</div><div class="dataValue">${valorSeguro(a.num_entregas)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Bultos</div><div class="dataValue">${valorSeguro(a.bultos)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Kg</div><div class="dataValue">${valorSeguro(a.kg)}</div></div>
+          <div class="dataBox"><div class="dataLabel">M3</div><div class="dataValue">${valorSeguro(a.m3)}</div></div>
+          <div class="dataBox"><div class="dataLabel">Creado</div><div class="dataValue">${valorSeguro(formatearFecha(a.created_at))}</div></div>
+        </div>
+
+        <div class="obsBox">
+          <div class="obsTitle">Observaciones</div>
+          <div class="dataValue">${valorSeguro(a.observaciones)}</div>
+        </div>
+
+        <canvas id="canvas_${a.id}" width="800" height="200"></canvas>
+
+        <div class="actions">
+          <button class="sec" onclick="limpiar('${a.id}')">Limpiar firma</button>
+          <button class="ok" onclick="firmar('${a.id}')">Firmar</button>
+        </div>
+      </div>
+    `).join("");
 
     albaranesGlobal.forEach(a => {
       setTimeout(() => activarCanvas(a.id), 50);
@@ -434,14 +321,8 @@ function activarCanvas(id) {
   const ctx = canvas.getContext("2d");
   let dibujando = false;
 
-  function iniciar() {
-    dibujando = true;
-  }
-
-  function terminar() {
-    dibujando = false;
-    ctx.beginPath();
-  }
+  function iniciar() { dibujando = true; }
+  function terminar() { dibujando = false; ctx.beginPath(); }
 
   function dibujar(e) {
     if (!dibujando) return;
@@ -485,43 +366,38 @@ function activarCanvas(id) {
   canvas.addEventListener("touchmove", dibujarTouch, { passive:false });
 }
 
-window.limpiar = function(id) {
+window.limpiar = function(id){
   const canvas = document.getElementById("canvas_" + id);
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 };
 
-window.firmar = async function(id) {
+window.firmar = async function(id){
   const canvas = document.getElementById("canvas_" + id);
   if (!canvas) return;
 
   const firma = canvas.toDataURL();
 
-  try {
-    statusEl.innerText = "Guardando firma...";
+  statusEl.innerText = "Guardando firma...";
 
-    const { error } = await supabase
-      .from("albaranes_electronicos")
-      .update({
-        estado: "firmado",
-        firma_url: firma
-      })
-      .eq("id", id);
+  const { error } = await supabase
+    .from("albaranes_electronicos")
+    .update({
+      estado: "firmado",
+      firma_url: firma,
+      firmado_en: new Date().toISOString()
+    })
+    .eq("id", id);
 
-    if (error) {
-      alert("Error: " + error.message);
-      statusEl.innerText = "Error guardando firma";
-      return;
-    }
-
-    alert("Firmado correctamente");
-    await cargar();
-  } catch (e) {
-    console.error(e);
-    alert("Error inesperado firmando");
-    statusEl.innerText = "Error inesperado firmando";
+  if (error){
+    alert("Error: " + error.message);
+    statusEl.innerText = "Error guardando firma";
+    return;
   }
+
+  alert("Firmado correctamente");
+  await cargar();
 };
 
 cargar();
