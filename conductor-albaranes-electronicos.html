@@ -378,20 +378,57 @@ window.firmar = async function(id){
   if (!canvas) return;
 
   const firma = canvas.toDataURL();
+  const albaran = albaranesGlobal.find(x => String(x.id) === String(id));
+
+  if (!albaran) {
+    alert("No se encontró el albarán");
+    return;
+  }
 
   statusEl.innerText = "Guardando firma...";
+
+  const { data: deliveryCreado, error: errorDelivery } = await supabase
+    .from("deliveries")
+    .insert({
+      empresa_id: albaran.empresa_id || sesion.empresa_id || null,
+      driver_name: albaran.conductor || sesion.nombre || sesion.username || "",
+      vehicle_plate: albaran.matricula || null,
+      client_name: albaran.cliente || null,
+      pickup_place: albaran.lugar_carga || null,
+      dropoff_place: albaran.lugar_descarga || albaran.direccion || null,
+      num_entregas: albaran.num_entregas ?? null,
+      bultos: albaran.bultos ?? null,
+      kg: albaran.kg ?? null,
+      m3: albaran.m3 ?? null,
+      observations: albaran.observaciones || null,
+      mozo: false,
+      trampilla: false,
+      urgente: false,
+      distance_km: 0,
+      price_eur: 0,
+      photo_url: firma
+    })
+    .select("id")
+    .single();
+
+  if (errorDelivery) {
+    alert("Error creando entrega: " + errorDelivery.message);
+    statusEl.innerText = "Error creando entrega";
+    return;
+  }
 
   const { error } = await supabase
     .from("albaranes_electronicos")
     .update({
       estado: "firmado",
       firma_url: firma,
-      firmado_en: new Date().toISOString()
+      firmado_en: new Date().toISOString(),
+      delivery_id: deliveryCreado.id
     })
     .eq("id", id);
 
   if (error){
-    alert("Error: " + error.message);
+    alert("Error guardando firma: " + error.message);
     statusEl.innerText = "Error guardando firma";
     return;
   }
