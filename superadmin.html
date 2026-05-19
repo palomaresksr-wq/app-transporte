@@ -272,6 +272,41 @@ hr{
   </div>
 </div>
 
+<div id="crearConductorModal" class="modal">
+  <div class="modalContent">
+    <h2>Crear conductor</h2>
+    <div class="small" id="crearConductorEmpresaNombre" style="margin-bottom:12px;"></div>
+
+    <div class="grid">
+      <div>
+        <label>Nombre</label>
+        <input id="nuevoConductorNombre" placeholder="Ej: Sito">
+      </div>
+      <div>
+        <label>Usuario</label>
+        <input id="nuevoConductorUsuario" placeholder="Ej: sito1">
+      </div>
+      <div>
+        <label>Contraseña</label>
+        <input id="nuevoConductorPassword" placeholder="Ej: 1234">
+      </div>
+      <div>
+        <label>Matrícula</label>
+        <input id="nuevoConductorMatricula" placeholder="Ej: 1234ABC">
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="nuevoConductorTelefono" placeholder="Ej: 600000000">
+      </div>
+    </div>
+
+    <div class="modalActions">
+      <button class="sec" id="btnCerrarCrearConductor">Cancelar</button>
+      <button id="btnGuardarCrearConductor">Crear conductor</button>
+    </div>
+  </div>
+</div>
+
 <div id="editEmpresaModal" class="modal">
   <div class="modalContent">
     <h2>Editar empresa</h2>
@@ -344,8 +379,20 @@ const editEmpresaFechaFinPago = document.getElementById("editEmpresaFechaFinPago
 const btnCerrarEditEmpresa = document.getElementById("btnCerrarEditEmpresa");
 const btnGuardarEditEmpresa = document.getElementById("btnGuardarEditEmpresa");
 
+const crearConductorModal = document.getElementById("crearConductorModal");
+const crearConductorEmpresaNombre = document.getElementById("crearConductorEmpresaNombre");
+const nuevoConductorNombre = document.getElementById("nuevoConductorNombre");
+const nuevoConductorUsuario = document.getElementById("nuevoConductorUsuario");
+const nuevoConductorPassword = document.getElementById("nuevoConductorPassword");
+const nuevoConductorMatricula = document.getElementById("nuevoConductorMatricula");
+const nuevoConductorTelefono = document.getElementById("nuevoConductorTelefono");
+const btnCerrarCrearConductor = document.getElementById("btnCerrarCrearConductor");
+const btnGuardarCrearConductor = document.getElementById("btnGuardarCrearConductor");
+
 let adminEditandoId = null;
 let empresaEditandoId = null;
+let empresaConductorId = null;
+let empresaConductorNombre = "";
 
 function comprobarAcceso() {
   const sesionRaw = localStorage.getItem("sesionAppTransporte");
@@ -416,6 +463,27 @@ function cerrarEditAdminModal() {
   editAdminPassword.value = "";
 }
 
+function abrirCrearConductorModal(empresaId, empresaNombre) {
+  empresaConductorId = empresaId;
+  empresaConductorNombre = empresaNombre || "";
+
+  crearConductorEmpresaNombre.innerText = "Empresa: " + empresaConductorNombre;
+
+  nuevoConductorNombre.value = "";
+  nuevoConductorUsuario.value = "";
+  nuevoConductorPassword.value = "";
+  nuevoConductorMatricula.value = "";
+  nuevoConductorTelefono.value = "";
+
+  crearConductorModal.classList.add("open");
+}
+
+function cerrarCrearConductorModal() {
+  crearConductorModal.classList.remove("open");
+  empresaConductorId = null;
+  empresaConductorNombre = "";
+}
+
 function cerrarEditEmpresaModal() {
   editEmpresaModal.classList.remove("open");
   empresaEditandoId = null;
@@ -478,6 +546,58 @@ async function existeUsuarioEnConductores(usuario) {
   if (error) throw new Error("Error comprobando usuario en conductores: " + error.message);
 
   return !!(data && data.length);
+}
+
+async function crearConductor() {
+  try {
+    if (!empresaConductorId) {
+      setEstado("No hay empresa seleccionada");
+      return;
+    }
+
+    const nombre = nuevoConductorNombre.value.trim();
+    const usuario = nuevoConductorUsuario.value.trim();
+    const password = nuevoConductorPassword.value.trim();
+    const matricula = nuevoConductorMatricula.value.trim().toUpperCase();
+    const telefono = nuevoConductorTelefono.value.trim();
+
+    if (!nombre || !usuario || !password) {
+      setEstado("Nombre, usuario y contraseña son obligatorios");
+      return;
+    }
+
+    if (await existeUsuarioEnConductores(usuario)) {
+      setEstado("Ese usuario ya lo usa otro conductor");
+      return;
+    }
+
+    if (await existeUsuarioEnAdminsEmpresa(usuario)) {
+      setEstado("Ese usuario ya lo usa un admin de empresa");
+      return;
+    }
+
+    setEstado("Creando conductor...");
+
+    const { error } = await supabase
+      .from("conductores")
+      .insert([{
+        empresa_id: empresaConductorId,
+        nombre,
+        usuario,
+        password,
+        matricula: matricula || null,
+        telefono: telefono || null
+      }]);
+
+    if (error) throw new Error("Error creando conductor: " + error.message);
+
+    cerrarCrearConductorModal();
+    await recargarTodo();
+    setEstado("Conductor creado correctamente");
+  } catch (e) {
+    console.error(e);
+    setEstado("Error: " + e.message);
+  }
 }
 
 async function crearEmpresaConAdmin() {
@@ -629,7 +749,10 @@ function pintarEmpresas(empresas, adminsEmpresa, conductores) {
       </div>
 
       <div class="sub-box">
-        <div><strong>Conductores (${conductoresEmpresa.length})</strong></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <strong>Conductores (${conductoresEmpresa.length})</strong>
+          <button class="ok" data-empresa-id="${empresa.id}" data-empresa-nombre="${escapeHtml(empresa.nombre || "")}" data-action="crear-conductor">+ Crear conductor</button>
+        </div>
         <div class="conductores-lista"></div>
       </div>
     `;
@@ -1031,6 +1154,9 @@ btnGuardarEditAdmin.addEventListener("click", guardarCambiosAdmin);
 btnCerrarEditEmpresa.addEventListener("click", cerrarEditEmpresaModal);
 btnGuardarEditEmpresa.addEventListener("click", guardarCambiosEmpresa);
 
+btnCerrarCrearConductor.addEventListener("click", cerrarCrearConductorModal);
+btnGuardarCrearConductor.addEventListener("click", crearConductor);
+
 editAdminModal.addEventListener("click", function(e) {
   if (e.target === editAdminModal) cerrarEditAdminModal();
 });
@@ -1039,9 +1165,20 @@ editEmpresaModal.addEventListener("click", function(e) {
   if (e.target === editEmpresaModal) cerrarEditEmpresaModal();
 });
 
+crearConductorModal.addEventListener("click", function(e) {
+  if (e.target === crearConductorModal) cerrarCrearConductorModal();
+});
+
 listaEmpresasEl.addEventListener("click", async function(e) {
   const action = e.target.getAttribute("data-action");
   if (!action) return;
+
+  if (action === "crear-conductor") {
+    const id = e.target.getAttribute("data-empresa-id");
+    const nombre = e.target.getAttribute("data-empresa-nombre");
+    if (id) abrirCrearConductorModal(id, nombre);
+    return;
+  }
 
   if (action === "borrar-conductor") {
     const id = e.target.getAttribute("data-conductor-id");
