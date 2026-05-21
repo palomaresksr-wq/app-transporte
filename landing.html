@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Albatrans | Oficina y conductores conectados</title>
+
+<style>
+:root{
+  --bg:#07101f;
+  --panel:#101a2f;
+  --panel2:#16233d;
+  --text:#ffffff;
+  --muted:#b8c3df;
+  --soft:#dbe4ff;
+  --brand:#ff7a18;
+  --brand2:#ff9a3c;
+  --green:#1f8b4c;
+  --border:rgba(255,255,255,.12);
+  --shadow:0 24px 80px rgba(0,0,0,.38);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(255,122,24,.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(59,130,246,.12), transparent 30%),
+    var(--bg);
+  color:var(--text);
+}
+
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+
+.container{
+  width:min(1180px, calc(100% - 28px));
+  margin:0 auto;
+}
+
+.nav{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(7,16,31,.86);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  min-height:74px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.logo{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-weight:900;
+  letter-spacing:.3px;
+  font-size:20px;
+}
+.logo-mark{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  color:#1b0c02;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+}
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  color:#d9e3ff;
+  font-size:14px;
+  font-weight:700;
+}
+.nav-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 16px;
+  border-radius:13px;
+  border:1px solid transparent;
+  font-weight:900;
+  cursor:pointer;
+  transition:.18s ease;
+  text-align:center;
+  white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:var(--brand);color:#1b0c02;}
+.btn-secondary{background:#24314f;color:white;border-color:var(--border);}
+.btn-whatsapp{background:var(--green);color:white;}
+
+.hero{
+  padding:78px 0 42px;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.02fr .98fr;
+  gap:34px;
+  align-items:center;
+}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  color:#ffe1c6;
+  background:rgba(255,122,24,.12);
+  border:1px solid rgba(255,122,24,.26);
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:18px;
+}
+h1{
+  font-size:clamp(38px,5.5vw,70px);
+  line-height:1.02;
+  letter-spacing:-1.6px;
+  margin:0 0 18px;
+}
+.hero-text{
+  color:#cdd6f4;
+  font-size:19px;
+  line-height:1.65;
+  margin:0 0 26px;
+  max-width:700px;
+}
+.hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.pills{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.pill{
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:9px 12px;
+  color:#d9e3ff;
+  font-size:13px;
+  font-weight:800;
+}
+.hero-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.hero-card h2{
+  margin:0 0 10px;
+  font-size:26px;
+}
+.hero-card p{
+  margin:0 0 18px;
+  color:var(--muted);
+  line-height:1.55;
+}
+.flow{
+  display:grid;
+  gap:12px;
+}
+.flow-item{
+  display:grid;
+  grid-template-columns:44px 1fr;
+  gap:12px;
+  align-items:start;
+  background:#0b1428;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:14px;
+}
+.flow-icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  background:rgba(255,122,24,.15);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+.flow-item b{display:block;margin-bottom:4px;}
+.flow-item span{color:var(--muted);line-height:1.45;font-size:14px;}
+
+.section{
+  padding:58px 0;
+}
+.section-head{
+  max-width:820px;
+  margin-bottom:26px;
+}
+.section-head.center{
+  margin-left:auto;
+  margin-right:auto;
+  text-align:center;
+}
+.section h2{
+  font-size:clamp(30px,3.5vw,48px);
+  line-height:1.08;
+  margin:0 0 12px;
+  letter-spacing:-.8px;
+}
+.section-head p{
+  color:#cdd6f4;
+  font-size:18px;
+  line-height:1.6;
+  margin:0;
+}
+
+.problem-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.problem-card{
+  background:rgba(16,26,47,.88);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+}
+.problem-card h3{
+  margin:0 0 16px;
+  font-size:24px;
+}
+.list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:12px;
+  color:#dbe4ff;
+}
+.list li{
+  background:#0b1428;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:13px 14px;
+  line-height:1.45;
+}
+.bad::before{content:"✕";color:#ff6b6b;font-weight:900;margin-right:8px;}
+.good::before{content:"✓";color:#54d18a;font-weight:900;margin-right:8px;}
+
+.two-sides{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.side-card{
+  background:rgba(16,26,47,.9);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 16px 50px rgba(0,0,0,.20);
+}
+.side-top{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:14px;
+}
+.side-icon{
+  width:52px;
+  height:52px;
+  border-radius:17px;
+  background:#24314f;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+}
+.side-card h3{margin:0;font-size:26px;}
+.side-card p{color:var(--muted);line-height:1.6;margin:0 0 18px;}
+
+.steps{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+.step{
+  background:rgba(16,26,47,.88);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+}
+.step-num{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:rgba(255,122,24,.14);
+  color:#ffd2aa;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  margin-bottom:14px;
+}
+.step h3{margin:0 0 8px;font-size:20px;}
+.step p{margin:0;color:var(--muted);line-height:1.55;}
+
+.showcase{
+  background:rgba(16,26,47,.72);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  margin-bottom:24px;
+}
+.showcase img{
+  width:100%;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.10);
+}
+.showcase-caption{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+  padding:16px 6px 4px;
+}
+.showcase-caption h3{
+  margin:0;
+  font-size:25px;
+}
+.showcase-caption p{
+  margin:6px 0 0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.features{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.feature{
+  background:rgba(16,26,47,.88);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+}
+.feature-icon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:rgba(255,122,24,.14);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  margin-bottom:14px;
+}
+.feature h3{margin:0 0 8px;}
+.feature p{margin:0;color:var(--muted);line-height:1.55;}
+
+.cta{
+  padding:70px 0;
+}
+.cta-box{
+  background:linear-gradient(135deg,rgba(255,122,24,.18),rgba(16,26,47,.92));
+  border:1px solid rgba(255,122,24,.28);
+  border-radius:30px;
+  padding:34px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:24px;
+  align-items:center;
+  box-shadow:var(--shadow);
+}
+.cta-box h2{margin:0 0 10px;font-size:clamp(30px,3.5vw,46px);}
+.cta-box p{margin:0;color:#dbe4ff;line-height:1.6;font-size:18px;}
+.cta-actions{display:flex;gap:12px;flex-wrap:wrap;}
+
+.footer{
+  border-top:1px solid var(--border);
+  padding:34px 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.footer-inner{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+@media(max-width:980px){
+  .hero-grid,.problem-grid,.two-sides,.cta-box{grid-template-columns:1fr;}
+  .steps,.features{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .cta-actions{justify-content:flex-start;}
+}
+
+@media(max-width:640px){
+  .container{width:min(100% - 22px,1180px);}
+  .nav-inner{align-items:flex-start;flex-wrap:wrap;padding:12px 0;}
+  .nav-actions{width:100%;}
+  .nav-actions .btn{flex:1;padding:11px 10px;}
+  .hero{padding:46px 0 28px;}
+  h1{font-size:38px;}
+  .hero-text{font-size:17px;}
+  .steps,.features{grid-template-columns:1fr;}
+  .showcase{padding:10px;border-radius:22px;}
+  .showcase img{border-radius:16px;}
+  .cta-box{padding:24px;}
+}
+</style>
+</head>
+
+<body>
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="logo" href="#inicio">
+      <span class="logo-mark">A</span>
+      <span>Albatrans</span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#funciona">Cómo funciona</a>
+      <a href="#conductor">Conductores</a>
+      <a href="#oficina">Oficina</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a class="btn btn-secondary" href="login.html">Entrar</a>
+      <a class="btn btn-primary" href="https://wa.me/34696627585?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20Albatrans" target="_blank" rel="noopener">Solicitar demo</a>
+    </div>
+  </div>
+</header>
+
+<main id="inicio">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="eyebrow">🚚 Plataforma para oficina y conductores</div>
+        <h1>Organiza albaranes, entregas y facturas desde una sola app.</h1>
+        <p class="hero-text">
+          Albatrans conecta el trabajo del conductor con la oficina. El conductor registra entregas desde el móvil, sube una foto clara del albarán y la información queda organizada para revisar, controlar y preparar facturas más rápido.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="login.html">Entrar a Albatrans</a>
+          <a class="btn btn-whatsapp" href="https://wa.me/34696627585?text=Hola%2C%20quiero%20solicitar%20una%20demo%20de%20Albatrans" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+        </div>
+
+        <div class="pills">
+          <span class="pill">Foto de albarán</span>
+          <span class="pill">Entregas organizadas</span>
+          <span class="pill">Panel de oficina</span>
+          <span class="pill">Facturación más rápida</span>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h2>La finalidad: ahorrar tiempo de oficina</h2>
+        <p>
+          En vez de buscar fotos, mensajes y datos sueltos, la oficina recibe la información preparada para revisar y facturar.
+        </p>
+        <div class="flow">
+          <div class="flow-item">
+            <div class="flow-icon">📸</div>
+            <div><b>Foto clara del albarán</b><span>El conductor sube la imagen desde el móvil.</span></div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-icon">🤖</div>
+            <div><b>Relleno de datos</b><span>Albatrans puede ayudar a leer la información y completar campos del formulario.</span></div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-icon">🧾</div>
+            <div><b>Facturación más rápida</b><span>La oficina filtra entregas y prepara facturas sin perder tiempo buscando datos.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="problem-grid">
+        <div class="problem-card">
+          <h3>Antes</h3>
+          <ul class="list">
+            <li class="bad">Fotos de albaranes repartidas por WhatsApp.</li>
+            <li class="bad">Datos escritos a mano o repetidos en Excel.</li>
+            <li class="bad">Más tiempo revisando entregas antes de facturar.</li>
+            <li class="bad">Mayor riesgo de errores u olvidos.</li>
+          </ul>
+        </div>
+        <div class="problem-card">
+          <h3>Con Albatrans</h3>
+          <ul class="list">
+            <li class="good">Cada entrega queda registrada en un panel.</li>
+            <li class="good">El albarán se guarda junto al servicio.</li>
+            <li class="good">La oficina filtra por fechas, clientes y conductores.</li>
+            <li class="good">La facturación se prepara con más orden y menos tiempo.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="funciona">
+    <div class="container">
+      <div class="section-head center">
+        <h2>Cómo funciona</h2>
+        <p>Un flujo sencillo para que conductores y oficina trabajen conectados.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>El conductor entra</h3>
+          <p>Accede desde el móvil y selecciona lo que necesita: entrega, fichaje, albarán o vacaciones.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Sube el albarán</h3>
+          <p>Hace una foto clara del documento para que quede asociado a la entrega.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>La oficina revisa</h3>
+          <p>Desde el panel se consultan entregas, albaranes, fichajes y solicitudes.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Se factura mejor</h3>
+          <p>Las entregas quedan organizadas para preparar facturas de forma más rápida.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="conductor">
+    <div class="container">
+      <div class="section-head">
+        <h2>Panel conductor</h2>
+        <p>Diseñado para que el conductor pueda registrar la información importante desde el móvil, sin complicaciones.</p>
+      </div>
+
+      <div class="showcase">
+        <img src="panel-conductor.png" alt="Panel conductor de Albatrans">
+        <div class="showcase-caption">
+          <div>
+            <h3>Todo desde el móvil</h3>
+            <p>Entregas, fichajes, albaranes y vacaciones en una interfaz sencilla para el conductor.</p>
+          </div>
+          <a class="btn btn-secondary" href="login.html">Ver login</a>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <h3>Registro de entregas</h3>
+          <p>El conductor añade cliente, carga, descarga, cantidades y observaciones.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📸</div>
+          <h3>Foto del albarán</h3>
+          <p>Permite adjuntar una foto clara para que la oficina tenga el documento al instante.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🕒</div>
+          <h3>Fichajes</h3>
+          <p>Entrada y salida registradas para controlar horarios desde el panel.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <h3>Albaranes electrónicos</h3>
+          <p>Consulta y firma de albaranes desde el móvil cuando sea necesario.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🏖️</div>
+          <h3>Vacaciones</h3>
+          <p>El conductor puede solicitar vacaciones y consultar el estado de sus solicitudes.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Menos llamadas</h3>
+          <p>La información llega organizada sin depender de mensajes sueltos o fotos perdidas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="oficina">
+    <div class="container">
+      <div class="section-head">
+        <h2>Panel administración</h2>
+        <p>La oficina centraliza entregas, albaranes, fichajes, vacaciones, configuración y facturación.</p>
+      </div>
+
+      <div class="showcase">
+        <img src="panel-admin.png" alt="Panel administración de Albatrans">
+        <div class="showcase-caption">
+          <div>
+            <h3>Control de oficina</h3>
+            <p>Supervisa entregas, documentos, conductores y facturas desde un único panel.</p>
+          </div>
+          <a class="btn btn-whatsapp" href="https://wa.me/34696627585?text=Hola%2C%20quiero%20ver%20una%20demo%20del%20panel%20de%20administraci%C3%B3n%20de%20Albatrans" target="_blank" rel="noopener">Solicitar demo</a>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <h3>Albaranes</h3>
+          <p>Consulta, edita y filtra las entregas registradas por los conductores.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧾</div>
+          <h3>Facturación</h3>
+          <p>Filtra entregas, calcula importes y prepara facturas con más rapidez.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👥</div>
+          <h3>Conductores</h3>
+          <p>Gestión de usuarios, matrículas y datos frecuentes de la empresa.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🕒</div>
+          <h3>Fichajes</h3>
+          <p>Consulta entradas, salidas y horas registradas por los conductores.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🏖️</div>
+          <h3>Vacaciones</h3>
+          <p>Revisa solicitudes y controla estados desde el panel de administración.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚙️</div>
+          <h3>Configuración</h3>
+          <p>Clientes, lugares frecuentes, matrículas y datos útiles para trabajar más rápido.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="two-sides">
+        <div class="side-card">
+          <div class="side-top">
+            <div class="side-icon">📱</div>
+            <h3>Para conductores</h3>
+          </div>
+          <p>Una herramienta sencilla para registrar el trabajo diario sin perder tiempo.</p>
+          <ul class="list">
+            <li class="good">Entregas desde el móvil.</li>
+            <li class="good">Foto de albaranes.</li>
+            <li class="good">Fichaje de entrada y salida.</li>
+            <li class="good">Solicitud de vacaciones.</li>
+          </ul>
+        </div>
+
+        <div class="side-card">
+          <div class="side-top">
+            <div class="side-icon">🏢</div>
+            <h3>Para oficina</h3>
+          </div>
+          <p>Un panel para controlar, revisar y preparar el trabajo administrativo.</p>
+          <ul class="list">
+            <li class="good">Entregas centralizadas.</li>
+            <li class="good">Albaranes organizados.</li>
+            <li class="good">Filtros por fecha, cliente o conductor.</li>
+            <li class="good">Facturación más rápida.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="contacto">
+    <div class="container">
+      <div class="cta-box">
+        <div>
+          <h2>¿Quieres ver Albatrans funcionando?</h2>
+          <p>Solicita una demo y te enseño cómo una empresa puede conectar conductores, albaranes y facturación en una sola plataforma.</p>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://wa.me/34696627585?text=Hola%2C%20quiero%20informaci%C3%B3n%20para%20contratar%20Albatrans" target="_blank" rel="noopener">Solicitar información</a>
+          <a class="btn btn-secondary" href="login.html">Entrar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div>© 2026 Albatrans. Plataforma para oficina y conductores.</div>
+    <div><a href="login.html">Entrar</a> · <a href="https://wa.me/34696627585" target="_blank" rel="noopener">WhatsApp</a></div>
+  </div>
+</footer>
+</body>
+</html>
