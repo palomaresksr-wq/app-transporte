@@ -1,0 +1,23 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# Supabase CLI local state. May contain generated credentials and linked refs.
+supabase/.temp/
+supabase/.branches/
+.supabase/
+
+# Local database exports, backups and transient files.
+*.dump
+*.backup
+*.bak
+*.sql.gz
+*.tmp
+*.temp

@@ -1,0 +1,24 @@
+{
+  "name": "albatrans-2",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @albatrans/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "edge:check": "powershell -ExecutionPolicy Bypass -File scripts/check-edge-functions.ps1",
+    "sql:test:ephemeral": "powershell -ExecutionPolicy Bypass -File scripts/test-sql-ephemeral.ps1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "supabase": "^2.110.0"
+  }
+}
