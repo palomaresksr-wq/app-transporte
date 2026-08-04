@@ -18,6 +18,7 @@ const EditOrganizationPage = lazy(() => import("./pages/superadmin/EditOrganizat
 const MasterDataRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.MasterDataRoute })));
 const AssignmentsRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.AssignmentsRoute })));
 const TransportRoute = lazy(() => import("./pages/transport/TransportRoute").then((module) => ({ default: module.TransportRoute })));
+const ExecutionRoute = lazy(() => import("./pages/execution/ExecutionRoute").then((module) => ({ default: module.ExecutionRoute })));
 
 export function App() {
   return (
@@ -58,6 +59,7 @@ export function App() {
             path="/empresa/transport/:orderId"
             element={<TransportRoute detail />}
           />
+          <Route path="/empresa/transport/:orderId/execution" element={<ExecutionRoute />} />
         </Route>
 
         <Route element={<RoleGuard allowed={["superadmin"]} />}>
@@ -89,6 +91,7 @@ export function App() {
               path="organizations/:organizationId/transport/:orderId"
               element={<TransportRoute platform detail />}
             />
+            <Route path="organizations/:organizationId/transport/:orderId/execution" element={<ExecutionRoute platform />} />
           </Route>
         </Route>
       </Route>

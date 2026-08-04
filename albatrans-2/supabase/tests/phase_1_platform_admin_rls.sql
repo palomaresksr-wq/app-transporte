@@ -68,7 +68,7 @@ select set_config('request.jwt.claim.sub', 'a4000000-0000-4000-8000-000000000001
 select ok(public.is_platform_superadmin(), 'la cuenta de plataforma se reconoce');
 select is((select count(*)::integer from public.organizations), 2, 'superadmin ve todas las empresas');
 select is((select count(*)::integer from public.organization_subscriptions), 2, 'superadmin ve todas las suscripciones');
-select is((select count(*)::integer from public.modules), 14, 'superadmin ve todo el catálogo de módulos');
+select is((select count(*)::integer from public.modules), 15, 'superadmin ve todo el catálogo de módulos, incluida ejecución');
 select is((select count(*)::integer from public.limit_definitions), 7, 'superadmin ve todos los límites');
 select is((select count(*)::integer from public.organization_memberships), 1, 'superadmin ve todos los miembros');
 select is((select count(*)::integer from public.plan_limits), 11, 'superadmin ve todos los límites de planes');

@@ -70,7 +70,7 @@ select results_eq(
   'los códigos de plan coinciden con el contrato'
 );
 
-select is((select count(*)::integer from public.modules), 14, 'existen catorce módulos');
+select is((select count(*)::integer from public.modules), 15, 'existen quince módulos');
 select results_eq(
   $$ select code from public.modules order by code $$,
   $$ values
@@ -86,16 +86,17 @@ select results_eq(
     ('reports'),
     ('support_access'),
     ('time_tracking'),
+    ('transport_execution'),
     ('transport_management'),
     ('vehicle_management')
   $$,
-  'el catálogo contiene exactamente los catorce módulos aprobados'
+  'el catálogo contiene exactamente los quince módulos aprobados'
 );
 
 select is(
   (select count(*)::integer from public.plan_modules),
-  56,
-  'cada plan declara los catorce módulos'
+  60,
+  'cada plan declara los quince módulos'
 );
 select is(
   (
@@ -104,8 +105,8 @@ select is(
     join public.plans p on p.id = pm.plan_id
     where p.code = 'starter' and pm.enabled
   ),
-  5,
-  'Starter activa cinco módulos'
+  6,
+  'Starter activa seis módulos'
 );
 select is(
   (
@@ -114,7 +115,7 @@ select is(
     join public.plans p on p.id = pm.plan_id
     where p.code = 'professional' and pm.enabled
   ),
-  13,
+  14,
   'Profesional activa todos los módulos salvo API'
 );
 select is(
@@ -124,7 +125,7 @@ select is(
     join public.plans p on p.id = pm.plan_id
     where p.code = 'enterprise' and pm.enabled
   ),
-  14,
+  15,
   'Enterprise activa todos los módulos'
 );
 select is(

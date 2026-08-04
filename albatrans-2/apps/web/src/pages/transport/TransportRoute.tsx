@@ -34,6 +34,7 @@ export function TransportRoute(
         organizationId={organizationId}
         orderId={params.orderId}
         platform={platform}
+        executionEnabled={access?.enabledModules.includes("transport_execution") === true}
       />
     )
     : (

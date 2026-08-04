@@ -7,31 +7,6 @@
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       audit_events: {
@@ -384,6 +359,70 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_notifications: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          event_type: string
+          id: string
+          organization_id: string
+          payload: Json
+          read_at: string | null
+          recipient_user_id: string | null
+          status: Database["public"]["Enums"]["internal_notification_status"]
+          title: string
+          transport_order_id: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          organization_id: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id?: string | null
+          status?: Database["public"]["Enums"]["internal_notification_status"]
+          title: string
+          transport_order_id?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          organization_id?: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id?: string | null
+          status?: Database["public"]["Enums"]["internal_notification_status"]
+          title?: string
+          transport_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_notifications_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "internal_notifications_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1271,6 +1310,51 @@ export type Database = {
           },
         ]
       }
+      transport_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transport_events: {
         Row: {
           actor_user_id: string
@@ -1325,6 +1409,171 @@ export type Database = {
           },
           {
             foreignKeyName: "transport_events_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_executions: {
+        Row: {
+          arrived_delivery_at: string | null
+          arrived_pickup_at: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          departed_pickup_at: string | null
+          driver_notified_at: string | null
+          id: string
+          loading_completed_at: string | null
+          loading_started_at: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["transport_execution_status"]
+          transport_order_id: string
+          unloading_completed_at: string | null
+          unloading_started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          arrived_delivery_at?: string | null
+          arrived_pickup_at?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          departed_pickup_at?: string | null
+          driver_notified_at?: string | null
+          id?: string
+          loading_completed_at?: string | null
+          loading_started_at?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["transport_execution_status"]
+          transport_order_id: string
+          unloading_completed_at?: string | null
+          unloading_started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          arrived_delivery_at?: string | null
+          arrived_pickup_at?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          departed_pickup_at?: string | null
+          driver_notified_at?: string | null
+          id?: string
+          loading_completed_at?: string | null
+          loading_started_at?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["transport_execution_status"]
+          transport_order_id?: string
+          unloading_completed_at?: string | null
+          unloading_started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_executions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_executions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_executions_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: true
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_incidents: {
+        Row: {
+          archived_at: string | null
+          category: Database["public"]["Enums"]["transport_incident_category"]
+          description: string
+          id: string
+          organization_id: string
+          reported_at: string
+          reported_by: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["transport_incident_severity"]
+          status: Database["public"]["Enums"]["transport_incident_status"]
+          title: string
+          transport_order_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category: Database["public"]["Enums"]["transport_incident_category"]
+          description: string
+          id?: string
+          organization_id: string
+          reported_at?: string
+          reported_by: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["transport_incident_severity"]
+          status?: Database["public"]["Enums"]["transport_incident_status"]
+          title: string
+          transport_order_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          category?: Database["public"]["Enums"]["transport_incident_category"]
+          description?: string
+          id?: string
+          organization_id?: string
+          reported_at?: string
+          reported_by?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["transport_incident_severity"]
+          status?: Database["public"]["Enums"]["transport_incident_status"]
+          title?: string
+          transport_order_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_incidents_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_incidents_transport_order_id_fkey"
             columns: ["transport_order_id"]
             isOneToOne: false
             referencedRelation: "transport_orders"
@@ -1414,6 +1663,73 @@ export type Database = {
           },
           {
             foreignKeyName: "transport_items_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_notes: {
+        Row: {
+          archived_at: string | null
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          note_type: Database["public"]["Enums"]["transport_note_type"]
+          organization_id: string
+          transport_order_id: string
+          updated_at: string
+          visible_admin: boolean
+          visible_customer: boolean
+          visible_driver: boolean
+        }
+        Insert: {
+          archived_at?: string | null
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          note_type?: Database["public"]["Enums"]["transport_note_type"]
+          organization_id: string
+          transport_order_id: string
+          updated_at?: string
+          visible_admin?: boolean
+          visible_customer?: boolean
+          visible_driver?: boolean
+        }
+        Update: {
+          archived_at?: string | null
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          note_type?: Database["public"]["Enums"]["transport_note_type"]
+          organization_id?: string
+          transport_order_id?: string
+          updated_at?: string
+          visible_admin?: boolean
+          visible_customer?: boolean
+          visible_driver?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_notes_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_notes_transport_order_id_fkey"
             columns: ["transport_order_id"]
             isOneToOne: false
             referencedRelation: "transport_orders"
@@ -1707,7 +2023,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      transport_waiting_times: {
+        Row: {
+          execution_id: string | null
+          loading_seconds: number | null
+          organization_id: string | null
+          total_seconds: number | null
+          transit_seconds: number | null
+          transport_order_id: string | null
+          unloading_seconds: number | null
+          waiting_delivery_seconds: number | null
+          waiting_pickup_seconds: number | null
+        }
+        Insert: {
+          execution_id?: string | null
+          loading_seconds?: never
+          organization_id?: string | null
+          total_seconds?: never
+          transit_seconds?: never
+          transport_order_id?: string | null
+          unloading_seconds?: never
+          waiting_delivery_seconds?: never
+          waiting_pickup_seconds?: never
+        }
+        Update: {
+          execution_id?: string | null
+          loading_seconds?: never
+          organization_id?: string | null
+          total_seconds?: never
+          transit_seconds?: never
+          transport_order_id?: string | null
+          unloading_seconds?: never
+          waiting_delivery_seconds?: never
+          waiting_pickup_seconds?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_executions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_executions_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: true
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_master_data: {
@@ -1741,10 +2107,31 @@ export type Database = {
         Returns: Database["public"]["Enums"]["organization_role"]
       }
       current_profile_is_active: { Args: never; Returns: boolean }
+      execute_transport_operation: {
+        Args: {
+          p_action: string
+          p_actor_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_actor_user_id: string
+          p_correlation_id: string
+          p_entity_id: string
+          p_idempotency_key: string
+          p_organization_id: string
+          p_reason: string
+          p_resource: string
+          p_target_status: string
+          p_transport_order_id: string
+          p_values: Json
+        }
+        Returns: Json
+      }
       is_platform_superadmin: { Args: never; Returns: boolean }
       next_transport_order_number: {
         Args: { p_organization_id: string }
         Returns: string
+      }
+      phase_c_module_enabled: {
+        Args: { p_organization_id: string }
+        Returns: boolean
       }
     }
     Enums: {
@@ -1758,6 +2145,7 @@ export type Database = {
         | "terminated"
         | "archived"
       fleet_asset_status: "active" | "inactive" | "maintenance" | "archived"
+      internal_notification_status: "unread" | "read" | "archived"
       legacy_entity_type: "admin_empresa" | "conductor"
       legacy_migration_status:
         | "pending"
@@ -1801,6 +2189,40 @@ export type Database = {
         | "suspended"
         | "cancelled"
         | "expired"
+      transport_execution_status:
+        | "pending"
+        | "driver_notified"
+        | "heading_to_pickup"
+        | "arrived_pickup"
+        | "waiting_pickup"
+        | "loading"
+        | "loaded"
+        | "departed_pickup"
+        | "in_transit"
+        | "arrived_delivery"
+        | "waiting_delivery"
+        | "unloading"
+        | "delivered"
+        | "completed"
+        | "cancelled"
+      transport_incident_category:
+        | "delay"
+        | "breakdown"
+        | "traffic"
+        | "customer_absent"
+        | "wrong_address"
+        | "missing_goods"
+        | "damaged_goods"
+        | "documentation"
+        | "other"
+      transport_incident_severity: "low" | "normal" | "high" | "critical"
+      transport_incident_status:
+        | "open"
+        | "in_progress"
+        | "resolved"
+        | "closed"
+        | "archived"
+      transport_note_type: "operational" | "driver" | "customer" | "internal"
       transport_order_status:
         | "draft"
         | "planned"
@@ -1944,9 +2366,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       audit_actor_scope: ["platform", "organization", "system"],
@@ -1960,6 +2379,7 @@ export const Constants = {
         "archived",
       ],
       fleet_asset_status: ["active", "inactive", "maintenance", "archived"],
+      internal_notification_status: ["unread", "read", "archived"],
       legacy_entity_type: ["admin_empresa", "conductor"],
       legacy_migration_status: [
         "pending",
@@ -2007,6 +2427,43 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      transport_execution_status: [
+        "pending",
+        "driver_notified",
+        "heading_to_pickup",
+        "arrived_pickup",
+        "waiting_pickup",
+        "loading",
+        "loaded",
+        "departed_pickup",
+        "in_transit",
+        "arrived_delivery",
+        "waiting_delivery",
+        "unloading",
+        "delivered",
+        "completed",
+        "cancelled",
+      ],
+      transport_incident_category: [
+        "delay",
+        "breakdown",
+        "traffic",
+        "customer_absent",
+        "wrong_address",
+        "missing_goods",
+        "damaged_goods",
+        "documentation",
+        "other",
+      ],
+      transport_incident_severity: ["low", "normal", "high", "critical"],
+      transport_incident_status: [
+        "open",
+        "in_progress",
+        "resolved",
+        "closed",
+        "archived",
+      ],
+      transport_note_type: ["operational", "driver", "customer", "internal"],
       transport_order_status: [
         "draft",
         "planned",

@@ -1,5 +1,6 @@
 export const MODULE_CODES = [
   "transport_management",
+  "transport_execution",
   "client_management",
   "vehicle_management",
   "pod_signature",

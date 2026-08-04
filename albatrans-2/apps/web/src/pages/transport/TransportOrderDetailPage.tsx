@@ -21,10 +21,11 @@ type Editor = {
   stopId?: string;
 };
 export function TransportOrderDetailPage(
-  { organizationId, orderId, platform }: {
+  { organizationId, orderId, platform, executionEnabled = false }: {
     organizationId: string;
     orderId: string;
     platform: boolean;
+    executionEnabled?: boolean;
   },
 ) {
   const [detail, setDetail] = useState<TransportDetail | null>(null),
@@ -51,6 +52,9 @@ export function TransportOrderDetailPage(
   const base = platform
     ? `/platform/organizations/${organizationId}/transport`
     : "/empresa/transport";
+  const executionPath = platform
+    ? `/platform/organizations/${organizationId}/transport/${orderId}/execution`
+    : `/empresa/transport/${orderId}/execution`;
   if (loading) {
     return <div className="list-state" aria-busy="true">Cargando…</div>;
   }
@@ -94,15 +98,16 @@ export function TransportOrderDetailPage(
           <span className="eyebrow">Orden {detail.order.order_number}</span>
           <h1>{detail.customerName}</h1>
         </div>
-        <button
-          className="button button-secondary"
-          disabled={["completed", "cancelled", "archived"].includes(
-            detail.order.status,
+        <div className="action-row">
+          {(platform || executionEnabled) && (
+            <Link className="button" to={executionPath}>Ejecución operativa</Link>
           )}
-          onClick={() => setEditor({ kind: "order", id: orderId })}
-        >
-          Editar orden
-        </button>
+          <button
+            className="button button-secondary"
+            disabled={["completed", "cancelled", "archived"].includes(detail.order.status)}
+            onClick={() => setEditor({ kind: "order", id: orderId })}
+          >Editar orden</button>
+        </div>
       </div>
       {error && <p role="alert" className="error-banner">{error}</p>}
       {success && <p role="status" className="success-banner">{success}</p>}
