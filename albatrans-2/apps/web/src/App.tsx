@@ -1,24 +1,27 @@
 import { effectiveRoleHome } from "@albatrans/domain";
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { AuthGuard, RoleGuard } from "./auth/RouteGuards";
-import { ConfigurationPage } from "./pages/ConfigurationPage";
-import { LoginPage } from "./pages/LoginPage";
-import {
-  RequestPasswordPage,
-  UpdatePasswordPage
-} from "./pages/PasswordPages";
-import { PortalPage } from "./pages/PortalPage";
-import { SuperadminLayout } from "./layouts/SuperadminLayout";
-import { DashboardPage } from "./pages/superadmin/DashboardPage";
-import { CreateOrganizationPage } from "./pages/superadmin/CreateOrganizationPage";
-import { OrganizationsPage } from "./pages/superadmin/OrganizationsPage";
-import { OrganizationDetailPage } from "./pages/superadmin/OrganizationDetailPage";
-import { EditOrganizationPage } from "./pages/superadmin/EditOrganizationPage";
+
+const ConfigurationPage = lazy(() => import("./pages/ConfigurationPage").then((module) => ({ default: module.ConfigurationPage })));
+const LoginPage = lazy(() => import("./pages/LoginPage").then((module) => ({ default: module.LoginPage })));
+const RequestPasswordPage = lazy(() => import("./pages/PasswordPages").then((module) => ({ default: module.RequestPasswordPage })));
+const UpdatePasswordPage = lazy(() => import("./pages/PasswordPages").then((module) => ({ default: module.UpdatePasswordPage })));
+const PortalPage = lazy(() => import("./pages/PortalPage").then((module) => ({ default: module.PortalPage })));
+const SuperadminLayout = lazy(() => import("./layouts/SuperadminLayout").then((module) => ({ default: module.SuperadminLayout })));
+const DashboardPage = lazy(() => import("./pages/superadmin/DashboardPage").then((module) => ({ default: module.DashboardPage })));
+const CreateOrganizationPage = lazy(() => import("./pages/superadmin/CreateOrganizationPage").then((module) => ({ default: module.CreateOrganizationPage })));
+const OrganizationsPage = lazy(() => import("./pages/superadmin/OrganizationsPage").then((module) => ({ default: module.OrganizationsPage })));
+const OrganizationDetailPage = lazy(() => import("./pages/superadmin/OrganizationDetailPage").then((module) => ({ default: module.OrganizationDetailPage })));
+const EditOrganizationPage = lazy(() => import("./pages/superadmin/EditOrganizationPage").then((module) => ({ default: module.EditOrganizationPage })));
+const MasterDataRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.MasterDataRoute })));
+const AssignmentsRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.AssignmentsRoute })));
+const TransportRoute = lazy(() => import("./pages/transport/TransportRoute").then((module) => ({ default: module.TransportRoute })));
 
 export function App() {
   return (
-    <Routes>
+    <Suspense fallback={<RouteLoading />}><Routes>
       <Route path="/configuracion" element={<ConfigurationPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
@@ -45,6 +48,16 @@ export function App() {
             path="/empresa"
             element={<PortalPage expectedRole="admin_empresa" />}
           />
+          <Route
+            path="/empresa/master-data/:resource"
+            element={<MasterDataRoute />}
+          />
+          <Route path="/empresa/assignments" element={<AssignmentsRoute />} />
+          <Route path="/empresa/transport" element={<TransportRoute />} />
+          <Route
+            path="/empresa/transport/:orderId"
+            element={<TransportRoute detail />}
+          />
         </Route>
 
         <Route element={<RoleGuard allowed={["superadmin"]} />}>
@@ -52,15 +65,41 @@ export function App() {
             <Route index element={<DashboardPage />} />
             <Route path="empresas/nueva" element={<CreateOrganizationPage />} />
             <Route path="organizations" element={<OrganizationsPage />} />
-            <Route path="organizations/:organizationId" element={<OrganizationDetailPage />} />
-            <Route path="organizations/:organizationId/edit" element={<EditOrganizationPage />} />
+            <Route
+              path="organizations/:organizationId"
+              element={<OrganizationDetailPage />}
+            />
+            <Route
+              path="organizations/:organizationId/edit"
+              element={<EditOrganizationPage />}
+            />
+            <Route
+              path="organizations/:organizationId/master-data/:resource"
+              element={<MasterDataRoute platform />}
+            />
+            <Route
+              path="organizations/:organizationId/assignments"
+              element={<AssignmentsRoute platform />}
+            />
+            <Route
+              path="organizations/:organizationId/transport"
+              element={<TransportRoute platform />}
+            />
+            <Route
+              path="organizations/:organizationId/transport/:orderId"
+              element={<TransportRoute platform detail />}
+            />
           </Route>
         </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    </Routes></Suspense>
   );
+}
+
+function RouteLoading() {
+  return <main className="list-state" role="status" aria-live="polite" aria-busy="true">Cargando sección…</main>;
 }
 
 function HomeRedirect() {

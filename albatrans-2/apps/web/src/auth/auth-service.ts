@@ -151,13 +151,22 @@ export async function loadAccessContext(
     ? mapOrganization(organizationData as Record<string, unknown>)
     : null;
 
+  const entitlementCodes = ["transport_management", "client_management", "vehicle_management"] as const;
+  const entitlementResults = await Promise.all(
+    entitlementCodes.map((code) => client.rpc("current_organization_module_enabled", { p_module_code: code }))
+  );
+  for (const result of entitlementResults) {
+    if (result.error) throw new Error("No se pudieron resolver los módulos de la empresa.");
+  }
+  const enabledModules = entitlementCodes.filter((_, index) => entitlementResults[index]?.data === true);
+
   const context: AccessContext = {
     profile,
     effectiveRole: membership.role,
     platformAdmin: null,
     membership,
     organization,
-    enabledModules: [],
+    enabledModules,
     effectiveLimits: {}
   };
   const denial = accessDenialReason(context);

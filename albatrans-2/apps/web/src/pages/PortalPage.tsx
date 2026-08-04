@@ -1,5 +1,6 @@
 import type { EffectiveRole } from "@albatrans/contracts";
 import { useAuth } from "../auth/AuthContext";
+import { Link } from "react-router-dom";
 
 const CONTENT: Record<
   EffectiveRole,
@@ -9,24 +10,24 @@ const CONTENT: Record<
     label: "Portal conductor",
     title: "Tu jornada, preparada",
     description:
-      "Las entregas, fichajes, vacaciones y albaranes se incorporarán por fases sin retirar Albatrans 1."
+      "Las entregas, fichajes, vacaciones y albaranes se incorporarán por fases sin retirar Albatrans 1.",
   },
   admin_empresa: {
     label: "Administración de empresa",
     title: "Todo preparado para tu empresa",
     description:
-      "Esta base limita el portal al rol, la membresía activa y la empresa activa del usuario autenticado."
+      "Esta base limita el portal al rol, la membresía activa y la empresa activa del usuario autenticado.",
   },
   superadmin: {
     label: "Superadministración",
     title: "Control seguro de la plataforma",
     description:
-      "La gestión de empresas y usuarios se incorporará sobre el acceso de plataforma validado."
-  }
+      "La gestión de empresas y usuarios se incorporará sobre el acceso de plataforma validado.",
+  },
 };
 
 export function PortalPage({
-  expectedRole
+  expectedRole,
 }: {
   expectedRole: EffectiveRole;
 }) {
@@ -79,6 +80,31 @@ export function PortalPage({
             </div>
           </article>
         </div>
+        {expectedRole === "admin_empresa" && (
+          <nav className="panel master-data-nav" aria-label="Datos maestros">
+            <h2>Datos maestros</h2>
+            {access?.enabledModules.includes("transport_management") && (
+              <>
+                <Link to="/empresa/transport">Órdenes de transporte</Link>
+                <Link to="/empresa/master-data/drivers">Conductores</Link>
+              </>
+            )}
+            {access?.enabledModules.includes("client_management") && (
+              <>
+                <Link to="/empresa/master-data/clients">Clientes</Link>
+                <Link to="/empresa/master-data/client_contacts">Contactos</Link>
+                <Link to="/empresa/master-data/locations">Ubicaciones</Link>
+              </>
+            )}
+            {access?.enabledModules.includes("vehicle_management") && (
+              <>
+                <Link to="/empresa/master-data/vehicles">Vehículos</Link>
+                <Link to="/empresa/master-data/trailers">Remolques</Link>
+                <Link to="/empresa/assignments">Asignaciones</Link>
+              </>
+            )}
+          </nav>
+        )}
       </section>
     </main>
   );
