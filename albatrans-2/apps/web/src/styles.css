@@ -824,3 +824,19 @@ code {
 .timeline-list time,.simple-list time { color: var(--muted-color,#586575); }
 .module-hint { color: var(--muted-color,#586575); font-size: .9rem; }
 @media (max-width: 760px) { .execution-grid { grid-template-columns: 1fr; } .simple-list li,.timeline-list li { flex-direction: column; } }
+.document-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  margin-top: 1rem;
+}
+.document-card header, .document-card li, .document-subsection .inline-actions {
+  align-items: center;
+  display: flex;
+  gap: .75rem;
+  justify-content: space-between;
+}
+.document-card ul { display: grid; gap: .5rem; list-style: none; padding: 0; }
+.document-subsection { border-top: 1px solid var(--border-color, #d7dee7); display: grid; gap: .65rem; margin-top: 1rem; padding-top: 1rem; }
+.link-button { background: none; border: 0; color: var(--primary-color, #165d8f); cursor: pointer; text-decoration: underline; }
+@media (max-width: 640px) { .document-card header, .document-card li { align-items: flex-start; flex-direction: column; } }

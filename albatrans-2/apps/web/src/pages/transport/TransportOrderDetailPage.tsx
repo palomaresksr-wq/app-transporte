@@ -15,6 +15,7 @@ import {
   type TransportDetail,
   type TransportOption,
 } from "../../data/transport-repository";
+import { DocumentManager } from "./DocumentManager";
 type Editor = {
   kind: "order" | "stop" | "item" | "assignment";
   id?: string;
@@ -309,6 +310,15 @@ export function TransportOrderDetailPage(
             </ul>
           )}
       </section>
+      <DocumentManager
+        organizationId={organizationId}
+        orderId={orderId}
+        stops={detail.stops.map((stop) => ({
+          id: stop.id,
+          position: stop.position,
+          stop_type: stop.stop_type,
+        }))}
+      />
       <section className="detail-section">
         <h2>Timeline</h2>
         {detail.events.length === 0

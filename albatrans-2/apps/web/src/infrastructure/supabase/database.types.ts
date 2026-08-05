@@ -7,6 +7,31 @@
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       audit_events: {
@@ -203,6 +228,410 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "document_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_outbox: {
+        Row: {
+          attempts: number
+          correlation_id: string
+          created_at: string
+          document_id: string | null
+          document_version_id: string | null
+          event_type: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          organization_id: string
+          payload: Json
+          processed_at: string | null
+          status: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Insert: {
+          attempts?: number
+          correlation_id: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          event_type: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          organization_id: string
+          payload?: Json
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Update: {
+          attempts?: number
+          correlation_id?: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          organization_id?: string
+          payload?: Json
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_outbox_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_outbox_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_outbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_signatures: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_id: string
+          document_version_id: string | null
+          id: string
+          ip_address: unknown
+          organization_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          signature_data_path: string | null
+          signature_hash: string
+          signature_type: Database["public"]["Enums"]["document_signature_type"]
+          signed_at: string
+          signer_name: string
+          signer_role: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_id: string
+          document_version_id?: string | null
+          id?: string
+          ip_address?: unknown
+          organization_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          signature_data_path?: string | null
+          signature_hash: string
+          signature_type: Database["public"]["Enums"]["document_signature_type"]
+          signed_at: string
+          signer_name: string
+          signer_role?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          document_version_id?: string | null
+          id?: string
+          ip_address?: unknown
+          organization_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          signature_data_path?: string | null
+          signature_hash?: string
+          signature_type?: Database["public"]["Enums"]["document_signature_type"]
+          signed_at?: string
+          signer_name?: string
+          signer_role?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "document_signatures_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          metadata: Json
+          mime_type: string
+          organization_id: string
+          original_filename: string
+          sha256: string | null
+          size_bytes: number
+          status: Database["public"]["Enums"]["document_version_status"]
+          storage_bucket: string
+          storage_path: string
+          uploaded_at: string | null
+          uploaded_by: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          metadata?: Json
+          mime_type: string
+          organization_id: string
+          original_filename: string
+          sha256?: string | null
+          size_bytes: number
+          status?: Database["public"]["Enums"]["document_version_status"]
+          storage_bucket: string
+          storage_path: string
+          uploaded_at?: string | null
+          uploaded_by: string
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          metadata?: Json
+          mime_type?: string
+          organization_id?: string
+          original_filename?: string
+          sha256?: string | null
+          size_bytes?: number
+          status?: Database["public"]["Enums"]["document_version_status"]
+          storage_bucket?: string
+          storage_path?: string
+          uploaded_at?: string | null
+          uploaded_by?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          archived_at: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          description: string | null
+          document_type: string
+          driver_id: string | null
+          id: string
+          organization_id: string
+          source: Database["public"]["Enums"]["document_source"]
+          status: Database["public"]["Enums"]["document_status"]
+          title: string
+          transport_incident_id: string | null
+          transport_order_id: string | null
+          transport_stop_id: string | null
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          description?: string | null
+          document_type: string
+          driver_id?: string | null
+          id?: string
+          organization_id: string
+          source: Database["public"]["Enums"]["document_source"]
+          status?: Database["public"]["Enums"]["document_status"]
+          title: string
+          transport_incident_id?: string | null
+          transport_order_id?: string | null
+          transport_stop_id?: string | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          description?: string | null
+          document_type?: string
+          driver_id?: string | null
+          id?: string
+          organization_id?: string
+          source?: Database["public"]["Enums"]["document_source"]
+          status?: Database["public"]["Enums"]["document_status"]
+          title?: string
+          transport_incident_id?: string | null
+          transport_order_id?: string | null
+          transport_stop_id?: string | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "documents_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_transport_incident_id_fkey"
+            columns: ["transport_incident_id"]
+            isOneToOne: false
+            referencedRelation: "transport_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_transport_stop_id_fkey"
+            columns: ["transport_stop_id"]
+            isOneToOne: false
+            referencedRelation: "transport_stops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]
@@ -1157,6 +1586,93 @@ export type Database = {
         }
         Relationships: []
       }
+      proofs_of_delivery: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string
+          delivered_at: string | null
+          delivery_notes: string | null
+          document_id: string
+          id: string
+          organization_id: string
+          recipient_name: string | null
+          recipient_role: string | null
+          status: Database["public"]["Enums"]["pod_status"]
+          transport_order_id: string
+          transport_stop_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by: string
+          delivered_at?: string | null
+          delivery_notes?: string | null
+          document_id: string
+          id?: string
+          organization_id: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          status?: Database["public"]["Enums"]["pod_status"]
+          transport_order_id: string
+          transport_stop_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string
+          delivered_at?: string | null
+          delivery_notes?: string | null
+          document_id?: string
+          id?: string
+          organization_id?: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          status?: Database["public"]["Enums"]["pod_status"]
+          transport_order_id?: string
+          transport_stop_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proofs_of_delivery_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "proofs_of_delivery_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proofs_of_delivery_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proofs_of_delivery_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proofs_of_delivery_transport_stop_id_fkey"
+            columns: ["transport_stop_id"]
+            isOneToOne: false
+            referencedRelation: "transport_stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trailers: {
         Row: {
           archived_at: string | null
@@ -2076,6 +2592,50 @@ export type Database = {
       }
     }
     Functions: {
+      archive_document: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      begin_document_upload: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_description: string
+          p_document_type: string
+          p_key: string
+          p_mime_type: string
+          p_org: string
+          p_original_filename: string
+          p_relations: Json
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_size_bytes: number
+          p_source: Database["public"]["Enums"]["document_source"]
+          p_title: string
+        }
+        Returns: Json
+      }
+      begin_document_version_upload: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_mime_type: string
+          p_org: string
+          p_original_filename: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_size_bytes: number
+        }
+        Returns: Json
+      }
       can_access_master_data: {
         Args: {
           p_module_code: string
@@ -2083,6 +2643,53 @@ export type Database = {
           p_write?: boolean
         }
         Returns: boolean
+      }
+      command_document_signature: {
+        Args: {
+          p_action: string
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_signature: string
+          p_values: Json
+          p_version: string
+        }
+        Returns: Json
+      }
+      command_proof_of_delivery: {
+        Args: {
+          p_action: string
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_pod: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_stop: string
+          p_values: Json
+        }
+        Returns: Json
+      }
+      confirm_document_upload: {
+        Args: {
+          p_actor: string
+          p_actual_mime: string
+          p_actual_size: number
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_metadata: Json
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_sha256: string
+          p_version: string
+        }
+        Returns: Json
       }
       current_organization_has_capacity: {
         Args: {
@@ -2107,6 +2714,15 @@ export type Database = {
         Returns: Database["public"]["Enums"]["organization_role"]
       }
       current_profile_is_active: { Args: never; Returns: boolean }
+      document_actor_authorized: {
+        Args: {
+          p_actor: string
+          p_module: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: boolean
+      }
       execute_transport_operation: {
         Args: {
           p_action: string
@@ -2124,6 +2740,19 @@ export type Database = {
         }
         Returns: Json
       }
+      fail_document_upload: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_version: string
+        }
+        Returns: Json
+      }
       is_platform_superadmin: { Args: never; Returns: boolean }
       next_transport_order_number: {
         Args: { p_organization_id: string }
@@ -2137,6 +2766,30 @@ export type Database = {
     Enums: {
       audit_actor_scope: "platform" | "organization" | "system"
       billing_interval: "monthly" | "yearly" | "custom"
+      document_outbox_status: "pending" | "processing" | "completed" | "failed"
+      document_signature_type:
+        | "drawn"
+        | "typed"
+        | "uploaded"
+        | "future_certificate"
+      document_source:
+        | "upload"
+        | "camera"
+        | "generated"
+        | "imported"
+        | "legacy"
+        | "future_ocr"
+      document_status:
+        | "pending_upload"
+        | "available"
+        | "quarantined"
+        | "archived"
+        | "failed"
+      document_version_status:
+        | "pending_upload"
+        | "available"
+        | "quarantined"
+        | "failed"
       driver_employment_status:
         | "pending"
         | "active"
@@ -2181,6 +2834,7 @@ export type Database = {
       plan_status: "active" | "inactive" | "archived"
       platform_admin_status: "active" | "blocked"
       platform_role: "superadmin"
+      pod_status: "pending" | "captured" | "confirmed" | "rejected" | "archived"
       profile_status: "active" | "blocked"
       subscription_status:
         | "trial"
@@ -2366,10 +3020,41 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       audit_actor_scope: ["platform", "organization", "system"],
       billing_interval: ["monthly", "yearly", "custom"],
+      document_outbox_status: ["pending", "processing", "completed", "failed"],
+      document_signature_type: [
+        "drawn",
+        "typed",
+        "uploaded",
+        "future_certificate",
+      ],
+      document_source: [
+        "upload",
+        "camera",
+        "generated",
+        "imported",
+        "legacy",
+        "future_ocr",
+      ],
+      document_status: [
+        "pending_upload",
+        "available",
+        "quarantined",
+        "archived",
+        "failed",
+      ],
+      document_version_status: [
+        "pending_upload",
+        "available",
+        "quarantined",
+        "failed",
+      ],
       driver_employment_status: [
         "pending",
         "active",
@@ -2418,6 +3103,7 @@ export const Constants = {
       plan_status: ["active", "inactive", "archived"],
       platform_admin_status: ["active", "blocked"],
       platform_role: ["superadmin"],
+      pod_status: ["pending", "captured", "confirmed", "rejected", "archived"],
       profile_status: ["active", "blocked"],
       subscription_status: [
         "trial",
