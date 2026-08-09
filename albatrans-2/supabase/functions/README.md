@@ -1,11 +1,12 @@
 # Edge Functions
 
-La API interna se incorporará en fases posteriores.
+La API interna se incorpora por fases.
 
-En la Fase 1 el frontend utiliza Supabase únicamente para:
+Actualmente existen endpoints para:
 
-- autenticación;
-- recuperación de contraseña;
-- lectura RLS del perfil propio.
+- gestion de organizaciones y membresias;
+- comandos transaccionales de transporte;
+- saga documental y POD;
+- OCR documental con revision humana y worker local manual.
 
-No se han creado endpoints de entregas, OCR ni facturación.
+No se han creado endpoints de facturacion en esta fase.

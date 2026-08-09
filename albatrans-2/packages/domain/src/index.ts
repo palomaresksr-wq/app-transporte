@@ -11,3 +11,4 @@ export * from "./platform-dashboard";
 export * from "./transport";
 export * from "./execution";
 export * from "./documents";
+export * from "./ocr";

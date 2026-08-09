@@ -839,4 +839,16 @@ code {
 .document-card ul { display: grid; gap: .5rem; list-style: none; padding: 0; }
 .document-subsection { border-top: 1px solid var(--border-color, #d7dee7); display: grid; gap: .65rem; margin-top: 1rem; padding-top: 1rem; }
 .link-button { background: none; border: 0; color: var(--primary-color, #165d8f); cursor: pointer; text-decoration: underline; }
+.ocr-job { border: 1px solid #d7dee7; border-radius: .75rem; display: grid; gap: .7rem; padding: .85rem; }
+.ocr-result { display: grid; gap: .6rem; }
+.ocr-result pre { background: #f6f8fb; border: 1px solid #e3e8f0; border-radius: .65rem; margin: 0; max-height: 18rem; overflow: auto; padding: .75rem; }
+.ocr-field-list { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+.ocr-field-list li { border: 1px solid #e2e8ef; border-radius: .6rem; display: grid; gap: .5rem; padding: .65rem; }
+.ocr-correction-form { display: grid; gap: .5rem; }
+.ocr-correction-form input { width: 100%; }
+.ocr-review-list { border-top: 1px dashed #d0d9e4; display: grid; gap: .6rem; margin-top: .3rem; padding-top: .75rem; }
+.ocr-review-list ul { list-style: none; margin: 0; padding: 0; }
+.ocr-review-list li { border-bottom: 1px solid #ebeff5; padding: .35rem 0; }
+.warning-text { color: #965e13; }
+.error-text { color: #a1252d; }
 @media (max-width: 640px) { .document-card header, .document-card li { align-items: flex-start; flex-direction: column; } }

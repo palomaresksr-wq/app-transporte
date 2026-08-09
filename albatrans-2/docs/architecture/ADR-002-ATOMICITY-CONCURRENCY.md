@@ -17,10 +17,10 @@ La función es `SECURITY DEFINER`, sin SQL dinámico, con `search_path` fijo. `P
 
 Auth, Storage y proveedores no comparten transacción con PostgreSQL. Esos flujos serán sagas idempotentes: comando persistido, efecto externo detectable, compensación, reconciliación y alertas. No se prometerá rollback distribuido, sino convergencia observable.
 
-## Estándar futuro
+## Estandar aplicado
 
 - POD y documentos: metadatos, auditoría y outbox transaccionales; Storage mediante saga.
-- OCR: reserva/confirmación/liberación idempotente de cuota y reconciliación con proveedor.
+- OCR (Fase E): reserva atomica de cuota antes de proveedor, commit al inicio de processing, liberacion solo si proveedor no inicio, resultado inmutable, revision humana append-only y outbox OCR reconciliable.
 - Facturación: numeración, documento fiscal, auditoría y outbox atómicos e inmutables.
 - Cuotas: ledger de reservas con bloqueo por empresa, periodo y métrica.
 
@@ -30,4 +30,4 @@ Solo se reintentan comandos idempotentes. Tras un timeout se consulta o repite l
 
 ## Consecuencias
 
-Fase C queda protegida frente a cambios parciales y carreras sobre una orden. El patrón no autoriza todavía operaciones productivas con Auth, OCR, Storage o facturación sin sus ledgers, outbox y reconciliadores específicos.
+Fase C queda protegida frente a cambios parciales y carreras sobre una orden. Fase E aplica el mismo patrón al OCR documental y su cuota mensual. El patrón no autoriza todavía operaciones productivas con proveedores externos de OCR o facturación sin validación contractual, legal y operativa adicional.

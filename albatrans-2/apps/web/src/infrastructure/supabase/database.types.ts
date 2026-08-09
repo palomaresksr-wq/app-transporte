@@ -7,31 +7,6 @@
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       audit_events: {
@@ -1086,6 +1061,573 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ocr_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_field_corrections: {
+        Row: {
+          corrected_at: string
+          corrected_by: string
+          corrected_value: Json | null
+          correction_reason: string | null
+          field_code: string
+          id: string
+          ocr_field_result_id: string | null
+          ocr_review_id: string
+          organization_id: string
+          previous_value: Json | null
+        }
+        Insert: {
+          corrected_at?: string
+          corrected_by: string
+          corrected_value?: Json | null
+          correction_reason?: string | null
+          field_code: string
+          id?: string
+          ocr_field_result_id?: string | null
+          ocr_review_id: string
+          organization_id: string
+          previous_value?: Json | null
+        }
+        Update: {
+          corrected_at?: string
+          corrected_by?: string
+          corrected_value?: Json | null
+          correction_reason?: string | null
+          field_code?: string
+          id?: string
+          ocr_field_result_id?: string | null
+          ocr_review_id?: string
+          organization_id?: string
+          previous_value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_field_corrections_corrected_by_fkey"
+            columns: ["corrected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_field_corrections_ocr_field_result_id_fkey"
+            columns: ["ocr_field_result_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_field_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_field_corrections_ocr_review_id_fkey"
+            columns: ["ocr_review_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_field_corrections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_field_results: {
+        Row: {
+          bounding_box_json: Json | null
+          confidence: number | null
+          created_at: string
+          field_code: string
+          id: string
+          normalized_value: Json | null
+          ocr_result_id: string
+          organization_id: string
+          page_number: number | null
+          raw_value: Json | null
+          validation_status: Database["public"]["Enums"]["ocr_field_validation_status"]
+          warnings_json: Json
+        }
+        Insert: {
+          bounding_box_json?: Json | null
+          confidence?: number | null
+          created_at?: string
+          field_code: string
+          id?: string
+          normalized_value?: Json | null
+          ocr_result_id: string
+          organization_id: string
+          page_number?: number | null
+          raw_value?: Json | null
+          validation_status?: Database["public"]["Enums"]["ocr_field_validation_status"]
+          warnings_json?: Json
+        }
+        Update: {
+          bounding_box_json?: Json | null
+          confidence?: number | null
+          created_at?: string
+          field_code?: string
+          id?: string
+          normalized_value?: Json | null
+          ocr_result_id?: string
+          organization_id?: string
+          page_number?: number | null
+          raw_value?: Json | null
+          validation_status?: Database["public"]["Enums"]["ocr_field_validation_status"]
+          warnings_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_field_results_ocr_result_id_fkey"
+            columns: ["ocr_result_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_field_results_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_jobs: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          correlation_id: string
+          created_at: string
+          document_id: string
+          document_version_id: string
+          failed_at: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          idempotency_key: string
+          max_attempts: number
+          organization_id: string
+          payload: Json
+          payload_hash: string
+          provider_code: string
+          provider_request_id: string | null
+          quota_reservation_id: string | null
+          requested_at: string
+          requested_by: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["ocr_job_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          correlation_id: string
+          created_at?: string
+          document_id: string
+          document_version_id: string
+          failed_at?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          idempotency_key: string
+          max_attempts?: number
+          organization_id: string
+          payload?: Json
+          payload_hash: string
+          provider_code: string
+          provider_request_id?: string | null
+          quota_reservation_id?: string | null
+          requested_at?: string
+          requested_by: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ocr_job_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          correlation_id?: string
+          created_at?: string
+          document_id?: string
+          document_version_id?: string
+          failed_at?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          idempotency_key?: string
+          max_attempts?: number
+          organization_id?: string
+          payload?: Json
+          payload_hash?: string
+          provider_code?: string
+          provider_request_id?: string | null
+          quota_reservation_id?: string | null
+          requested_at?: string
+          requested_by?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ocr_job_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_jobs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_jobs_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_jobs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      ocr_outbox: {
+        Row: {
+          attempts: number
+          correlation_id: string
+          created_at: string
+          event_type: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          ocr_job_id: string | null
+          ocr_result_id: string | null
+          organization_id: string
+          payload: Json
+          processed_at: string | null
+          status: Database["public"]["Enums"]["ocr_outbox_status"]
+        }
+        Insert: {
+          attempts?: number
+          correlation_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          ocr_job_id?: string | null
+          ocr_result_id?: string | null
+          organization_id: string
+          payload?: Json
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["ocr_outbox_status"]
+        }
+        Update: {
+          attempts?: number
+          correlation_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          ocr_job_id?: string | null
+          ocr_result_id?: string | null
+          organization_id?: string
+          payload?: Json
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["ocr_outbox_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_outbox_ocr_job_id_fkey"
+            columns: ["ocr_job_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_outbox_ocr_result_id_fkey"
+            columns: ["ocr_result_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_outbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_quota_reservations: {
+        Row: {
+          committed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          limit_code: string
+          ocr_job_id: string | null
+          organization_id: string
+          quantity: number
+          reason: string | null
+          released_at: string | null
+          reserved_at: string
+          status: Database["public"]["Enums"]["ocr_quota_reservation_status"]
+          updated_at: string
+        }
+        Insert: {
+          committed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          limit_code: string
+          ocr_job_id?: string | null
+          organization_id: string
+          quantity?: number
+          reason?: string | null
+          released_at?: string | null
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["ocr_quota_reservation_status"]
+          updated_at?: string
+        }
+        Update: {
+          committed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          limit_code?: string
+          ocr_job_id?: string | null
+          organization_id?: string
+          quantity?: number
+          reason?: string | null
+          released_at?: string | null
+          reserved_at?: string
+          status?: Database["public"]["Enums"]["ocr_quota_reservation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_quota_reservations_ocr_job_id_fkey"
+            columns: ["ocr_job_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_quota_reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_results: {
+        Row: {
+          created_at: string
+          detected_document_type: string | null
+          detected_language: string | null
+          document_id: string
+          document_version_id: string
+          id: string
+          normalized_data_json: Json
+          ocr_job_id: string
+          organization_id: string
+          overall_confidence: number | null
+          provider_code: string
+          provider_model: string | null
+          raw_response_json: Json
+          schema_version: string
+          warnings_json: Json
+        }
+        Insert: {
+          created_at?: string
+          detected_document_type?: string | null
+          detected_language?: string | null
+          document_id: string
+          document_version_id: string
+          id?: string
+          normalized_data_json: Json
+          ocr_job_id: string
+          organization_id: string
+          overall_confidence?: number | null
+          provider_code: string
+          provider_model?: string | null
+          raw_response_json: Json
+          schema_version: string
+          warnings_json?: Json
+        }
+        Update: {
+          created_at?: string
+          detected_document_type?: string | null
+          detected_language?: string | null
+          document_id?: string
+          document_version_id?: string
+          id?: string
+          normalized_data_json?: Json
+          ocr_job_id?: string
+          organization_id?: string
+          overall_confidence?: number | null
+          provider_code?: string
+          provider_model?: string | null
+          raw_response_json?: Json
+          schema_version?: string
+          warnings_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_results_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_results_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_results_ocr_job_id_fkey"
+            columns: ["ocr_job_id"]
+            isOneToOne: true
+            referencedRelation: "ocr_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_results_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_reviews: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          ocr_job_id: string
+          ocr_result_id: string
+          organization_id: string
+          reviewed_by: string
+          started_at: string
+          status: Database["public"]["Enums"]["ocr_review_status"]
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          ocr_job_id: string
+          ocr_result_id: string
+          organization_id: string
+          reviewed_by: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["ocr_review_status"]
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          ocr_job_id?: string
+          ocr_result_id?: string
+          organization_id?: string
+          reviewed_by?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["ocr_review_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_reviews_ocr_job_id_fkey"
+            columns: ["ocr_job_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_reviews_ocr_result_id_fkey"
+            columns: ["ocr_result_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       organization_limit_overrides: {
         Row: {
@@ -2592,11 +3134,35 @@ export type Database = {
       }
     }
     Functions: {
+      approve_ocr_review: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_notes: string
+          p_org: string
+          p_review: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       archive_document: {
         Args: {
           p_actor: string
           p_correlation: string
           p_document: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      archive_ocr_job: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_job: string
           p_key: string
           p_org: string
           p_reason: string
@@ -2675,6 +3241,19 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_ocr_job_result: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_fields: Json
+          p_job: string
+          p_key: string
+          p_org: string
+          p_result: Json
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       confirm_document_upload: {
         Args: {
           p_actor: string
@@ -2688,6 +3267,21 @@ export type Database = {
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
           p_sha256: string
           p_version: string
+        }
+        Returns: Json
+      }
+      correct_ocr_field: {
+        Args: {
+          p_actor: string
+          p_corrected_value: Json
+          p_correlation: string
+          p_field_code: string
+          p_field_result: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_review: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
         }
         Returns: Json
       }
@@ -2753,14 +3347,96 @@ export type Database = {
         }
         Returns: Json
       }
+      fail_ocr_job: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_failure_code: string
+          p_failure_message: string
+          p_job: string
+          p_key: string
+          p_org: string
+          p_provider_processed: boolean
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       is_platform_superadmin: { Args: never; Returns: boolean }
+      mark_ocr_processing_started: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_job: string
+          p_key: string
+          p_org: string
+          p_provider_request_id: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       next_transport_order_number: {
         Args: { p_organization_id: string }
         Returns: string
       }
+      ocr_actor_authorized: {
+        Args: {
+          p_actor: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: boolean
+      }
+      ocr_limit_value_for_organization: {
+        Args: { p_limit_code: string; p_org: string }
+        Returns: number
+      }
+      ocr_sanitized_message: { Args: { p_text: string }; Returns: string }
       phase_c_module_enabled: {
         Args: { p_organization_id: string }
         Returns: boolean
+      }
+      reconcile_ocr_jobs: {
+        Args: { p_limit?: number; p_org: string }
+        Returns: Json
+      }
+      reject_ocr_review: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_review: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      request_document_ocr: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_document_version: string
+          p_key: string
+          p_org: string
+          p_payload: Json
+          p_provider_code: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      start_ocr_review: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_job: string
+          p_key: string
+          p_notes: string
+          p_org: string
+          p_result: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
       }
     }
     Enums: {
@@ -2821,6 +3497,34 @@ export type Database = {
         | "revoked"
       module_override_mode: "inherit" | "enabled" | "disabled"
       module_status: "active" | "deprecated"
+      ocr_field_validation_status:
+        | "extracted"
+        | "valid"
+        | "uncertain"
+        | "invalid"
+        | "missing"
+        | "not_applicable"
+      ocr_job_status:
+        | "queued"
+        | "processing"
+        | "succeeded"
+        | "failed"
+        | "cancelled"
+        | "needs_review"
+        | "reviewed"
+        | "archived"
+      ocr_outbox_status: "pending" | "processing" | "completed" | "failed"
+      ocr_quota_reservation_status:
+        | "reserved"
+        | "committed"
+        | "released"
+        | "expired"
+      ocr_review_status:
+        | "pending"
+        | "in_progress"
+        | "approved"
+        | "rejected"
+        | "archived"
       organization_role: "admin_empresa" | "conductor"
       organization_status:
         | "pending"
@@ -3020,9 +3724,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       audit_actor_scope: ["platform", "organization", "system"],
@@ -3089,6 +3790,38 @@ export const Constants = {
       ],
       module_override_mode: ["inherit", "enabled", "disabled"],
       module_status: ["active", "deprecated"],
+      ocr_field_validation_status: [
+        "extracted",
+        "valid",
+        "uncertain",
+        "invalid",
+        "missing",
+        "not_applicable",
+      ],
+      ocr_job_status: [
+        "queued",
+        "processing",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "needs_review",
+        "reviewed",
+        "archived",
+      ],
+      ocr_outbox_status: ["pending", "processing", "completed", "failed"],
+      ocr_quota_reservation_status: [
+        "reserved",
+        "committed",
+        "released",
+        "expired",
+      ],
+      ocr_review_status: [
+        "pending",
+        "in_progress",
+        "approved",
+        "rejected",
+        "archived",
+      ],
       organization_role: ["admin_empresa", "conductor"],
       organization_status: [
         "pending",
