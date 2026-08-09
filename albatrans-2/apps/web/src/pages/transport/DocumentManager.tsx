@@ -19,6 +19,13 @@ import {
   type OcrJobView,
   type OcrQuotaSummary,
 } from "../../data/ocr-repository";
+import type { OcrApplicationProposalRow } from "../../data/ocr-application-repository";
+import {
+  applyOcrProposals,
+  decideOcrApplicationProposals,
+  loadOcrApplicationProposalsByDocumentIds,
+  prepareOcrApplication,
+} from "../../data/ocr-application-repository";
 
 interface StopOption {
   id: string;
@@ -41,6 +48,7 @@ export function DocumentManager({ organizationId, orderId, stops }: {
 }) {
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [ocrByDocument, setOcrByDocument] = useState<Map<string, OcrJobView[]>>(new Map());
+  const [applicationByDocument, setApplicationByDocument] = useState<Map<string, OcrApplicationProposalRow[]>>(new Map());
   const [quota, setQuota] = useState<OcrQuotaSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -53,11 +61,13 @@ export function DocumentManager({ organizationId, orderId, stops }: {
     try {
       const docs = await loadDocuments({ organizationId, transportOrderId: orderId });
       setDocuments(docs);
-      const [ocrMap, quotaSummary] = await Promise.all([
+      const [ocrMap, applicationMap, quotaSummary] = await Promise.all([
         loadOcrJobsByDocumentIds(organizationId, docs.map((doc) => doc.id)),
+        loadOcrApplicationProposalsByDocumentIds(organizationId, docs.map((doc) => doc.id)),
         loadOcrQuotaSummary(organizationId),
       ]);
       setOcrByDocument(ocrMap);
+      setApplicationByDocument(applicationMap);
       setQuota(quotaSummary);
       setError("");
     } catch (caught) {
@@ -66,6 +76,67 @@ export function DocumentManager({ organizationId, orderId, stops }: {
       setLoading(false);
     }
   }, [organizationId, orderId]);
+
+  async function prepareApplication(documentId: string, job: OcrJobView, reviewId: string) {
+    if (!job.result) return;
+    try {
+      setBusy(true);
+      setError("");
+      setSuccess("");
+      await prepareOcrApplication({
+        organizationId,
+        transportOrderId: orderId,
+        documentId,
+        ocrJobId: job.id,
+        ocrResultId: job.result.id,
+        ocrReviewId: reviewId,
+      });
+      setSuccess("Propuestas OCR preparadas.");
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No se pudo preparar la aplicacion OCR.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function decideApplication(proposalIds: string[], decision: "approve" | "reject") {
+    try {
+      setBusy(true);
+      setError("");
+      setSuccess("");
+      await decideOcrApplicationProposals({
+        organizationId,
+        proposalIds,
+        decision,
+        reason: decision === "approve" ? "Aprobacion desde interfaz documental" : "Rechazo desde interfaz documental",
+      });
+      setSuccess(decision === "approve" ? "Propuestas OCR aprobadas." : "Propuestas OCR rechazadas.");
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No se pudo decidir sobre las propuestas OCR.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applyApplication(proposalIds: string[]) {
+    try {
+      setBusy(true);
+      setError("");
+      setSuccess("");
+      await applyOcrProposals({
+        organizationId,
+        proposalIds,
+      });
+      setSuccess("Propuestas OCR aplicadas.");
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No se pudo aplicar la propuesta OCR.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     void refresh();
@@ -335,6 +406,11 @@ export function DocumentManager({ organizationId, orderId, stops }: {
         <div className="document-grid">
           {documents.map((document) => {
             const jobs = ocrByDocument.get(document.id) ?? [];
+            const primaryJob = jobs[0] ?? null;
+            const proposals = applicationByDocument.get(document.id) ?? [];
+            const approvedProposals = proposals.filter((proposal) => proposal.application_status === "approved");
+            const pendingReadyProposals = proposals.filter((proposal) => proposal.review_status === "ready" && proposal.application_status === "pending");
+            const latestReview = primaryJob?.reviews.find((review) => review.status === "approved") ?? primaryJob?.reviews[0] ?? null;
             return (
               <article className="panel document-card" key={document.id}>
                 <header>
@@ -536,6 +612,47 @@ export function DocumentManager({ organizationId, orderId, stops }: {
                       )}
                     </article>
                   ))}
+                </div>
+
+                <div className="document-subsection">
+                  <h4>Aplicacion OCR controlada</h4>
+                  {proposals.length === 0 && <p>Sin propuestas de aplicacion para este documento.</p>}
+                  {proposals.length > 0 && (
+                    <>
+                      <p>
+                        Propuestas: {proposals.length} | listas: {pendingReadyProposals.length} | aprobadas: {approvedProposals.length}
+                      </p>
+                      <ul className="ocr-field-list">
+                        {proposals.map((proposal) => (
+                          <li key={proposal.id}>
+                            <div>
+                              <strong>{proposal.field_code}</strong>
+                              <span>{proposal.target_entity_type} - {proposal.review_status} - {proposal.application_status}</span>
+                              <p>
+                                Actual: {stringValue(proposal.current_value_json)} | Propuesto: {stringValue(proposal.proposed_value_json)}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="inline-actions">
+                        {pendingReadyProposals.length > 0 && (
+                          <button className="button button-secondary" disabled={busy} onClick={() => void decideApplication(pendingReadyProposals.map((proposal) => proposal.id), "approve")}>Aprobar propuestas</button>
+                        )}
+                        {pendingReadyProposals.length > 0 && (
+                          <button className="button button-secondary" disabled={busy} onClick={() => void decideApplication(pendingReadyProposals.map((proposal) => proposal.id), "reject")}>Rechazar propuestas</button>
+                        )}
+                        {approvedProposals.length > 0 && (
+                          <button className="button" disabled={busy} onClick={() => void applyApplication(approvedProposals.map((proposal) => proposal.id))}>Aplicar aprobadas</button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {latestReview && latestReview.status === "approved" && primaryJob?.result && (
+                    <button className="button button-secondary" disabled={busy} onClick={() => void prepareApplication(document.id, primaryJob, latestReview.id)}>
+                      Preparar aplicacion OCR
+                    </button>
+                  )}
                 </div>
               </article>
             );

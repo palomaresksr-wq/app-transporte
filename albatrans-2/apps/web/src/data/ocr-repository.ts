@@ -16,7 +16,7 @@ export interface OcrFieldView extends OcrFieldRow {
   corrections: OcrCorrectionRow[];
 }
 
-export interface OcrResultView extends OcrResultRow {
+export interface OcrResultView extends Omit<OcrResultRow, "raw_response_json"> {
   fields: OcrFieldView[];
 }
 
@@ -160,7 +160,7 @@ export async function loadOcrJobsByDocumentIds(
 
   const [jobsResult, resultsResult, fieldsResult, reviewsResult, correctionsResult, reservationsResult] = await Promise.all([
     client.from("ocr_jobs").select("*").eq("organization_id", organizationId).in("document_id", documentIds).order("requested_at", { ascending: false }),
-    client.from("ocr_results").select("*").eq("organization_id", organizationId).in("document_id", documentIds).order("created_at", { ascending: false }),
+    client.from("ocr_results").select("id,organization_id,ocr_job_id,document_id,document_version_id,provider_code,provider_model,schema_version,detected_document_type,detected_language,overall_confidence,normalized_data_json,warnings_json,created_at").eq("organization_id", organizationId).in("document_id", documentIds).order("created_at", { ascending: false }),
     client.from("ocr_field_results").select("*").eq("organization_id", organizationId),
     client.from("ocr_reviews").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
     client.from("ocr_field_corrections").select("*").eq("organization_id", organizationId).order("corrected_at", { ascending: false }),
@@ -241,35 +241,39 @@ export async function loadOcrQuotaSummary(
   organizationId: string,
   client: Client = requiredClient(),
 ): Promise<OcrQuotaSummary> {
-  const start = new Date();
-  start.setUTCDate(1);
-  start.setUTCHours(0, 0, 0, 0);
-  const next = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
-  const from = start.toISOString();
-  const to = next.toISOString();
+  try {
+    const start = new Date();
+    start.setUTCDate(1);
+    start.setUTCHours(0, 0, 0, 0);
+    const next = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+    const from = start.toISOString();
+    const to = next.toISOString();
 
-  const [usage, reservations, limit] = await Promise.all([
-    client.from("organization_usage_counters").select("usage_value").eq("organization_id", organizationId).eq("metric_code", "ocr_monthly").eq("period_start", from).maybeSingle(),
-    client.from("ocr_quota_reservations").select("quantity,status,reserved_at").eq("organization_id", organizationId).gte("reserved_at", from).lt("reserved_at", to),
-    client.rpc("ocr_limit_value_for_organization", { p_org: organizationId, p_limit_code: "max_ocr_monthly" }),
-  ]);
+    const [usage, reservations, limit] = await Promise.all([
+      client.from("organization_usage_counters").select("usage_value").eq("organization_id", organizationId).eq("metric_code", "ocr_monthly").eq("period_start", from).maybeSingle(),
+      client.from("ocr_quota_reservations").select("quantity,status,reserved_at").eq("organization_id", organizationId).gte("reserved_at", from).lt("reserved_at", to),
+      client.rpc("ocr_limit_value_for_organization", { p_org: organizationId, p_limit_code: "max_ocr_monthly" }),
+    ]);
 
-  if (usage.error) throw new Error(`No se pudo cargar uso OCR: ${usage.error.message}`);
-  if (reservations.error) throw new Error(`No se pudieron cargar reservas OCR: ${reservations.error.message}`);
-  if (limit.error) throw new Error(`No se pudo cargar limite OCR: ${limit.error.message}`);
+    if (usage.error) throw new Error(`No se pudo cargar uso OCR: ${usage.error.message}`);
+    if (reservations.error) throw new Error(`No se pudieron cargar reservas OCR: ${reservations.error.message}`);
+    if (limit.error) throw new Error(`No se pudo cargar limite OCR: ${limit.error.message}`);
 
-  const used = Number(usage.data?.usage_value ?? 0);
-  const reserved = (reservations.data as Array<{ quantity: number; status: string }> | null ?? [])
-    .filter((row) => row.status === "reserved")
-    .reduce((sum, row) => sum + Number(row.quantity || 0), 0);
-  const maxLimit = typeof limit.data === "number" ? limit.data : null;
+    const used = Number(usage.data?.usage_value ?? 0);
+    const reserved = (reservations.data as Array<{ quantity: number; status: string }> | null ?? [])
+      .filter((row) => row.status === "reserved")
+      .reduce((sum, row) => sum + Number(row.quantity || 0), 0);
+    const maxLimit = typeof limit.data === "number" ? limit.data : null;
 
-  return {
-    used,
-    reserved,
-    limit: maxLimit,
-    available: maxLimit === null ? null : Math.max(maxLimit - used - reserved, 0),
-  };
+    return {
+      used,
+      reserved,
+      limit: maxLimit,
+      available: maxLimit === null ? null : Math.max(maxLimit - used - reserved, 0),
+    };
+  } catch {
+    return { used: 0, reserved: 0, limit: null, available: null };
+  }
 }
 
 async function invokeOcr(client: Client, body: Record<string, unknown>): Promise<Record<string, unknown>> {
