@@ -2823,9 +2823,12 @@ export type Database = {
           archived_at: string | null
           assigned_driver_id: string | null
           assigned_vehicle_id: string | null
+          billable_km: number | null
           created_at: string
           created_by: string
+          current_valuation_id: string | null
           customer_id: string
+          economic_status: Database["public"]["Enums"]["transport_economic_status"]
           id: string
           notes: string | null
           order_number: string
@@ -2843,9 +2846,12 @@ export type Database = {
           archived_at?: string | null
           assigned_driver_id?: string | null
           assigned_vehicle_id?: string | null
+          billable_km?: number | null
           created_at?: string
           created_by: string
+          current_valuation_id?: string | null
           customer_id: string
+          economic_status?: Database["public"]["Enums"]["transport_economic_status"]
           id?: string
           notes?: string | null
           order_number: string
@@ -2863,9 +2869,12 @@ export type Database = {
           archived_at?: string | null
           assigned_driver_id?: string | null
           assigned_vehicle_id?: string | null
+          billable_km?: number | null
           created_at?: string
           created_by?: string
+          current_valuation_id?: string | null
           customer_id?: string
+          economic_status?: Database["public"]["Enums"]["transport_economic_status"]
           id?: string
           notes?: string | null
           order_number?: string
@@ -3591,6 +3600,14 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "archived"
+      transport_economic_status:
+        | "unpriced"
+        | "calculated"
+        | "needs_recalculation"
+        | "validated"
+        | "prefactured"
+        | "invoiced"
+        | "cancelled"
       transport_priority: "low" | "normal" | "high" | "urgent"
       transport_stop_status: "pending" | "arrived" | "completed" | "skipped"
       transport_stop_type:

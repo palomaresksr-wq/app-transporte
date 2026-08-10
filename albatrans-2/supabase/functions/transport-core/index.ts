@@ -17,6 +17,7 @@ const fields = {
     "customer_id",
     "priority",
     "transport_type",
+    "billable_km",
     "planned_pickup_at",
     "planned_delivery_at",
     "requested_pickup_at",

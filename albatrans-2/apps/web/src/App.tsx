@@ -18,6 +18,7 @@ const EditOrganizationPage = lazy(() => import("./pages/superadmin/EditOrganizat
 const MasterDataRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.MasterDataRoute })));
 const AssignmentsRoute = lazy(() => import("./pages/master-data/MasterDataRoute").then((module) => ({ default: module.AssignmentsRoute })));
 const TransportRoute = lazy(() => import("./pages/transport/TransportRoute").then((module) => ({ default: module.TransportRoute })));
+const BillingRoute = lazy(() => import("./pages/billing/BillingRoute").then((module) => ({ default: module.BillingRoute })));
 const ExecutionRoute = lazy(() => import("./pages/execution/ExecutionRoute").then((module) => ({ default: module.ExecutionRoute })));
 
 export function App() {
@@ -54,6 +55,7 @@ export function App() {
             element={<MasterDataRoute />}
           />
           <Route path="/empresa/assignments" element={<AssignmentsRoute />} />
+          <Route path="/empresa/facturacion" element={<BillingRoute />} />
           <Route path="/empresa/transport" element={<TransportRoute />} />
           <Route
             path="/empresa/transport/:orderId"
@@ -82,6 +84,10 @@ export function App() {
             <Route
               path="organizations/:organizationId/assignments"
               element={<AssignmentsRoute platform />}
+            />
+            <Route
+              path="organizations/:organizationId/facturacion"
+              element={<BillingRoute platform />}
             />
             <Route
               path="organizations/:organizationId/transport"

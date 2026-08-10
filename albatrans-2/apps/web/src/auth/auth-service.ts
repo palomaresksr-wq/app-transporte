@@ -151,7 +151,7 @@ export async function loadAccessContext(
     ? mapOrganization(organizationData as Record<string, unknown>)
     : null;
 
-  const entitlementCodes = ["transport_management", "client_management", "vehicle_management"] as const;
+  const entitlementCodes = ["transport_management", "client_management", "vehicle_management", "billing"] as const;
   const entitlementResults = await Promise.all(
     entitlementCodes.map((code) => client.rpc("current_organization_module_enabled", { p_module_code: code }))
   );

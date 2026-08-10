@@ -13,3 +13,4 @@ export * from "./execution";
 export * from "./documents";
 export * from "./ocr";
 export * from "./ocr-application";
+export * from "./billing";

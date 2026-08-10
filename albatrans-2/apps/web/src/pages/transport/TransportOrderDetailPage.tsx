@@ -15,6 +15,7 @@ import {
   type TransportDetail,
   type TransportOption,
 } from "../../data/transport-repository";
+import { OrderValuationPanel } from "../billing/OrderValuationPanel";
 import { DocumentManager } from "./DocumentManager";
 type Editor = {
   kind: "order" | "stop" | "item" | "assignment";
@@ -116,8 +117,10 @@ export function TransportOrderDetailPage(
         <h2>Resumen y estado</h2>
         <dl className="detail-grid">
           <Info label="Estado" value={detail.order.status} />
+          <Info label="Estado económico" value={detail.order.economic_status} />
           <Info label="Prioridad" value={detail.order.priority} />
           <Info label="Tipo" value={detail.order.transport_type} />
+          <Info label="Km facturables" value={detail.order.billable_km?.toString() ?? "—"} />
           <Info
             label="Recogida"
             value={format(detail.order.planned_pickup_at)}
@@ -142,6 +145,7 @@ export function TransportOrderDetailPage(
           ))}
         </div>
       </section>
+      <OrderValuationPanel organizationId={organizationId} orderId={orderId} />
       <section className="detail-section">
         <div className="section-heading">
           <h2>Paradas</h2>
@@ -462,6 +466,12 @@ function EntityEditor(
                 value={text(values.transport_type)}
                 set={(value) => set("transport_type", value)}
               />
+              <Input
+                label="Km facturables"
+                type="number"
+                value={text(values.billable_km)}
+                set={(value) => set("billable_km", value ? Number(value) : null)}
+              />
               <DateInputs values={values} set={set} />
             </>
           )}
@@ -640,6 +650,7 @@ function initial(
       customer_id: detail.order.customer_id,
       priority: detail.order.priority,
       transport_type: detail.order.transport_type,
+      billable_km: detail.order.billable_km,
       planned_pickup_at: local(detail.order.planned_pickup_at),
       planned_delivery_at: local(detail.order.planned_delivery_at),
       requested_pickup_at: local(detail.order.requested_pickup_at),
@@ -689,6 +700,7 @@ function validate(
   const clean = { ...values };
   if (kind === "order") {
     clean.transport_type = normalizeTransportType(clean.transport_type);
+    clean.billable_km = nonNegativeDecimal(clean.billable_km, "Km facturables");
     validatePeriod(
       clean.planned_pickup_at,
       clean.planned_delivery_at,

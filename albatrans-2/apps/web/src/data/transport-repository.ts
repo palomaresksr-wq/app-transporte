@@ -13,8 +13,10 @@ export interface TransportOrderRow {
   customerId: string;
   customerName: string;
   status: string;
+  economicStatus: string;
   priority: string;
   transportType: string;
+  billableKm: number | null;
   plannedPickupAt: string | null;
   plannedDeliveryAt: string | null;
   updatedAt: string;
@@ -37,7 +39,7 @@ export async function loadTransportOrders(
 ) {
   const from = (query.page - 1) * query.pageSize;
   let request = client.from("transport_orders").select(
-    "id,order_number,customer_id,status,priority,transport_type,planned_pickup_at,planned_delivery_at,updated_at",
+    "id,order_number,customer_id,status,economic_status,billable_km,priority,transport_type,planned_pickup_at,planned_delivery_at,updated_at",
     { count: "exact" },
   ).eq("organization_id", query.organizationId).order("created_at", {
     ascending: false,
@@ -79,8 +81,10 @@ export async function loadTransportOrders(
         customers.data.find((customer) => customer.id === row.customer_id)
           ?.trade_name ?? "Cliente no disponible",
       status: row.status,
+      economicStatus: row.economic_status,
       priority: row.priority,
       transportType: row.transport_type,
+      billableKm: row.billable_km,
       plannedPickupAt: row.planned_pickup_at,
       plannedDeliveryAt: row.planned_delivery_at,
       updatedAt: row.updated_at,

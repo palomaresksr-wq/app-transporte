@@ -144,6 +144,8 @@ export function TransportOrdersPage(
                   <th>Cliente</th>
                   <th>Tipo</th>
                   <th>Estado</th>
+                  <th>Estado económico</th>
+                  <th>Km facturables</th>
                   <th>Prioridad</th>
                   <th>Recogida</th>
                   <th>Acciones</th>
@@ -158,6 +160,8 @@ export function TransportOrdersPage(
                     <td>
                       <span className="status-pill">{item.status}</span>
                     </td>
+                    <td>{item.economicStatus}</td>
+                    <td>{item.billableKm ?? "—"}</td>
                     <td>{item.priority}</td>
                     <td>
                       {item.plannedPickupAt
@@ -245,6 +249,7 @@ function OrderForm(
       customer_id: "",
       priority: "normal",
       transport_type: "General",
+      billable_km: "",
       planned_pickup_at: "",
       planned_delivery_at: "",
       requested_pickup_at: "",
@@ -271,6 +276,7 @@ function OrderForm(
       );
       await save({
         ...values,
+        billable_km: values.billable_km || null,
         transport_type: normalizeTransportType(values.transport_type),
         planned_pickup_at: values.planned_pickup_at || null,
         planned_delivery_at: values.planned_delivery_at || null,
@@ -327,6 +333,14 @@ function OrderForm(
               required
               value={values.transport_type}
               onChange={(event) => change("transport_type", event.target.value)}
+            />
+          </label>
+          <label>
+            Km facturables<input
+              type="number"
+              step="any"
+              value={values.billable_km}
+              onChange={(event) => change("billable_km", event.target.value)}
             />
           </label>
           <DateField

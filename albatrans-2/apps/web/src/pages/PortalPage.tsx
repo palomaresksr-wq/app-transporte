@@ -89,6 +89,9 @@ export function PortalPage({
                 <Link to="/empresa/master-data/drivers">Conductores</Link>
               </>
             )}
+            {access?.enabledModules.includes("billing") && (
+              <Link to="/empresa/facturacion">Facturación y prefacturas</Link>
+            )}
             {access?.enabledModules.includes("client_management") && (
               <>
                 <Link to="/empresa/master-data/clients">Clientes</Link>
