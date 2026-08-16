@@ -18,6 +18,7 @@ import {
   type PrefacturableOrderRow,
 } from "../../data/billing-repository";
 import { loadTransportOptions, type TransportOption } from "../../data/transport-repository";
+import { InvoicesPanel } from "./InvoicesPanel";
 
 export function BillingPage({ organizationId, platform }: { organizationId: string; platform: boolean }) {
   const [clients, setClients] = useState<TransportOption[]>([]);
@@ -292,6 +293,7 @@ export function BillingPage({ organizationId, platform }: { organizationId: stri
           </div>
         )}
       </section>
+      <InvoicesPanel organizationId={organizationId} preinvoices={preinvoices} />
     </section>
   );
 }

@@ -54,6 +54,17 @@ type BillingCommandBody = {
   components?: unknown;
   supplementRules?: unknown;
   supplementDefinitionId?: unknown;
+  invoiceId?: unknown;
+  seriesId?: unknown;
+  taxId?: unknown;
+  issueDate?: unknown;
+  dueDate?: unknown;
+  paymentDate?: unknown;
+  paymentMethod?: unknown;
+  reference?: unknown;
+  settings?: unknown;
+  series?: unknown;
+  taxes?: unknown;
 };
 
 Deno.serve(async (request) => {
@@ -212,6 +223,79 @@ Deno.serve(async (request) => {
           p_correlation: correlationId,
           p_key: idempotencyKey,
         });
+      case "configure_invoice_fiscal":
+        return await runRpc(db, "configure_invoice_fiscal", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_settings: requiredRecord(parsed.settings),
+          p_series: requiredRecord(parsed.series),
+          p_taxes: optionalArray(parsed.taxes) ?? [],
+          p_correlation: correlationId,
+        });
+      case "issue_invoice":
+        return await runRpc(db, "issue_preinvoice_invoice", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_preinvoice: requiredUuid(parsed.preinvoiceId),
+          p_series: requiredUuid(parsed.seriesId),
+          p_issue_date: requiredDate(parsed.issueDate),
+          p_tax: requiredUuid(parsed.taxId),
+          p_due_date: optionalDate(parsed.dueDate),
+          p_notes: optionalText(parsed.notes),
+          p_correlation: correlationId,
+          p_key: idempotencyKey,
+        });
+      case "record_invoice_payment":
+        return await runRpc(db, "record_invoice_payment", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_invoice: requiredUuid(parsed.invoiceId),
+          p_amount: requiredNumber(parsed.amount),
+          p_date: requiredDate(parsed.paymentDate),
+          p_method: requiredPaymentMethod(parsed.paymentMethod),
+          p_reference: optionalText(parsed.reference),
+          p_notes: optionalText(parsed.notes),
+          p_correlation: correlationId,
+          p_key: idempotencyKey,
+        });
+      case "cancel_invoice":
+        return await runRpc(db, "cancel_invoice", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_invoice: requiredUuid(parsed.invoiceId),
+          p_reason: requiredText(parsed.reason),
+          p_correlation: correlationId,
+          p_key: idempotencyKey,
+        });
+      case "create_corrective_invoice":
+        return await runRpc(db, "create_corrective_invoice", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_invoice: requiredUuid(parsed.invoiceId),
+          p_series: requiredUuid(parsed.seriesId),
+          p_subtotal: requiredNumber(parsed.amount),
+          p_reason: requiredText(parsed.reason),
+          p_issue_date: requiredDate(parsed.issueDate),
+          p_correlation: correlationId,
+          p_key: idempotencyKey,
+        });
+      case "mark_invoice_overdue":
+        return await runRpc(db, "mark_invoice_overdue", {
+          p_actor: auth.data.user.id,
+          p_scope: access.scope,
+          p_org: parsed.organizationId,
+          p_invoice: requiredUuid(parsed.invoiceId),
+          p_correlation: correlationId,
+        });
+      case "generate_invoice_pdf":
+        return await generateInvoicePdf(db, auth.data.user.id, access.scope, parsed, correlationId, idempotencyKey);
+      case "download_invoice_pdf":
+        return await signedInvoicePdf(db, parsed.organizationId, requiredUuid(parsed.invoiceId));
       default:
         return fail(400, "invalid_action", "Acción de facturación no permitida.");
     }
@@ -546,6 +630,148 @@ async function runRpc(db: Client, name: string, args: Record<string, unknown>) {
   return respond(200, record(result.data) ? result.data : { result: result.data });
 }
 
+async function generateInvoicePdf(
+  db: Client,
+  actor: string,
+  scope: Scope,
+  body: BillingCommandBody,
+  correlation: string,
+  key: string,
+) {
+  const invoiceId = requiredUuid(body.invoiceId);
+  const invoice = await db.from("invoices").select("*").eq("organization_id", body.organizationId).eq("id", invoiceId)
+    .single();
+  if (invoice.error) return databaseError(invoice.error.code, invoice.error.message);
+  const lines = await db.from("invoice_lines").select("*").eq("organization_id", body.organizationId).eq(
+    "invoice_id",
+    invoiceId,
+  ).order("position");
+  if (lines.error) return databaseError(lines.error.code, lines.error.message);
+  const bytes = invoicePdf(invoice.data, lines.data);
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))).map((value) =>
+    value.toString(16).padStart(2, "0")
+  ).join("");
+  const begin = await db.rpc("begin_invoice_pdf", {
+    p_actor: actor,
+    p_scope: scope,
+    p_org: body.organizationId,
+    p_invoice: invoiceId,
+    p_size: bytes.byteLength,
+    p_sha256: hash,
+    p_correlation: correlation,
+    p_key: key,
+  });
+  if (begin.error) return databaseError(begin.error.code, begin.error.message);
+  const data = begin.data as { documentId: string; versionId: string; storagePath?: string; status?: string };
+  if (data.status !== "available") {
+    const upload = await db.storage.from("albatrans-documents").upload(data.storagePath!, bytes, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+    if (upload.error) return databaseError(undefined, upload.error.message);
+    const confirm = await db.rpc("confirm_invoice_pdf", {
+      p_actor: actor,
+      p_scope: scope,
+      p_org: body.organizationId,
+      p_invoice: invoiceId,
+      p_document: data.documentId,
+      p_version: data.versionId,
+      p_sha256: hash,
+      p_correlation: correlation,
+      p_key: key,
+    });
+    if (confirm.error) return databaseError(confirm.error.code, confirm.error.message);
+    return respond(200, confirm.data as object);
+  }
+  return respond(200, data);
+}
+
+async function signedInvoicePdf(db: Client, organizationId: string, invoiceId: string) {
+  const document = await db.from("documents").select("current_version_id").eq("organization_id", organizationId).eq(
+    "invoice_id",
+    invoiceId,
+  ).eq("document_type", "invoice_pdf").eq("status", "available").order("created_at", { ascending: false }).limit(1)
+    .maybeSingle();
+  if (document.error) return databaseError(document.error.code, document.error.message);
+  if (!document.data?.current_version_id) return fail(404, "not_found", "La factura no tiene PDF disponible.");
+  const version = await db.from("document_versions").select("storage_bucket,storage_path").eq(
+    "organization_id",
+    organizationId,
+  ).eq("id", document.data.current_version_id).single();
+  if (version.error) return databaseError(version.error.code, version.error.message);
+  const signed = await db.storage.from(version.data.storage_bucket).createSignedUrl(version.data.storage_path, 120);
+  if (signed.error) return databaseError(undefined, signed.error.message);
+  return respond(200, { ok: true, signedUrl: signed.data.signedUrl, expiresIn: 120 });
+}
+
+function invoicePdf(invoice: Record<string, unknown>, lines: Record<string, unknown>[]) {
+  const fiscal = record(invoice.fiscal_snapshot_json) ? invoice.fiscal_snapshot_json : {};
+  const issuer = record(fiscal.issuer) ? fiscal.issuer : {};
+  const customer = record(fiscal.customer) ? fiscal.customer : {};
+  const safe = (value: unknown) =>
+    String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7e]/g, "?").replace(
+      /[()\\]/g,
+      "\\$&",
+    );
+  const commands = [
+    "BT",
+    "/F1 18 Tf",
+    "50 790 Td",
+    `(FACTURA ${safe(invoice.invoice_number)}) Tj`,
+    "/F1 10 Tf",
+    "0 -26 Td",
+    `(Fecha: ${safe(invoice.issue_date)}   Vencimiento: ${safe(invoice.due_date)}) Tj`,
+    "0 -28 Td",
+    `(Emisor: ${safe(issuer.legalName)} - NIF ${safe(issuer.taxId)}) Tj`,
+    "0 -15 Td",
+    `(${safe(issuer.addressLine1)} ${safe(issuer.postalCode)} ${safe(issuer.city)}) Tj`,
+    "0 -24 Td",
+    `(Cliente: ${safe(customer.legalName)} - NIF ${safe(customer.taxId)}) Tj`,
+    "0 -28 Td",
+    "(Descripcion                                      Base       IVA       Total) Tj",
+  ];
+  for (const line of lines.slice(0, 24)) {
+    commands.push(
+      "0 -16 Td",
+      `(${safe(line.description).slice(0, 42).padEnd(42)} ${safe(line.subtotal).padStart(9)} ${
+        safe(line.tax_amount).padStart(9)
+      } ${safe(line.total).padStart(9)}) Tj`,
+    );
+  }
+  commands.push(
+    "0 -28 Td",
+    `(Base imponible: ${safe(invoice.subtotal)} ${safe(invoice.currency_code)}) Tj`,
+    "0 -16 Td",
+    `(Impuestos: ${safe(invoice.tax_total)} ${safe(invoice.currency_code)}) Tj`,
+    "/F1 13 Tf",
+    "0 -19 Td",
+    `(TOTAL: ${safe(invoice.total)} ${safe(invoice.currency_code)}) Tj`,
+    "/F1 9 Tf",
+    "0 -22 Td",
+    "(Documento fiscal basico. No implica certificacion AEAT/VeriFactu.) Tj",
+    "ET",
+  );
+  const stream = commands.join("\n");
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+    `<< /Length ${new TextEncoder().encode(stream).byteLength} >>\nstream\n${stream}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (let i = 0; i < objects.length; i++) {
+    offsets.push(new TextEncoder().encode(pdf).byteLength);
+    pdf += `${i + 1} 0 obj\n${objects[i]}\nendobj\n`;
+  }
+  const xref = new TextEncoder().encode(pdf).byteLength;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${
+    offsets.slice(1).map((offset) => `${String(offset).padStart(10, "0")} 00000 n `).join("\n")
+  }\ntrailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(pdf);
+}
+
 async function authorize(db: Client, userId: string, organizationId: string, moduleCode: string) {
   const [profile, platform, membership, organization, module] = await Promise.all([
     db.from("profiles").select("status").eq("user_id", userId).maybeSingle(),
@@ -600,6 +826,26 @@ async function authorize(db: Client, userId: string, organizationId: string, mod
 function requiredArray(value: unknown) {
   if (!Array.isArray(value) || value.length === 0) throw new Error("Se requiere al menos un componente de tarifa.");
   return value;
+}
+
+function requiredRecord(value: unknown) {
+  if (!record(value)) throw new Error("Objeto obligatorio.");
+  return value;
+}
+function requiredDate(value: unknown) {
+  const text = requiredText(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) throw new Error("Fecha invalida.");
+  return text;
+}
+function optionalDate(value: unknown) {
+  return value === undefined || value === null || value === "" ? null : requiredDate(value);
+}
+function requiredPaymentMethod(value: unknown) {
+  const text = requiredText(value);
+  if (!["bank_transfer", "cash", "card", "direct_debit", "other"].includes(text)) {
+    throw new Error("Metodo de pago invalido.");
+  }
+  return text;
 }
 
 function optionalArray(value: unknown) {

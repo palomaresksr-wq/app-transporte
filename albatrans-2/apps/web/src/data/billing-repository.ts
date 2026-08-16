@@ -56,6 +56,12 @@ type BillingSchema = {
         Update: never;
         Relationships: [];
       };
+      billing_fiscal_settings: { Row: FiscalSettingsRow; Insert: never; Update: never; Relationships: [] };
+      invoice_taxes: { Row: InvoiceTaxRow; Insert: never; Update: never; Relationships: [] };
+      invoice_series: { Row: InvoiceSeriesRow; Insert: never; Update: never; Relationships: [] };
+      invoices: { Row: InvoiceRow; Insert: never; Update: never; Relationships: [] };
+      invoice_lines: { Row: InvoiceLineRow; Insert: never; Update: never; Relationships: [] };
+      invoice_payments: { Row: InvoicePaymentRow; Insert: never; Update: never; Relationships: [] };
     };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
@@ -464,6 +470,40 @@ export async function cancelBillingPreinvoice(input: Record<string, unknown>, cl
   return invokeBilling(client, { action: "cancel_preinvoice", ...input });
 }
 
+export async function loadInvoiceWorkspace(organizationId:string, client:Client=requiredClient()) {
+  const [settings,series,taxes,invoices] = await Promise.all([
+    client.from("billing_fiscal_settings").select("*").eq("organization_id",organizationId).maybeSingle(),
+    client.from("invoice_series").select("*").eq("organization_id",organizationId).order("created_at"),
+    client.from("invoice_taxes").select("*").eq("organization_id",organizationId).order("rate",{ascending:false}),
+    client.from("invoices").select("*").eq("organization_id",organizationId).order("issue_date",{ascending:false}),
+  ]);
+  for(const result of [settings,series,taxes,invoices]) if(result.error) throw result.error;
+  const customerIds=[...new Set((invoices.data??[]).map(row=>row.customer_id))];
+  const customers=customerIds.length?await client.from("clients").select("id,trade_name").in("id",customerIds):{data:[],error:null};
+  if(customers.error)throw customers.error;
+  return {settings:settings.data,series:series.data??[],taxes:taxes.data??[],invoices:(invoices.data??[]).map(row=>({...row,customerName:customers.data.find(customer=>customer.id===row.customer_id)?.trade_name??row.customer_id}))};
+}
+
+export async function loadInvoiceDetail(organizationId:string,invoiceId:string,client:Client=requiredClient()) {
+  const [invoice,lines,payments,documents,audit]=await Promise.all([
+    client.from("invoices").select("*").eq("organization_id",organizationId).eq("id",invoiceId).single(),
+    client.from("invoice_lines").select("*").eq("organization_id",organizationId).eq("invoice_id",invoiceId).order("position"),
+    client.from("invoice_payments").select("*").eq("organization_id",organizationId).eq("invoice_id",invoiceId).order("payment_date"),
+    client.from("documents").select("id,status,current_version_id,created_at").eq("organization_id",organizationId).eq("invoice_id",invoiceId).eq("document_type","invoice_pdf").order("created_at",{ascending:false}),
+    client.from("audit_events").select("id,action,created_at,reason,after_data").eq("organization_id",organizationId).eq("entity_type","invoice").eq("entity_id",invoiceId).order("created_at",{ascending:false}),
+  ]);
+  for(const result of [invoice,lines,payments,documents,audit])if(result.error)throw result.error;
+  return {invoice:invoice.data,lines:lines.data??[],payments:payments.data??[],documents:documents.data??[],audit:audit.data??[]};
+}
+
+export const configureInvoiceFiscal=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"configure_invoice_fiscal",...input});
+export const issueInvoice=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"issue_invoice",...input});
+export const recordInvoicePayment=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"record_invoice_payment",...input});
+export const cancelInvoice=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"cancel_invoice",...input});
+export const createCorrectiveInvoice=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"create_corrective_invoice",...input});
+export const generateInvoicePdf=(input:Record<string,unknown>,client:Client=requiredClient())=>invokeBilling(client,{action:"generate_invoice_pdf",...input});
+export async function downloadInvoicePdf(input:Record<string,unknown>,client:Client=requiredClient()){const result=await invokeBilling(client,{action:"download_invoice_pdf",...input});if(typeof result.signedUrl!=="string")throw new Error("URL de PDF invalida.");return result.signedUrl;}
+
 export function summarizeRateComponents(componentsJson: Json) {
   if (!Array.isArray(componentsJson) || componentsJson.length === 0) return "Sin componentes";
   return componentsJson.map((component) => {
@@ -517,3 +557,10 @@ async function invokeBilling(client: Client, body: Record<string, unknown>): Pro
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+export interface FiscalSettingsRow { organization_id:string;legal_name:string;tax_id:string;address_line_1:string;address_line_2:string|null;postal_code:string;city:string;region:string|null;country_code:string;billing_email:string|null;default_payment_terms_days:number;updated_by:string;created_at:string;updated_at:string }
+export interface InvoiceTaxRow { id:string;organization_id:string;code:string;name:string;kind:"standard"|"reduced"|"super_reduced"|"zero"|"exempt";rate:number;exemption_reason:string|null;active:boolean;created_by:string;created_at:string;updated_at:string }
+export interface InvoiceSeriesRow { id:string;organization_id:string;code:string;name:string;prefix:string;next_number:number;active:boolean;is_primary:boolean;fiscal_year_mode:"calendar_year"|"continuous";created_by:string;created_at:string;updated_at:string }
+export interface InvoiceRow { id:string;organization_id:string;invoice_series_id:string;invoice_number:string;issue_date:string;service_period_start:string|null;service_period_end:string|null;customer_id:string;status:"draft"|"issued"|"partially_paid"|"paid"|"overdue"|"cancelled"|"rectified";currency_code:string;subtotal:number;tax_total:number;total:number;amount_paid:number;amount_due:number;due_date:string|null;payment_terms_days:number;notes:string|null;preinvoice_id:string|null;created_by:string;created_at:string;issued_by:string|null;issued_at:string|null;cancelled_by:string|null;cancelled_at:string|null;cancellation_reason:string|null;rectified_invoice_id:string|null;fiscal_snapshot_json:Json;billing_snapshot_json:Json;correlation_id:string;idempotency_key:string }
+export interface InvoiceLineRow { id:string;organization_id:string;invoice_id:string;position:number;description:string;quantity:number;unit_price:number;subtotal:number;tax_id:string|null;tax_code:string;tax_name:string;tax_kind:string;tax_rate:number;tax_amount:number;total:number;transport_order_id:string|null;valuation_id:string|null;snapshot_json:Json;created_at:string }
+export interface InvoicePaymentRow { id:string;organization_id:string;invoice_id:string;amount:number;payment_date:string;method:string;reference:string|null;notes:string|null;created_by:string;created_at:string;correlation_id:string;idempotency_key:string }
