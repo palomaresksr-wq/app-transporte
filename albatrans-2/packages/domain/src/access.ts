@@ -32,7 +32,7 @@ export function effectiveRoleHome(role: EffectiveRole): string {
     case "admin_empresa":
       return "/empresa";
     case "conductor":
-      return "/conductor";
+      return "/driver/transports";
   }
 }
 

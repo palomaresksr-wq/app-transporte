@@ -36,6 +36,7 @@ Deno.serve(async (request) => {
     auth.data.user.id,
     body.organizationId,
     body.action.includes("pod") || body.action.includes("signature") ? "pod_signature" : "document_management",
+    body,
   );
   if (!access.ok) return fail(access.status, access.code, access.message);
   const keyId = keyFrom(body.idempotencyKey, request.headers.get("idempotency-key"));
@@ -262,11 +263,17 @@ async function rpc(db: Client, name: string, args: Record<string, unknown>) {
   if (result.error) return databaseError(result.error.code, result.error.message);
   return respond(200, record(result.data) ? result.data : { result: result.data });
 }
-async function authorize(db: Client, userId: string, organizationId: string, moduleCode: string) {
+async function authorize(
+  db: Client,
+  userId: string,
+  organizationId: string,
+  moduleCode: string,
+  body: Record<string, unknown>,
+) {
   const [profile, platform, membership, organization, module] = await Promise.all([
     db.from("profiles").select("status").eq("user_id", userId).maybeSingle(),
     db.from("platform_admins").select("role,status").eq("user_id", userId).maybeSingle(),
-    db.from("organization_memberships").select("organization_id,role,status").eq("user_id", userId).eq(
+    db.from("organization_memberships").select("id,organization_id,role,status").eq("user_id", userId).eq(
       "organization_id",
       organizationId,
     ).maybeSingle(),
@@ -280,10 +287,16 @@ async function authorize(db: Client, userId: string, organizationId: string, mod
   if (platform.data?.role === "superadmin" && platform.data.status === "active") {
     return { ok: true as const, scope: "platform" as Scope };
   }
-  if (
-    organization.data?.status !== "active" || membership.data?.role !== "admin_empresa" ||
-    membership.data.status !== "active"
-  ) return deny(403, "forbidden", "Acceso empresarial no autorizado.");
+  if (organization.data?.status !== "active" || membership.data?.status !== "active") {
+    return deny(403, "forbidden", "Acceso empresarial no autorizado.");
+  }
+  if (membership.data.role === "conductor") {
+    if (!await driverDocumentAccess(db, membership.data.id, organizationId, body)) {
+      return deny(403, "forbidden", "Documento no vinculado a un transporte asignado.");
+    }
+  } else if (membership.data.role !== "admin_empresa") {
+    return deny(403, "forbidden", "Acceso empresarial no autorizado.");
+  }
   const [subscription, override] = await Promise.all([
     db.from("organization_subscriptions").select("plan_id").eq("organization_id", organizationId).maybeSingle(),
     db.from("organization_module_overrides").select("override_mode").eq("organization_id", organizationId).eq(
@@ -305,6 +318,44 @@ async function authorize(db: Client, userId: string, organizationId: string, mod
     return deny(403, "module_disabled", "El módulo requerido está desactivado.");
   }
   return { ok: true as const, scope: "organization" as Scope };
+}
+async function driverDocumentAccess(
+  db: Client,
+  membershipId: string,
+  organizationId: string,
+  body: Record<string, unknown>,
+) {
+  let orderId = typeof body.transportOrderId === "string" ? body.transportOrderId : null;
+  if (!orderId && record(body.relations) && typeof body.relations.transportOrderId === "string") {
+    orderId = body.relations.transportOrderId;
+  }
+  if (!orderId && typeof body.documentId === "string") {
+    const document = await db.from("documents").select("transport_order_id").eq("organization_id", organizationId).eq(
+      "id",
+      body.documentId,
+    ).maybeSingle();
+    orderId = document.data?.transport_order_id ?? null;
+  }
+  if (!orderId && typeof body.versionId === "string") {
+    const version = await db.from("document_versions").select("document_id").eq("organization_id", organizationId).eq(
+      "id",
+      body.versionId,
+    ).maybeSingle();
+    if (version.data) {
+      const document = await db.from("documents").select("transport_order_id").eq("id", version.data.document_id)
+        .maybeSingle();
+      orderId = document.data?.transport_order_id ?? null;
+    }
+  }
+  if (!orderId || !uuid(orderId)) return false;
+  const driver = await db.from("drivers").select("id").eq("organization_id", organizationId).eq(
+    "membership_id",
+    membershipId,
+  ).eq("employment_status", "active").is("archived_at", null).maybeSingle();
+  if (!driver.data) return false;
+  const order = await db.from("transport_orders").select("id").eq("id", orderId).eq("organization_id", organizationId)
+    .eq("assigned_driver_id", driver.data.id).is("archived_at", null).maybeSingle();
+  return Boolean(order.data);
 }
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

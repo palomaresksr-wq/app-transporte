@@ -7,6 +7,31 @@
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       audit_events: {
@@ -61,6 +86,508 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_fiscal_settings: {
+        Row: {
+          address_line_1: string
+          address_line_2: string | null
+          billing_email: string | null
+          city: string
+          country_code: string
+          created_at: string
+          default_payment_terms_days: number
+          legal_name: string
+          organization_id: string
+          postal_code: string
+          region: string | null
+          tax_id: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          address_line_1: string
+          address_line_2?: string | null
+          billing_email?: string | null
+          city: string
+          country_code?: string
+          created_at?: string
+          default_payment_terms_days?: number
+          legal_name: string
+          organization_id: string
+          postal_code: string
+          region?: string | null
+          tax_id: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          address_line_1?: string
+          address_line_2?: string | null
+          billing_email?: string | null
+          city?: string
+          country_code?: string
+          created_at?: string
+          default_payment_terms_days?: number
+          legal_name?: string
+          organization_id?: string
+          postal_code?: string
+          region?: string | null
+          tax_id?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_fiscal_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_fiscal_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      billing_preinvoice_counters: {
+        Row: {
+          last_number: number
+          organization_id: string
+          reference_year: number
+        }
+        Insert: {
+          last_number?: number
+          organization_id: string
+          reference_year: number
+        }
+        Update: {
+          last_number?: number
+          organization_id?: string
+          reference_year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_preinvoice_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_preinvoice_lines: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          line_amount: number
+          organization_id: string
+          preinvoice_id: string
+          remove_reason: string | null
+          removed_at: string | null
+          removed_by: string | null
+          transport_order_id: string
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          line_amount: number
+          organization_id: string
+          preinvoice_id: string
+          remove_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          transport_order_id: string
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          line_amount?: number
+          organization_id?: string
+          preinvoice_id?: string
+          remove_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          transport_order_id?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_preinvoice_lines_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoice_lines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoice_lines_preinvoice_id_fkey"
+            columns: ["preinvoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_preinvoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoice_lines_removed_by_fkey"
+            columns: ["removed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoice_lines_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoice_lines_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "transport_order_valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_preinvoices: {
+        Row: {
+          adjustments_amount: number
+          approved_at: string | null
+          approved_by: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          client_id: string
+          created_at: string
+          created_by: string
+          currency_code: string
+          id: string
+          notes: string | null
+          organization_id: string
+          period_end: string
+          period_start: string
+          reference: string
+          status: Database["public"]["Enums"]["billing_preinvoice_status"]
+          subtotal_amount: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          adjustments_amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id: string
+          created_at?: string
+          created_by: string
+          currency_code?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          period_end: string
+          period_start: string
+          reference: string
+          status?: Database["public"]["Enums"]["billing_preinvoice_status"]
+          subtotal_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          adjustments_amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          period_end?: string
+          period_start?: string
+          reference?: string
+          status?: Database["public"]["Enums"]["billing_preinvoice_status"]
+          subtotal_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_preinvoices_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoices_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_preinvoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_rates: {
+        Row: {
+          archived_at: string | null
+          client_id: string
+          components_json: Json
+          created_at: string
+          created_by: string
+          currency_code: string
+          destination_location_id: string | null
+          id: string
+          name: string
+          organization_id: string
+          origin_location_id: string | null
+          previous_rate_id: string | null
+          service_type: string | null
+          status: Database["public"]["Enums"]["billing_rate_status"]
+          supplement_rules_json: Json
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+          version_group_id: string
+          version_number: number
+        }
+        Insert: {
+          archived_at?: string | null
+          client_id: string
+          components_json?: Json
+          created_at?: string
+          created_by: string
+          currency_code?: string
+          destination_location_id?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          origin_location_id?: string | null
+          previous_rate_id?: string | null
+          service_type?: string | null
+          status?: Database["public"]["Enums"]["billing_rate_status"]
+          supplement_rules_json?: Json
+          updated_at?: string
+          valid_from: string
+          valid_until?: string | null
+          version_group_id: string
+          version_number?: number
+        }
+        Update: {
+          archived_at?: string | null
+          client_id?: string
+          components_json?: Json
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          destination_location_id?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          origin_location_id?: string | null
+          previous_rate_id?: string | null
+          service_type?: string | null
+          status?: Database["public"]["Enums"]["billing_rate_status"]
+          supplement_rules_json?: Json
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+          version_group_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_rates_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_rates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_rates_destination_location_id_fkey"
+            columns: ["destination_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_rates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_rates_origin_location_id_fkey"
+            columns: ["origin_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_rates_previous_rate_id_fkey"
+            columns: ["previous_rate_id"]
+            isOneToOne: false
+            referencedRelation: "billing_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_supplement_definitions: {
+        Row: {
+          amount: number
+          archived_at: string | null
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          code: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          organization_id: string
+          percentage_base: string | null
+          status: Database["public"]["Enums"]["master_data_status"]
+          unit_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          archived_at?: string | null
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          organization_id: string
+          percentage_base?: string | null
+          status?: Database["public"]["Enums"]["master_data_status"]
+          unit_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          archived_at?: string | null
+          charge_mode?: Database["public"]["Enums"]["billing_charge_mode"]
+          code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          percentage_base?: string | null
+          status?: Database["public"]["Enums"]["master_data_status"]
+          unit_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_supplement_definitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "billing_supplement_definitions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -495,6 +1022,7 @@ export type Database = {
           document_type: string
           driver_id: string | null
           id: string
+          invoice_id: string | null
           organization_id: string
           source: Database["public"]["Enums"]["document_source"]
           status: Database["public"]["Enums"]["document_status"]
@@ -515,6 +1043,7 @@ export type Database = {
           document_type: string
           driver_id?: string | null
           id?: string
+          invoice_id?: string | null
           organization_id: string
           source: Database["public"]["Enums"]["document_source"]
           status?: Database["public"]["Enums"]["document_status"]
@@ -535,6 +1064,7 @@ export type Database = {
           document_type?: string
           driver_id?: string | null
           id?: string
+          invoice_id?: string | null
           organization_id?: string
           source?: Database["public"]["Enums"]["document_source"]
           status?: Database["public"]["Enums"]["document_status"]
@@ -575,6 +1105,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "documents_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -608,6 +1145,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vehicles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_completion_policies: {
+        Row: {
+          organization_id: string
+          require_document: boolean
+          require_pod: boolean
+          require_signature: boolean
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          organization_id: string
+          require_document?: boolean
+          require_pod?: boolean
+          require_signature?: boolean
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          organization_id?: string
+          require_document?: boolean
+          require_pod?: boolean
+          require_signature?: boolean
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_completion_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_completion_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -827,6 +1406,499 @@ export type Database = {
             columns: ["transport_order_id"]
             isOneToOne: false
             referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          command: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          command: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          command?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoice_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_lines: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          organization_id: string
+          position: number
+          quantity: number
+          snapshot_json: Json
+          subtotal: number
+          tax_amount: number
+          tax_code: string
+          tax_id: string | null
+          tax_kind: Database["public"]["Enums"]["invoice_tax_kind"]
+          tax_name: string
+          tax_rate: number
+          total: number
+          transport_order_id: string | null
+          unit_price: number
+          valuation_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          organization_id: string
+          position: number
+          quantity: number
+          snapshot_json: Json
+          subtotal: number
+          tax_amount: number
+          tax_code: string
+          tax_id?: string | null
+          tax_kind: Database["public"]["Enums"]["invoice_tax_kind"]
+          tax_name: string
+          tax_rate: number
+          total: number
+          transport_order_id?: string | null
+          unit_price: number
+          valuation_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          organization_id?: string
+          position?: number
+          quantity?: number
+          snapshot_json?: Json
+          subtotal?: number
+          tax_amount?: number
+          tax_code?: string
+          tax_id?: string | null
+          tax_kind?: Database["public"]["Enums"]["invoice_tax_kind"]
+          tax_name?: string
+          tax_rate?: number
+          total?: number
+          transport_order_id?: string | null
+          unit_price?: number
+          valuation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_taxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "transport_order_valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_payments: {
+        Row: {
+          amount: number
+          correlation_id: string
+          created_at: string
+          created_by: string
+          id: string
+          idempotency_key: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["invoice_payment_method"]
+          notes: string | null
+          organization_id: string
+          payment_date: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          correlation_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          idempotency_key: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["invoice_payment_method"]
+          notes?: string | null
+          organization_id: string
+          payment_date: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          correlation_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          idempotency_key?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["invoice_payment_method"]
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_series: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string
+          fiscal_year_mode: Database["public"]["Enums"]["invoice_fiscal_year_mode"]
+          id: string
+          is_primary: boolean
+          name: string
+          next_number: number
+          organization_id: string
+          prefix: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by: string
+          fiscal_year_mode?: Database["public"]["Enums"]["invoice_fiscal_year_mode"]
+          id?: string
+          is_primary?: boolean
+          name: string
+          next_number?: number
+          organization_id: string
+          prefix: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string
+          fiscal_year_mode?: Database["public"]["Enums"]["invoice_fiscal_year_mode"]
+          id?: string
+          is_primary?: boolean
+          name?: string
+          next_number?: number
+          organization_id?: string
+          prefix?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_series_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoice_series_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_taxes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string
+          exemption_reason: string | null
+          id: string
+          kind: Database["public"]["Enums"]["invoice_tax_kind"]
+          name: string
+          organization_id: string
+          rate: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by: string
+          exemption_reason?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["invoice_tax_kind"]
+          name: string
+          organization_id: string
+          rate: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string
+          exemption_reason?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["invoice_tax_kind"]
+          name?: string
+          organization_id?: string
+          rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_taxes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoice_taxes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          billing_snapshot_json: Json
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          correlation_id: string
+          created_at: string
+          created_by: string
+          currency_code: string
+          customer_id: string
+          due_date: string | null
+          fiscal_snapshot_json: Json
+          id: string
+          idempotency_key: string
+          invoice_number: string
+          invoice_series_id: string
+          issue_date: string
+          issued_at: string | null
+          issued_by: string | null
+          notes: string | null
+          organization_id: string
+          payment_terms_days: number
+          preinvoice_id: string | null
+          rectified_invoice_id: string | null
+          service_period_end: string | null
+          service_period_start: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          tax_total: number
+          total: number
+        }
+        Insert: {
+          amount_due: number
+          amount_paid?: number
+          billing_snapshot_json: Json
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          correlation_id: string
+          created_at?: string
+          created_by: string
+          currency_code?: string
+          customer_id: string
+          due_date?: string | null
+          fiscal_snapshot_json: Json
+          id?: string
+          idempotency_key: string
+          invoice_number: string
+          invoice_series_id: string
+          issue_date: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id: string
+          payment_terms_days?: number
+          preinvoice_id?: string | null
+          rectified_invoice_id?: string | null
+          service_period_end?: string | null
+          service_period_start?: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          tax_total: number
+          total: number
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          billing_snapshot_json?: Json
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          correlation_id?: string
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          customer_id?: string
+          due_date?: string | null
+          fiscal_snapshot_json?: Json
+          id?: string
+          idempotency_key?: string
+          invoice_number?: string
+          invoice_series_id?: string
+          issue_date?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id?: string
+          payment_terms_days?: number
+          preinvoice_id?: string | null
+          rectified_invoice_id?: string | null
+          service_period_end?: string | null
+          service_period_start?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          tax_total?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_invoice_series_id_fkey"
+            columns: ["invoice_series_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_preinvoice_id_fkey"
+            columns: ["preinvoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_preinvoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_rectified_invoice_id_fkey"
+            columns: ["rectified_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -1061,6 +2133,205 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ocr_application_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_application_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_application_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocr_application_proposals: {
+        Row: {
+          application_status: Database["public"]["Enums"]["ocr_application_status"]
+          applied_at: string | null
+          applied_by: string | null
+          comparison_status: Database["public"]["Enums"]["ocr_application_comparison_status"]
+          confidence: number | null
+          correlation_id: string
+          created_at: string
+          created_by: string
+          current_value_json: Json | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
+          document_id: string
+          field_code: string
+          id: string
+          idempotency_key: string
+          normalized_value_json: Json | null
+          ocr_job_id: string
+          ocr_result_id: string
+          ocr_review_id: string
+          organization_id: string
+          proposed_value_json: Json
+          review_status: Database["public"]["Enums"]["ocr_application_review_status"]
+          source_summary: Json
+          target_entity_id: string | null
+          target_entity_type: Database["public"]["Enums"]["ocr_application_target_entity_type"]
+          transport_order_id: string
+        }
+        Insert: {
+          application_status?: Database["public"]["Enums"]["ocr_application_status"]
+          applied_at?: string | null
+          applied_by?: string | null
+          comparison_status: Database["public"]["Enums"]["ocr_application_comparison_status"]
+          confidence?: number | null
+          correlation_id: string
+          created_at?: string
+          created_by: string
+          current_value_json?: Json | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          document_id: string
+          field_code: string
+          id?: string
+          idempotency_key: string
+          normalized_value_json?: Json | null
+          ocr_job_id: string
+          ocr_result_id: string
+          ocr_review_id: string
+          organization_id: string
+          proposed_value_json: Json
+          review_status?: Database["public"]["Enums"]["ocr_application_review_status"]
+          source_summary?: Json
+          target_entity_id?: string | null
+          target_entity_type: Database["public"]["Enums"]["ocr_application_target_entity_type"]
+          transport_order_id: string
+        }
+        Update: {
+          application_status?: Database["public"]["Enums"]["ocr_application_status"]
+          applied_at?: string | null
+          applied_by?: string | null
+          comparison_status?: Database["public"]["Enums"]["ocr_application_comparison_status"]
+          confidence?: number | null
+          correlation_id?: string
+          created_at?: string
+          created_by?: string
+          current_value_json?: Json | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          document_id?: string
+          field_code?: string
+          id?: string
+          idempotency_key?: string
+          normalized_value_json?: Json | null
+          ocr_job_id?: string
+          ocr_result_id?: string
+          ocr_review_id?: string
+          organization_id?: string
+          proposed_value_json?: Json
+          review_status?: Database["public"]["Enums"]["ocr_application_review_status"]
+          source_summary?: Json
+          target_entity_id?: string | null
+          target_entity_type?: Database["public"]["Enums"]["ocr_application_target_entity_type"]
+          transport_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_application_proposals_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_ocr_job_id_fkey"
+            columns: ["ocr_job_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_ocr_result_id_fkey"
+            columns: ["ocr_result_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_ocr_review_id_fkey"
+            columns: ["ocr_review_id"]
+            isOneToOne: false
+            referencedRelation: "ocr_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocr_application_proposals_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ocr_command_idempotency: {
         Row: {
@@ -2795,6 +4066,99 @@ export type Database = {
           },
         ]
       }
+      transport_order_billing_supplements: {
+        Row: {
+          amount: number
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          code: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          organization_id: string
+          percentage_base: string | null
+          quantity: number
+          remove_reason: string | null
+          removed_at: string | null
+          removed_by: string | null
+          supplement_definition_id: string | null
+          transport_order_id: string
+          unit_code: string | null
+        }
+        Insert: {
+          amount: number
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          organization_id: string
+          percentage_base?: string | null
+          quantity?: number
+          remove_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          supplement_definition_id?: string | null
+          transport_order_id: string
+          unit_code?: string | null
+        }
+        Update: {
+          amount?: number
+          charge_mode?: Database["public"]["Enums"]["billing_charge_mode"]
+          code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          percentage_base?: string | null
+          quantity?: number
+          remove_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          supplement_definition_id?: string | null
+          transport_order_id?: string
+          unit_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_order_billing_supplemen_supplement_definition_id_fkey"
+            columns: ["supplement_definition_id"]
+            isOneToOne: false
+            referencedRelation: "billing_supplement_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_billing_supplements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_order_billing_supplements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_billing_supplements_removed_by_fkey"
+            columns: ["removed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_order_billing_supplements_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transport_order_counters: {
         Row: {
           last_value: number
@@ -2818,6 +4182,201 @@ export type Database = {
           },
         ]
       }
+      transport_order_pricing_adjustments: {
+        Row: {
+          adjustment_kind: Database["public"]["Enums"]["billing_adjustment_kind"]
+          amount: number
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          created_at: string
+          created_by: string
+          effect_sign: number
+          id: string
+          organization_id: string
+          percentage_base: string | null
+          quantity: number
+          reason: string
+          transport_order_id: string
+          unit_code: string | null
+        }
+        Insert: {
+          adjustment_kind: Database["public"]["Enums"]["billing_adjustment_kind"]
+          amount: number
+          charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          created_at?: string
+          created_by: string
+          effect_sign: number
+          id?: string
+          organization_id: string
+          percentage_base?: string | null
+          quantity?: number
+          reason: string
+          transport_order_id: string
+          unit_code?: string | null
+        }
+        Update: {
+          adjustment_kind?: Database["public"]["Enums"]["billing_adjustment_kind"]
+          amount?: number
+          charge_mode?: Database["public"]["Enums"]["billing_charge_mode"]
+          created_at?: string
+          created_by?: string
+          effect_sign?: number
+          id?: string
+          organization_id?: string
+          percentage_base?: string | null
+          quantity?: number
+          reason?: string
+          transport_order_id?: string
+          unit_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_order_pricing_adjustments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_order_pricing_adjustments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_pricing_adjustments_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_order_valuations: {
+        Row: {
+          adjustments_amount: number
+          base_amount: number
+          billing_rate_id: string | null
+          breakdown_json: Json
+          calculated_at: string
+          calculated_by: string
+          correlation_id: string
+          currency_code: string
+          id: string
+          idempotency_key: string
+          input_snapshot_json: Json
+          organization_id: string
+          rate_snapshot_json: Json
+          reopened_at: string | null
+          reopened_by: string | null
+          superseded_by_valuation_id: string | null
+          supplements_amount: number
+          total_amount: number
+          transport_order_id: string
+          validated_at: string | null
+          validated_by: string | null
+          valuation_number: number
+        }
+        Insert: {
+          adjustments_amount: number
+          base_amount: number
+          billing_rate_id?: string | null
+          breakdown_json: Json
+          calculated_at?: string
+          calculated_by: string
+          correlation_id: string
+          currency_code: string
+          id?: string
+          idempotency_key: string
+          input_snapshot_json: Json
+          organization_id: string
+          rate_snapshot_json: Json
+          reopened_at?: string | null
+          reopened_by?: string | null
+          superseded_by_valuation_id?: string | null
+          supplements_amount: number
+          total_amount: number
+          transport_order_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+          valuation_number: number
+        }
+        Update: {
+          adjustments_amount?: number
+          base_amount?: number
+          billing_rate_id?: string | null
+          breakdown_json?: Json
+          calculated_at?: string
+          calculated_by?: string
+          correlation_id?: string
+          currency_code?: string
+          id?: string
+          idempotency_key?: string
+          input_snapshot_json?: Json
+          organization_id?: string
+          rate_snapshot_json?: Json
+          reopened_at?: string | null
+          reopened_by?: string | null
+          superseded_by_valuation_id?: string | null
+          supplements_amount?: number
+          total_amount?: number
+          transport_order_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          valuation_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_order_valuations_billing_rate_id_fkey"
+            columns: ["billing_rate_id"]
+            isOneToOne: false
+            referencedRelation: "billing_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_calculated_by_fkey"
+            columns: ["calculated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_superseded_by_valuation_id_fkey"
+            columns: ["superseded_by_valuation_id"]
+            isOneToOne: false
+            referencedRelation: "transport_order_valuations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_order_valuations_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       transport_orders: {
         Row: {
           archived_at: string | null
@@ -2829,6 +4388,7 @@ export type Database = {
           current_valuation_id: string | null
           customer_id: string
           economic_status: Database["public"]["Enums"]["transport_economic_status"]
+          external_reference: string | null
           id: string
           notes: string | null
           order_number: string
@@ -2852,6 +4412,7 @@ export type Database = {
           current_valuation_id?: string | null
           customer_id: string
           economic_status?: Database["public"]["Enums"]["transport_economic_status"]
+          external_reference?: string | null
           id?: string
           notes?: string | null
           order_number: string
@@ -2875,6 +4436,7 @@ export type Database = {
           current_valuation_id?: string | null
           customer_id?: string
           economic_status?: Database["public"]["Enums"]["transport_economic_status"]
+          external_reference?: string | null
           id?: string
           notes?: string | null
           order_number?: string
@@ -2909,6 +4471,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_orders_current_valuation_fk"
+            columns: ["current_valuation_id"]
+            isOneToOne: false
+            referencedRelation: "transport_order_valuations"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transport_orders_customer_id_fkey"
@@ -3143,6 +4712,78 @@ export type Database = {
       }
     }
     Functions: {
+      add_orders_to_billing_preinvoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order_ids: string[]
+          p_org: string
+          p_preinvoice: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      add_transport_order_billing_supplement: {
+        Args: {
+          p_actor: string
+          p_amount: number
+          p_charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          p_code: string
+          p_correlation: string
+          p_definition: string
+          p_key: string
+          p_name: string
+          p_order: string
+          p_org: string
+          p_percentage_base: string
+          p_quantity: number
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_unit_code: string
+        }
+        Returns: Json
+      }
+      add_transport_order_pricing_adjustment: {
+        Args: {
+          p_actor: string
+          p_adjustment_kind: Database["public"]["Enums"]["billing_adjustment_kind"]
+          p_amount: number
+          p_charge_mode: Database["public"]["Enums"]["billing_charge_mode"]
+          p_correlation: string
+          p_effect_sign: number
+          p_key: string
+          p_order: string
+          p_org: string
+          p_percentage_base: string
+          p_quantity: number
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_unit_code: string
+        }
+        Returns: Json
+      }
+      apply_ocr_proposals: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_org: string
+          p_proposal_ids: string[]
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      approve_billing_preinvoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_org: string
+          p_preinvoice: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       approve_ocr_review: {
         Args: {
           p_actor: string
@@ -3211,6 +4852,37 @@ export type Database = {
         }
         Returns: Json
       }
+      begin_invoice_pdf: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_invoice: string
+          p_key: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_sha256: string
+          p_size: number
+        }
+        Returns: Json
+      }
+      billing_actor_authorized: {
+        Args: {
+          p_actor: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_write?: boolean
+        }
+        Returns: boolean
+      }
+      billing_next_preinvoice_reference: {
+        Args: { p_org: string; p_reference_year: number }
+        Returns: string
+      }
+      billing_recalculate_preinvoice_totals: {
+        Args: { p_preinvoice: string }
+        Returns: undefined
+      }
+      billing_round_amount: { Args: { p_value: number }; Returns: number }
       can_access_master_data: {
         Args: {
           p_module_code: string
@@ -3218,6 +4890,30 @@ export type Database = {
           p_write?: boolean
         }
         Returns: boolean
+      }
+      cancel_billing_preinvoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_org: string
+          p_preinvoice: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      cancel_invoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_invoice: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
       }
       command_document_signature: {
         Args: {
@@ -3263,6 +4959,18 @@ export type Database = {
         }
         Returns: Json
       }
+      configure_invoice_fiscal: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_series: Json
+          p_settings: Json
+          p_taxes: Json
+        }
+        Returns: Json
+      }
       confirm_document_upload: {
         Args: {
           p_actor: string
@@ -3272,6 +4980,20 @@ export type Database = {
           p_document: string
           p_key: string
           p_metadata: Json
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_sha256: string
+          p_version: string
+        }
+        Returns: Json
+      }
+      confirm_invoice_pdf: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_invoice: string
+          p_key: string
           p_org: string
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
           p_sha256: string
@@ -3291,6 +5013,36 @@ export type Database = {
           p_reason: string
           p_review: string
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      create_billing_preinvoice: {
+        Args: {
+          p_actor: string
+          p_client: string
+          p_correlation: string
+          p_key: string
+          p_notes: string
+          p_order_ids: string[]
+          p_org: string
+          p_period_end: string
+          p_period_start: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      create_corrective_invoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_invoice: string
+          p_issue_date: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_series: string
+          p_subtotal: number
         }
         Returns: Json
       }
@@ -3325,6 +5077,23 @@ export type Database = {
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
         }
         Returns: boolean
+      }
+      driver_has_order_access: {
+        Args: { p_module?: string; p_order_id: string }
+        Returns: boolean
+      }
+      execute_driver_transport_operation: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_resource: string
+          p_target: string
+          p_values: Json
+        }
+        Returns: Json
       }
       execute_transport_operation: {
         Args: {
@@ -3371,6 +5140,32 @@ export type Database = {
         Returns: Json
       }
       is_platform_superadmin: { Args: never; Returns: boolean }
+      issue_preinvoice_invoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_due_date: string
+          p_issue_date: string
+          p_key: string
+          p_notes: string
+          p_org: string
+          p_preinvoice: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_series: string
+          p_tax: string
+        }
+        Returns: Json
+      }
+      mark_invoice_overdue: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_invoice: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       mark_ocr_processing_started: {
         Args: {
           p_actor: string
@@ -3382,6 +5177,10 @@ export type Database = {
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
         }
         Returns: Json
+      }
+      next_invoice_number: {
+        Args: { p_issue_date: string; p_org: string; p_series: string }
+        Returns: string
       }
       next_transport_order_number: {
         Args: { p_organization_id: string }
@@ -3395,17 +5194,73 @@ export type Database = {
         }
         Returns: boolean
       }
+      ocr_application_module_enabled: {
+        Args: { p_module_code: string; p_org: string }
+        Returns: boolean
+      }
+      ocr_application_normalized_digits: {
+        Args: { p_value: string }
+        Returns: string
+      }
+      ocr_application_normalized_lower: {
+        Args: { p_value: string }
+        Returns: string
+      }
+      ocr_application_normalized_text: {
+        Args: { p_value: string }
+        Returns: string
+      }
+      ocr_application_normalized_upper: {
+        Args: { p_value: string }
+        Returns: string
+      }
       ocr_limit_value_for_organization: {
         Args: { p_limit_code: string; p_org: string }
         Returns: number
       }
       ocr_sanitized_message: { Args: { p_text: string }; Returns: string }
+      persist_transport_order_valuation: {
+        Args: {
+          p_actor: string
+          p_adjustments_amount: number
+          p_base_amount: number
+          p_breakdown: Json
+          p_correlation: string
+          p_currency_code: string
+          p_input_snapshot: Json
+          p_key: string
+          p_order: string
+          p_org: string
+          p_rate_id: string
+          p_rate_snapshot: Json
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_supplements_amount: number
+          p_total_amount: number
+        }
+        Returns: Json
+      }
       phase_c_module_enabled: {
         Args: { p_organization_id: string }
         Returns: boolean
       }
       reconcile_ocr_jobs: {
         Args: { p_limit?: number; p_org: string }
+        Returns: Json
+      }
+      record_invoice_payment: {
+        Args: {
+          p_actor: string
+          p_amount: number
+          p_correlation: string
+          p_date: string
+          p_invoice: string
+          p_key: string
+          p_method: Database["public"]["Enums"]["invoice_payment_method"]
+          p_notes: string
+          p_org: string
+          p_reference: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
         Returns: Json
       }
       reject_ocr_review: {
@@ -3416,6 +5271,31 @@ export type Database = {
           p_org: string
           p_reason: string
           p_review: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      remove_order_from_billing_preinvoice: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_preinvoice: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
+      reopen_transport_order_valuation: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_reason: string
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
         }
         Returns: Json
@@ -3447,10 +5327,31 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_transport_order_valuation: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
     }
     Enums: {
       audit_actor_scope: "platform" | "organization" | "system"
+      billing_adjustment_kind: "discount" | "surcharge" | "correction"
+      billing_charge_mode: "fixed" | "percent" | "per_unit"
       billing_interval: "monthly" | "yearly" | "custom"
+      billing_preinvoice_status:
+        | "draft"
+        | "review"
+        | "approved"
+        | "cancelled"
+        | "converted"
+      billing_rate_status: "active" | "inactive" | "archived"
       document_outbox_status: "pending" | "processing" | "completed" | "failed"
       document_signature_type:
         | "drawn"
@@ -3484,6 +5385,27 @@ export type Database = {
         | "archived"
       fleet_asset_status: "active" | "inactive" | "maintenance" | "archived"
       internal_notification_status: "unread" | "read" | "archived"
+      invoice_fiscal_year_mode: "calendar_year" | "continuous"
+      invoice_payment_method:
+        | "bank_transfer"
+        | "cash"
+        | "card"
+        | "direct_debit"
+        | "other"
+      invoice_status:
+        | "draft"
+        | "issued"
+        | "partially_paid"
+        | "paid"
+        | "overdue"
+        | "cancelled"
+        | "rectified"
+      invoice_tax_kind:
+        | "standard"
+        | "reduced"
+        | "super_reduced"
+        | "zero"
+        | "exempt"
       legacy_entity_type: "admin_empresa" | "conductor"
       legacy_migration_status:
         | "pending"
@@ -3506,6 +5428,34 @@ export type Database = {
         | "revoked"
       module_override_mode: "inherit" | "enabled" | "disabled"
       module_status: "active" | "deprecated"
+      ocr_application_comparison_status:
+        | "exact_match"
+        | "new_value"
+        | "conflict"
+        | "target_missing"
+        | "invalid"
+        | "ambiguous"
+      ocr_application_review_status:
+        | "pending"
+        | "ready"
+        | "conflict"
+        | "invalid"
+        | "ignored"
+      ocr_application_status:
+        | "pending"
+        | "approved"
+        | "applied"
+        | "rejected"
+        | "failed"
+        | "archived"
+      ocr_application_target_entity_type:
+        | "transport_order"
+        | "transport_stop"
+        | "transport_item"
+        | "client"
+        | "location"
+        | "vehicle"
+        | "driver"
       ocr_field_validation_status:
         | "extracted"
         | "valid"
@@ -3556,6 +5506,14 @@ export type Database = {
         | "suspended"
         | "cancelled"
         | "expired"
+      transport_economic_status:
+        | "unpriced"
+        | "calculated"
+        | "needs_recalculation"
+        | "validated"
+        | "prefactured"
+        | "invoiced"
+        | "cancelled"
       transport_execution_status:
         | "pending"
         | "driver_notified"
@@ -3600,14 +5558,6 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "archived"
-      transport_economic_status:
-        | "unpriced"
-        | "calculated"
-        | "needs_recalculation"
-        | "validated"
-        | "prefactured"
-        | "invoiced"
-        | "cancelled"
       transport_priority: "low" | "normal" | "high" | "urgent"
       transport_stop_status: "pending" | "arrived" | "completed" | "skipped"
       transport_stop_type:
@@ -3741,10 +5691,23 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       audit_actor_scope: ["platform", "organization", "system"],
+      billing_adjustment_kind: ["discount", "surcharge", "correction"],
+      billing_charge_mode: ["fixed", "percent", "per_unit"],
       billing_interval: ["monthly", "yearly", "custom"],
+      billing_preinvoice_status: [
+        "draft",
+        "review",
+        "approved",
+        "cancelled",
+        "converted",
+      ],
+      billing_rate_status: ["active", "inactive", "archived"],
       document_outbox_status: ["pending", "processing", "completed", "failed"],
       document_signature_type: [
         "drawn",
@@ -3783,6 +5746,30 @@ export const Constants = {
       ],
       fleet_asset_status: ["active", "inactive", "maintenance", "archived"],
       internal_notification_status: ["unread", "read", "archived"],
+      invoice_fiscal_year_mode: ["calendar_year", "continuous"],
+      invoice_payment_method: [
+        "bank_transfer",
+        "cash",
+        "card",
+        "direct_debit",
+        "other",
+      ],
+      invoice_status: [
+        "draft",
+        "issued",
+        "partially_paid",
+        "paid",
+        "overdue",
+        "cancelled",
+        "rectified",
+      ],
+      invoice_tax_kind: [
+        "standard",
+        "reduced",
+        "super_reduced",
+        "zero",
+        "exempt",
+      ],
       legacy_entity_type: ["admin_empresa", "conductor"],
       legacy_migration_status: [
         "pending",
@@ -3807,6 +5794,38 @@ export const Constants = {
       ],
       module_override_mode: ["inherit", "enabled", "disabled"],
       module_status: ["active", "deprecated"],
+      ocr_application_comparison_status: [
+        "exact_match",
+        "new_value",
+        "conflict",
+        "target_missing",
+        "invalid",
+        "ambiguous",
+      ],
+      ocr_application_review_status: [
+        "pending",
+        "ready",
+        "conflict",
+        "invalid",
+        "ignored",
+      ],
+      ocr_application_status: [
+        "pending",
+        "approved",
+        "applied",
+        "rejected",
+        "failed",
+        "archived",
+      ],
+      ocr_application_target_entity_type: [
+        "transport_order",
+        "transport_stop",
+        "transport_item",
+        "client",
+        "location",
+        "vehicle",
+        "driver",
+      ],
       ocr_field_validation_status: [
         "extracted",
         "valid",
@@ -3862,6 +5881,15 @@ export const Constants = {
         "suspended",
         "cancelled",
         "expired",
+      ],
+      transport_economic_status: [
+        "unpriced",
+        "calculated",
+        "needs_recalculation",
+        "validated",
+        "prefactured",
+        "invoiced",
+        "cancelled",
       ],
       transport_execution_status: [
         "pending",

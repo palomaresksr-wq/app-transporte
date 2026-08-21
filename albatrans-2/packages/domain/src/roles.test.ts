@@ -27,7 +27,7 @@ describe("roles definitivos de Albatrans 2.0", () => {
   it("resuelve la portada de cada rol definitivo", () => {
     expect(effectiveRoleHome("superadmin")).toBe("/platform");
     expect(effectiveRoleHome("admin_empresa")).toBe("/empresa");
-    expect(effectiveRoleHome("conductor")).toBe("/conductor");
+    expect(effectiveRoleHome("conductor")).toBe("/driver/transports");
   });
 
   it("no introduce jerarquías implícitas", () => {

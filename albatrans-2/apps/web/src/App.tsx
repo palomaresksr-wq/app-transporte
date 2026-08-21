@@ -20,6 +20,7 @@ const AssignmentsRoute = lazy(() => import("./pages/master-data/MasterDataRoute"
 const TransportRoute = lazy(() => import("./pages/transport/TransportRoute").then((module) => ({ default: module.TransportRoute })));
 const BillingRoute = lazy(() => import("./pages/billing/BillingRoute").then((module) => ({ default: module.BillingRoute })));
 const ExecutionRoute = lazy(() => import("./pages/execution/ExecutionRoute").then((module) => ({ default: module.ExecutionRoute })));
+const DriverPortalRoute = lazy(() => import("./pages/driver/DriverPortal").then((module) => ({ default: module.DriverPortalRoute })));
 
 export function App() {
   return (
@@ -39,10 +40,10 @@ export function App() {
         <Route index element={<HomeRedirect />} />
 
         <Route element={<RoleGuard allowed={["conductor"]} />}>
-          <Route
-            path="/conductor"
-            element={<PortalPage expectedRole="conductor" />}
-          />
+          <Route path="/conductor" element={<Navigate to="/driver/transports" replace />} />
+          <Route path="/driver" element={<Navigate to="/driver/transports" replace />} />
+          <Route path="/driver/transports" element={<DriverPortalRoute />} />
+          <Route path="/driver/transports/:orderId" element={<DriverPortalRoute />} />
         </Route>
 
         <Route element={<RoleGuard allowed={["admin_empresa"]} />}>
