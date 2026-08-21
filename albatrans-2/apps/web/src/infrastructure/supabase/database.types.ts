@@ -3486,6 +3486,185 @@ export type Database = {
           },
         ]
       }
+      regulatory_command_idempotency: {
+        Row: {
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+        }
+        Insert: {
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+        }
+        Update: {
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_command_idempotency_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "regulatory_command_idempotency_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regulatory_document_counters: {
+        Row: {
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          last_value: number
+          organization_id: string
+          year: number
+        }
+        Insert: {
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          last_value?: number
+          organization_id: string
+          year: number
+        }
+        Update: {
+          document_type?: Database["public"]["Enums"]["regulatory_document_type"]
+          last_value?: number
+          organization_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_document_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regulatory_document_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_type: string
+          id: string
+          next_attempt_at: string
+          organization_id: string
+          payload: Json
+          processed_at: string | null
+          regulatory_document_id: string
+          status: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          next_attempt_at?: string
+          organization_id: string
+          payload?: Json
+          processed_at?: string | null
+          regulatory_document_id: string
+          status?: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          next_attempt_at?: string
+          organization_id?: string
+          payload?: Json
+          processed_at?: string | null
+          regulatory_document_id?: string
+          status?: Database["public"]["Enums"]["document_outbox_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_document_outbox_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regulatory_document_outbox_regulatory_document_id_fkey"
+            columns: ["regulatory_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_regulatory_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regulatory_validation_policies: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          id: string
+          organization_id: string | null
+          required_paths: string[]
+          schema_version: string
+          warning_paths: string[]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          id?: string
+          organization_id?: string | null
+          required_paths?: string[]
+          schema_version: string
+          warning_paths?: string[]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          document_type?: Database["public"]["Enums"]["regulatory_document_type"]
+          id?: string
+          organization_id?: string | null
+          required_paths?: string[]
+          schema_version?: string
+          warning_paths?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_validation_policies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "regulatory_validation_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trailers: {
         Row: {
           archived_at: string | null
@@ -4495,6 +4674,273 @@ export type Database = {
           },
         ]
       }
+      transport_regulatory_documents: {
+        Row: {
+          cancelled_at: string | null
+          closed_at: string | null
+          content_hash: string | null
+          correlation_id: string
+          created_at: string
+          created_by: string
+          current_snapshot_json: Json
+          document_id: string | null
+          document_number: string | null
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          effective_at: string | null
+          external_document_id: string | null
+          external_provider: string | null
+          external_status: string | null
+          id: string
+          idempotency_key: string
+          issued_at: string | null
+          organization_id: string
+          revision_number: number
+          schema_version: string
+          status: Database["public"]["Enums"]["regulatory_document_status"]
+          transport_order_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          closed_at?: string | null
+          content_hash?: string | null
+          correlation_id: string
+          created_at?: string
+          created_by: string
+          current_snapshot_json: Json
+          document_id?: string | null
+          document_number?: string | null
+          document_type: Database["public"]["Enums"]["regulatory_document_type"]
+          effective_at?: string | null
+          external_document_id?: string | null
+          external_provider?: string | null
+          external_status?: string | null
+          id?: string
+          idempotency_key: string
+          issued_at?: string | null
+          organization_id: string
+          revision_number?: number
+          schema_version?: string
+          status?: Database["public"]["Enums"]["regulatory_document_status"]
+          transport_order_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          closed_at?: string | null
+          content_hash?: string | null
+          correlation_id?: string
+          created_at?: string
+          created_by?: string
+          current_snapshot_json?: Json
+          document_id?: string | null
+          document_number?: string | null
+          document_type?: Database["public"]["Enums"]["regulatory_document_type"]
+          effective_at?: string | null
+          external_document_id?: string | null
+          external_provider?: string | null
+          external_status?: string | null
+          id?: string
+          idempotency_key?: string
+          issued_at?: string | null
+          organization_id?: string
+          revision_number?: number
+          schema_version?: string
+          status?: Database["public"]["Enums"]["regulatory_document_status"]
+          transport_order_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_regulatory_documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_documents_transport_order_id_fkey"
+            columns: ["transport_order_id"]
+            isOneToOne: false
+            referencedRelation: "transport_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_regulatory_evidence: {
+        Row: {
+          actor_user_id: string
+          created_at: string
+          document_id: string | null
+          document_version_id: string | null
+          evidence_json: Json
+          evidence_type: string
+          id: string
+          organization_id: string
+          regulatory_document_id: string
+          revision_id: string
+          signature_id: string | null
+        }
+        Insert: {
+          actor_user_id: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          evidence_json?: Json
+          evidence_type: string
+          id?: string
+          organization_id: string
+          regulatory_document_id: string
+          revision_id: string
+          signature_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          evidence_json?: Json
+          evidence_type?: string
+          id?: string
+          organization_id?: string
+          regulatory_document_id?: string
+          revision_id?: string
+          signature_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_regulatory_evidence_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_regulatory_document_id_fkey"
+            columns: ["regulatory_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_regulatory_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "transport_regulatory_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_evidence_signature_id_fkey"
+            columns: ["signature_id"]
+            isOneToOne: false
+            referencedRelation: "document_signatures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_regulatory_revisions: {
+        Row: {
+          amendment_reason: string | null
+          content_hash: string | null
+          created_at: string
+          created_by: string
+          id: string
+          organization_id: string
+          previous_revision_id: string | null
+          regulatory_document_id: string
+          revision_number: number
+          snapshot_json: Json
+        }
+        Insert: {
+          amendment_reason?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          organization_id: string
+          previous_revision_id?: string | null
+          regulatory_document_id: string
+          revision_number: number
+          snapshot_json: Json
+        }
+        Update: {
+          amendment_reason?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          organization_id?: string
+          previous_revision_id?: string | null
+          regulatory_document_id?: string
+          revision_number?: number
+          snapshot_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_regulatory_revisions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_revisions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_revisions_previous_revision_id_fkey"
+            columns: ["previous_revision_id"]
+            isOneToOne: false
+            referencedRelation: "transport_regulatory_revisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_regulatory_revisions_regulatory_document_id_fkey"
+            columns: ["regulatory_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_regulatory_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transport_stops: {
         Row: {
           created_at: string
@@ -4883,6 +5329,15 @@ export type Database = {
         Returns: undefined
       }
       billing_round_amount: { Args: { p_value: number }; Returns: number }
+      build_regulatory_snapshot: {
+        Args: {
+          p_order: string
+          p_org: string
+          p_schema?: string
+          p_type: Database["public"]["Enums"]["regulatory_document_type"]
+        }
+        Returns: Json
+      }
       can_access_master_data: {
         Args: {
           p_module_code: string
@@ -5046,6 +5501,30 @@ export type Database = {
         }
         Returns: Json
       }
+      create_regulatory_document: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_key: string
+          p_order: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_type: Database["public"]["Enums"]["regulatory_document_type"]
+        }
+        Returns: Json
+      }
+      create_regulatory_revision: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       current_organization_has_capacity: {
         Args: {
           p_current_usage: number
@@ -5156,6 +5635,17 @@ export type Database = {
         }
         Returns: Json
       }
+      issue_transport_regulatory_document: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+        }
+        Returns: Json
+      }
       mark_invoice_overdue: {
         Args: {
           p_actor: string
@@ -5263,6 +5753,14 @@ export type Database = {
         }
         Returns: Json
       }
+      regulatory_document_access: {
+        Args: { p_module?: string; p_order: string }
+        Returns: boolean
+      }
+      regulatory_idempotency_claim: {
+        Args: { p_actor: string; p_hash: string; p_key: string; p_org: string }
+        Returns: Json
+      }
       reject_ocr_review: {
         Args: {
           p_actor: string
@@ -5325,6 +5823,23 @@ export type Database = {
           p_result: string
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
         }
+        Returns: Json
+      }
+      transition_regulatory_document: {
+        Args: {
+          p_actor: string
+          p_correlation: string
+          p_document: string
+          p_key: string
+          p_org: string
+          p_reason: string
+          p_scope: Database["public"]["Enums"]["audit_actor_scope"]
+          p_target: Database["public"]["Enums"]["regulatory_document_status"]
+        }
+        Returns: Json
+      }
+      validate_regulatory_snapshot: {
+        Args: { p_snapshot: Json }
         Returns: Json
       }
       validate_transport_order_valuation: {
@@ -5499,6 +6014,16 @@ export type Database = {
       platform_role: "superadmin"
       pod_status: "pending" | "captured" | "confirmed" | "rejected" | "archived"
       profile_status: "active" | "blocked"
+      regulatory_document_status:
+        | "draft"
+        | "ready"
+        | "issued"
+        | "in_execution"
+        | "completed"
+        | "amended"
+        | "cancelled"
+        | "archived"
+      regulatory_document_type: "control_document" | "ecmr_draft"
       subscription_status:
         | "trial"
         | "active"
@@ -5874,6 +6399,17 @@ export const Constants = {
       platform_role: ["superadmin"],
       pod_status: ["pending", "captured", "confirmed", "rejected", "archived"],
       profile_status: ["active", "blocked"],
+      regulatory_document_status: [
+        "draft",
+        "ready",
+        "issued",
+        "in_execution",
+        "completed",
+        "amended",
+        "cancelled",
+        "archived",
+      ],
+      regulatory_document_type: ["control_document", "ecmr_draft"],
       subscription_status: [
         "trial",
         "active",

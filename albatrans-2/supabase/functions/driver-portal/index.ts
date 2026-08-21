@@ -168,7 +168,8 @@ async function list(db: Db, org: string, driver: string) {
   );
 }
 async function detail(db: Db, orderId: string, org: string) {
-  const [order, execution, stops, items, incidents, notes, policy, pods, signatures] = await Promise.all([
+  const regulatoryEnabled = await moduleEnabled(db, org, "electronic_delivery_notes");
+  const [order, execution, stops, items, incidents, notes, policy, pods, signatures, regulatory] = await Promise.all([
     db.from("transport_orders").select(
       "id,organization_id,order_number,priority,planned_pickup_at,planned_delivery_at,assigned_vehicle_id,notes",
     ).eq("id", orderId).single(),
@@ -188,6 +189,9 @@ async function detail(db: Db, orderId: string, org: string) {
     ).maybeSingle(),
     db.from("proofs_of_delivery").select("id,status").eq("transport_order_id", orderId),
     db.from("documents").select("id,current_version_id").eq("transport_order_id", orderId).eq("status", "available"),
+    db.from("transport_regulatory_documents").select(
+      "id,document_type,document_number,status,revision_number,document_id",
+    ).eq("transport_order_id", orderId).eq("organization_id", org).order("created_at", { ascending: false }),
   ]);
   if (order.error || execution.error) return fail(500, "No se pudo cargar el transporte.");
   const locationIds = (stops.data ?? []).map((s) => s.location_id),
@@ -226,6 +230,7 @@ async function detail(db: Db, orderId: string, org: string) {
         i.severity === "critical" && ["open", "in_progress"].includes(i.status)
       ),
     },
+    regulatoryDocuments: regulatoryEnabled ? regulatory.data ?? [] : [],
   });
 }
 function record(v: unknown): v is Record<string, unknown> {

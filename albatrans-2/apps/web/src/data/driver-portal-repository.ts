@@ -7,6 +7,7 @@ import type {
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { getSupabaseClient } from "../infrastructure/supabase/client";
 import { executeDocumentCommand, uploadDocument } from "./documents-repository";
+import { signRegulatoryDocument } from "./regulatory-documents-repository";
 export interface DriverStop {
   id: string;
   stop_type: string;
@@ -67,6 +68,7 @@ export interface DriverDetail {
     hasDocument: boolean;
     hasOpenCriticalIncident: boolean;
   };
+  regulatoryDocuments?: Array<{ id: string; document_type: string; document_number: string | null; status: string; revision_number: number; document_id: string | null }>;
 }
 async function invoke<T>(body: Record<string, unknown>): Promise<T> {
   const client = getSupabaseClient();
@@ -135,7 +137,10 @@ export async function uploadDriverPod(
 }
 export async function uploadDriverSignature(organizationId:string,orderId:string,file:File,signerName:string){
   const uploaded=await uploadDocument({organizationId,documentType:"receipt_signature",title:`Firma de recepción ${orderId}`,source:"generated",originalFilename:file.name,mimeType:"image/png",sizeBytes:file.size,relations:{transportOrderId:orderId}},file);
-  await executeDocumentCommand({action:"create_signature",organizationId,documentId:uploaded.documentId,versionId:uploaded.versionId,transportOrderId:orderId,values:{signatureType:"drawn",signerName:signerName.trim(),signedAt:new Date().toISOString(),signatureValue:await blobDataUrl(file),signatureDataPath:uploaded.storagePath}});
+  const signatureValue=await blobDataUrl(file);
+  await executeDocumentCommand({action:"create_signature",organizationId,documentId:uploaded.documentId,versionId:uploaded.versionId,transportOrderId:orderId,values:{signatureType:"drawn",signerName:signerName.trim(),signedAt:new Date().toISOString(),signatureValue,signatureDataPath:uploaded.storagePath}});
+  const client=getSupabaseClient();
+  if(client){const documents=await client.functions.invoke<Array<{id:string;document_id:string|null;status:string}>>("regulatory-documents",{body:{action:"list",organizationId,transportOrderId:orderId,idempotencyKey:crypto.randomUUID()}});if(!documents.error){for(const document of documents.data??[]){if(document.document_id&&["issued","in_execution","completed"].includes(document.status)){await signRegulatoryDocument(organizationId,document.id,{signatureValue,signerName:signerName.trim(),signerRole:"receiver",signatureType:"drawn",signatureDataPath:uploaded.storagePath});}}}}
   return uploaded;
 }
 function blobDataUrl(file:File):Promise<string>{return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>typeof reader.result==="string"?resolve(reader.result):reject(new Error("Firma inválida."));reader.onerror=()=>reject(new Error("No se pudo leer la firma."));reader.readAsDataURL(file);});}

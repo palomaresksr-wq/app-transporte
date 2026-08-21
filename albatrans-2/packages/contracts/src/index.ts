@@ -16,3 +16,4 @@ export * from "./ocr-application";
 export * from "./billing";
 export * from "./invoicing";
 export * from "./driver-portal";
+export * from "./regulatory-documents";

@@ -17,6 +17,7 @@ import {
 } from "../../data/transport-repository";
 import { OrderValuationPanel } from "../billing/OrderValuationPanel";
 import { DocumentManager } from "./DocumentManager";
+import { RegulatoryDocumentsPanel } from "./RegulatoryDocumentsPanel";
 type Editor = {
   kind: "order" | "stop" | "item" | "assignment";
   id?: string;
@@ -146,6 +147,7 @@ export function TransportOrderDetailPage(
         </div>
       </section>
       <OrderValuationPanel organizationId={organizationId} orderId={orderId} />
+      <RegulatoryDocumentsPanel organizationId={organizationId} orderId={orderId} />
       <section className="detail-section">
         <div className="section-heading">
           <h2>Paradas</h2>

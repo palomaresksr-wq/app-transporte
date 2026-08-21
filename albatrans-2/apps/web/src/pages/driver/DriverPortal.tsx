@@ -21,6 +21,7 @@ import {
   uploadDriverPod,
   uploadDriverSignature,
 } from "../../data/driver-portal-repository";
+import { downloadRegulatoryPdf } from "../../data/regulatory-documents-repository";
 type DriverAction = DriverPortalAction;
 const actionLabels: Record<DriverPortalAction, string> = {
   heading_to_pickup: "INICIAR TRAYECTO A CARGA",
@@ -270,6 +271,19 @@ export function DriverDetailPage({ orderId }: { orderId: string }) {
           disabled={busy || !online}
           submit={(v) => command("heading_to_pickup", { body: v }, "note")}
         />
+      )}
+      {(data.regulatoryDocuments ?? []).length > 0 && (
+        <section className="driver-panel">
+          <h2>Documento de transporte</h2>
+          {(data.regulatoryDocuments ?? []).map((document) => (
+            <article className="driver-card" key={document.id}>
+              <strong>{document.document_number ?? "Borrador"} · R{document.revision_number}</strong>
+              <span>{document.document_type} · {document.status}</span>
+              {document.document_id && <button className="driver-secondary" onClick={() => downloadRegulatoryPdf(data.order.organization_id, document.id).then((url) => open(url, "_blank", "noopener,noreferrer")).catch((e) => setError(message(e)))}>Ver PDF</button>}
+            </article>
+          ))}
+          <p className="driver-muted">Acceso vinculado a la asignación actual. Sin edición administrativa.</p>
+        </section>
       )}
       <DeliveryPanel data={data} online={online} refresh={refresh} />
       {data.execution.status === "completed" && (
