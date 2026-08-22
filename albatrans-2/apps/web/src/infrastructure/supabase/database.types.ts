@@ -734,6 +734,73 @@ export type Database = {
           },
         ]
       }
+      company_user_lifecycle: {
+        Row: {
+          created_at: string
+          created_by: string
+          deactivated_at: string | null
+          deactivated_by: string | null
+          first_name: string
+          initial_password_changed_at: string | null
+          last_name: string
+          must_change_password: boolean
+          organization_id: string
+          status: Database["public"]["Enums"]["company_user_lifecycle_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          first_name: string
+          initial_password_changed_at?: string | null
+          last_name: string
+          must_change_password?: boolean
+          organization_id: string
+          status?: Database["public"]["Enums"]["company_user_lifecycle_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          first_name?: string
+          initial_password_changed_at?: string | null
+          last_name?: string
+          must_change_password?: boolean
+          organization_id?: string
+          status?: Database["public"]["Enums"]["company_user_lifecycle_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_user_lifecycle_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "company_user_lifecycle_deactivated_by_fkey"
+            columns: ["deactivated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "company_user_lifecycle_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_command_idempotency: {
         Row: {
           actor_user_id: string
@@ -3052,6 +3119,51 @@ export type Database = {
           },
         ]
       }
+      organization_onboarding: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          completed_steps: number[]
+          configuration: Json
+          current_step: number
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_steps?: number[]
+          configuration?: Json
+          current_step?: number
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_steps?: number[]
+          configuration?: Json
+          current_step?: number
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_onboarding_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "organization_onboarding_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_subscriptions: {
         Row: {
           cancel_at_period_end: boolean
@@ -5028,6 +5140,69 @@ export type Database = {
           },
         ]
       }
+      user_management_commands: {
+        Row: {
+          action: string
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          failure_code: string | null
+          id: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+          status: Database["public"]["Enums"]["user_management_command_status"]
+          target_role: Database["public"]["Enums"]["organization_role"] | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["user_management_command_status"]
+          target_role?: Database["public"]["Enums"]["organization_role"] | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["user_management_command_status"]
+          target_role?: Database["public"]["Enums"]["organization_role"] | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_management_commands_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_management_commands_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles: {
         Row: {
           archived_at: string | null
@@ -5401,6 +5576,19 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_company_user_command: {
+        Args: {
+          p_actor: string
+          p_command: string
+          p_email: string
+          p_first: string
+          p_last: string
+          p_must_change: boolean
+          p_phone: string
+          p_user: string
+        }
+        Returns: Json
+      }
       complete_ocr_job_result: {
         Args: {
           p_actor: string
@@ -5646,6 +5834,15 @@ export type Database = {
         }
         Returns: Json
       }
+      mark_company_user_command_failure: {
+        Args: {
+          p_actor: string
+          p_code: string
+          p_command: string
+          p_status: Database["public"]["Enums"]["user_management_command_status"]
+        }
+        Returns: undefined
+      }
       mark_invoice_overdue: {
         Args: {
           p_actor: string
@@ -5732,6 +5929,24 @@ export type Database = {
       phase_c_module_enabled: {
         Args: { p_organization_id: string }
         Returns: boolean
+      }
+      phase_k_actor_can_manage: {
+        Args: { p_actor: string; p_org: string }
+        Returns: boolean
+      }
+      phase_k_effective_limit: {
+        Args: { p_code: string; p_org: string }
+        Returns: number
+      }
+      prepare_company_user_command: {
+        Args: {
+          p_actor: string
+          p_hash: string
+          p_key: string
+          p_org: string
+          p_role: Database["public"]["Enums"]["organization_role"]
+        }
+        Returns: Json
       }
       reconcile_ocr_jobs: {
         Args: { p_limit?: number; p_org: string }
@@ -5867,6 +6082,13 @@ export type Database = {
         | "cancelled"
         | "converted"
       billing_rate_status: "active" | "inactive" | "archived"
+      company_user_lifecycle_status:
+        | "pending"
+        | "active"
+        | "blocked"
+        | "deactivated"
+        | "compensated"
+        | "reconciliation_required"
       document_outbox_status: "pending" | "processing" | "completed" | "failed"
       document_signature_type:
         | "drawn"
@@ -6091,6 +6313,11 @@ export type Database = {
         | "waypoint"
         | "cross_dock"
         | "return"
+      user_management_command_status:
+        | "prepared"
+        | "completed"
+        | "compensated"
+        | "reconciliation_required"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6233,6 +6460,14 @@ export const Constants = {
         "converted",
       ],
       billing_rate_status: ["active", "inactive", "archived"],
+      company_user_lifecycle_status: [
+        "pending",
+        "active",
+        "blocked",
+        "deactivated",
+        "compensated",
+        "reconciliation_required",
+      ],
       document_outbox_status: ["pending", "processing", "completed", "failed"],
       document_signature_type: [
         "drawn",
@@ -6483,6 +6718,12 @@ export const Constants = {
         "waypoint",
         "cross_dock",
         "return",
+      ],
+      user_management_command_status: [
+        "prepared",
+        "completed",
+        "compensated",
+        "reconciliation_required",
       ],
     },
   },

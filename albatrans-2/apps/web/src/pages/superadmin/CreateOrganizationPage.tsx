@@ -1,58 +1,22 @@
-import type { CreateOrganizationErrors, CreateOrganizationInput } from "@albatrans/contracts";
+import type { CreateOrganizationInput, ModuleCode, ModuleOverrideMode, PlanCode } from "@albatrans/contracts";
 import { normalizeCreateOrganization, validateCreateOrganization } from "@albatrans/domain";
-import { useState, type FormEvent, type ReactElement } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { createOrganization } from "../../data/organization-command-repository";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import { changeOrganizationModule, changeOrganizationStatus, createOrganization, loadOrganizationSetupOptions, manageOrganizationSubscription, type OrganizationSetupOption } from "../../data/organization-command-repository";
+import { createCompanyUser } from "../../data/user-management-repository";
 
-const INITIAL: CreateOrganizationInput = { legalName: "", tradeName: "", taxId: "", email: "", phone: "", countryCode: "ES", timezone: "Europe/Madrid", currencyCode: "EUR", status: "pending", internalNotes: "" };
+const INITIAL: CreateOrganizationInput = { legalName: "", tradeName: "", taxId: "", email: "", phone: "", countryCode: "ES", timezone: "Europe/Madrid", currencyCode: "EUR", status: "active", internalNotes: "" };
+const TITLES = ["Empresa", "Plan", "Módulos", "Administrador principal", "Confirmación"];
+type Admin = { firstName: string; lastName: string; email: string; phone: string; password: string; confirmation: string; mustChangePassword: boolean };
 
 export function CreateOrganizationPage() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState(INITIAL);
-  const [errors, setErrors] = useState<CreateOrganizationErrors>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
-  function update<K extends keyof CreateOrganizationInput>(field: K, value: CreateOrganizationInput[K]) {
-    setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => ({ ...current, [field]: undefined }));
-  }
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const normalized = normalizeCreateOrganization(form);
-    const validation = validateCreateOrganization(normalized);
-    if (!validation.valid) { setErrors(validation.errors); return; }
-    setSubmitting(true); setServerError(null);
-    try { await createOrganization(normalized); navigate("/platform?organizationCreated=1", { replace: true }); }
-    catch (caught) { setServerError(caught instanceof Error ? caught.message : "No se pudo crear la empresa."); }
-    finally { setSubmitting(false); }
-  }
-  return (
-    <section aria-labelledby="new-company-title">
-      <div className="page-heading form-heading"><div><p className="eyebrow">Empresas</p><h1 id="new-company-title">Nueva empresa</h1><p>Crea el tenant y define sus datos básicos de operación.</p></div><Link className="button button-secondary" to="/platform">Cancelar</Link></div>
-      <form className="organization-form" onSubmit={submit} noValidate>
-        <fieldset disabled={submitting}><legend>Identificación</legend><div className="form-grid">
-          <Field label="Razón social" error={errors.legalName} required><input value={form.legalName} onChange={(e) => update("legalName", e.target.value)} /></Field>
-          <Field label="Nombre comercial" error={errors.tradeName}><input value={form.tradeName} onChange={(e) => update("tradeName", e.target.value)} /></Field>
-          <Field label="NIF / CIF" error={errors.taxId}><input value={form.taxId} onChange={(e) => update("taxId", e.target.value)} /></Field>
-          <Field label="Estado inicial" error={errors.status} required><select value={form.status} onChange={(e) => update("status", e.target.value === "active" ? "active" : "pending")}><option value="pending">Pendiente</option><option value="active">Activa</option></select></Field>
-        </div></fieldset>
-        <fieldset disabled={submitting}><legend>Contacto</legend><div className="form-grid">
-          <Field label="Correo electrónico" error={errors.email}><input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} /></Field>
-          <Field label="Teléfono" error={errors.phone}><input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} /></Field>
-        </div></fieldset>
-        <fieldset disabled={submitting}><legend>Configuración regional</legend><div className="form-grid form-grid-three">
-          <Field label="País" error={errors.countryCode} required><input maxLength={2} value={form.countryCode} onChange={(e) => update("countryCode", e.target.value)} /></Field>
-          <Field label="Zona horaria" error={errors.timezone} required><input value={form.timezone} onChange={(e) => update("timezone", e.target.value)} /></Field>
-          <Field label="Moneda" error={errors.currencyCode} required><input maxLength={3} value={form.currencyCode} onChange={(e) => update("currencyCode", e.target.value)} /></Field>
-        </div></fieldset>
-        <fieldset disabled={submitting}><legend>Información interna</legend><Field label="Notas internas" error={errors.internalNotes} hint="Solo visibles para superadministración."><textarea rows={5} value={form.internalNotes} onChange={(e) => update("internalNotes", e.target.value)} /></Field></fieldset>
-        {serverError ? <p className="form-server-error" role="alert">{serverError}</p> : null}
-        <div className="form-actions"><Link className="button button-secondary" to="/platform">Cancelar</Link><button className="button" type="submit" disabled={submitting}>{submitting ? "Creando empresa…" : "Crear empresa"}</button></div>
-      </form>
-    </section>
-  );
+  const [step, setStep] = useState(1), [company, setCompany] = useState(INITIAL), [plans, setPlans] = useState<OrganizationSetupOption[]>([]), [modules, setModules] = useState<OrganizationSetupOption[]>([]), [plan, setPlan] = useState<PlanCode>("starter"), [overrides, setOverrides] = useState<Record<string, ModuleOverrideMode>>({}), [admin, setAdmin] = useState<Admin>({ firstName: "", lastName: "", email: "", phone: "", password: "", confirmation: "", mustChangePassword: true }), [error, setError] = useState(""), [busy, setBusy] = useState(false), [created, setCreated] = useState<{ organizationId: string; email: string } | null>(null);
+  useEffect(() => { loadOrganizationSetupOptions().then((value) => { setPlans(value.plans); setModules(value.modules); if (value.plans[0]) setPlan(value.plans[0].code as PlanCode); }).catch((cause: unknown) => setError(message(cause))); }, []);
+  function next(event: FormEvent) { event.preventDefault(); setError(""); if (step === 1) { const result = validateCreateOrganization(normalizeCreateOrganization(company)); if (!result.valid) return setError(Object.values(result.errors)[0] ?? "Revisa los datos de empresa."); } if (step === 4 && (!admin.firstName.trim() || !admin.lastName.trim() || !admin.email.includes("@") || admin.password !== admin.confirmation)) return setError("Revisa los datos y la confirmación de contraseña del administrador."); setStep(Math.min(5, step + 1)); }
+  async function finish() { setBusy(true); setError(""); let organizationId: string | null = null; try { organizationId = (await createOrganization(normalizeCreateOrganization(company))).organizationId; const now = new Date().toISOString(); await manageOrganizationSubscription(organizationId, { planCode: plan, status: "active", paymentStatus: "not_required", startsAt: now, currentPeriodStartsAt: "", currentPeriodEndsAt: "", paidThrough: "", gracePeriodEndsAt: "", cancelAtPeriodEnd: false, notes: "Alta desde wizard", reason: "Alta inicial" }); for (const [moduleCode, overrideMode] of Object.entries(overrides)) if (overrideMode !== "inherit") await changeOrganizationModule(organizationId, { moduleCode: moduleCode as ModuleCode, overrideMode, reason: "Configuración inicial" }); await createCompanyUser({ organizationId, firstName: admin.firstName, lastName: admin.lastName, email: admin.email, phone: admin.phone, role: "admin_empresa", password: admin.password, mustChangePassword: admin.mustChangePassword, idempotencyKey: crypto.randomUUID() }); setCreated({ organizationId, email: admin.email }); } catch (cause) { if (organizationId) await changeOrganizationStatus(organizationId, { status: "blocked", reason: "Alta incompleta: requiere reconciliación" }).catch(() => undefined); setError(message(cause)); } finally { setBusy(false); } }
+  if (created) return <section><h1>Empresa creada correctamente</h1><dl><dt>Empresa</dt><dd>{company.legalName}</dd><dt>Plan</dt><dd>{plans.find((item) => item.code === plan)?.name ?? plan}</dd><dt>Administrador</dt><dd>{admin.firstName} {admin.lastName}</dd><dt>Email</dt><dd>{created.email}</dd></dl><div className="form-actions"><Link className="button" to={`/platform/organizations/${created.organizationId}`}>Ir a empresa</Link><button className="button button-secondary" onClick={() => window.location.reload()}>Crear otra empresa</button></div></section>;
+  return <section aria-labelledby="new-company-title"><div className="page-heading"><div><p className="eyebrow">Paso {step} de 5</p><h1 id="new-company-title">{TITLES[step - 1]}</h1></div><Link className="button button-secondary" to="/platform">Cancelar</Link></div><form className="organization-form" onSubmit={next}>{error && <p role="alert" className="form-server-error">{error}</p>}{step === 1 && <CompanyStep value={company} change={setCompany} />}{step === 2 && <div className="status-grid">{plans.map((item) => <label className="panel" key={item.code}><input type="radio" name="plan" checked={plan === item.code} onChange={() => setPlan(item.code as PlanCode)} /><strong>{item.name}</strong><p>{item.description}</p></label>)}</div>}{step === 3 && <div className="table-shell"><table><tbody>{modules.map((item) => <tr key={item.code}><td>{item.name}<small>{item.description}</small></td><td><select aria-label={`Configurar ${item.name}`} value={overrides[item.code] ?? "inherit"} onChange={(event) => setOverrides({ ...overrides, [item.code]: event.target.value as ModuleOverrideMode })}><option value="inherit">Según plan</option><option value="enabled">Activado</option><option value="disabled">Desactivado</option></select></td></tr>)}</tbody></table></div>}{step === 4 && <AdminStep value={admin} change={setAdmin} />}{step === 5 && <div className="panel"><h2>Resumen</h2><p>{company.legalName}</p><p>{plans.find((item) => item.code === plan)?.name}</p><p>{admin.firstName} {admin.lastName} · {admin.email}</p><p>La contraseña no se mostrará ni almacenará.</p></div>}<div className="form-actions">{step > 1 && <button type="button" className="button button-secondary" onClick={() => setStep(step - 1)}>Atrás</button>}{step < 5 ? <button className="button">Continuar</button> : <button type="button" className="button" disabled={busy} onClick={() => void finish()}>{busy ? "Creando…" : "Crear empresa"}</button>}</div></form></section>;
 }
-
-function Field({ label, error, hint, required, children }: { label: string; error?: string; hint?: string; required?: boolean; children: ReactElement }) {
-  return <label className="form-field"><span>{label}{required ? " *" : ""}</span>{children}{error ? <small className="field-error">{error}</small> : hint ? <small>{hint}</small> : null}</label>;
-}
+function CompanyStep({ value, change }: { value: CreateOrganizationInput; change: (value: CreateOrganizationInput) => void }) { const fields = [["legalName", "Razón social"], ["tradeName", "Nombre comercial"], ["taxId", "NIF / CIF"], ["email", "Correo electrónico"], ["phone", "Teléfono"], ["countryCode", "País"], ["currencyCode", "Moneda"], ["timezone", "Zona horaria"]] as const; return <div className="form-grid">{fields.map(([key, label]) => <label key={key}>{label}<input value={value[key]} onChange={(event) => change({ ...value, [key]: event.target.value })} /></label>)}</div>; }
+function AdminStep({ value, change }: { value: Admin; change: (value: Admin) => void }) { const fields = [["firstName", "Nombre"], ["lastName", "Apellidos"], ["email", "Email administrador"], ["phone", "Teléfono opcional"], ["password", "Contraseña inicial"], ["confirmation", "Confirmar contraseña"]] as const; return <div className="form-grid">{fields.map(([key, label]) => <label key={key}>{label}<input type={key === "password" || key === "confirmation" ? "password" : "text"} value={value[key]} onChange={(event) => change({ ...value, [key]: event.target.value })} /></label>)}<label><input type="checkbox" checked={value.mustChangePassword} onChange={(event) => change({ ...value, mustChangePassword: event.target.checked })} /> Obligar cambio al primer acceso</label></div>; }
+function message(cause: unknown) { return cause instanceof Error ? cause.message : "No se pudo completar el alta."; }

@@ -21,6 +21,9 @@ const TransportRoute = lazy(() => import("./pages/transport/TransportRoute").the
 const BillingRoute = lazy(() => import("./pages/billing/BillingRoute").then((module) => ({ default: module.BillingRoute })));
 const ExecutionRoute = lazy(() => import("./pages/execution/ExecutionRoute").then((module) => ({ default: module.ExecutionRoute })));
 const DriverPortalRoute = lazy(() => import("./pages/driver/DriverPortal").then((module) => ({ default: module.DriverPortalRoute })));
+const UsersRoute = lazy(() => import("./pages/admin/UsersPage").then((module) => ({ default: module.UsersRoute })));
+const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage").then((module) => ({ default: module.ChangePasswordPage })));
+const CompanyOnboardingPage = lazy(() => import("./pages/admin/CompanyOnboardingPage").then((module) => ({ default: module.CompanyOnboardingPage })));
 
 export function App() {
   return (
@@ -37,6 +40,7 @@ export function App() {
       />
 
       <Route element={<AuthGuard />}>
+        <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route index element={<HomeRedirect />} />
 
         <Route element={<RoleGuard allowed={["conductor"]} />}>
@@ -63,6 +67,8 @@ export function App() {
             element={<TransportRoute detail />}
           />
           <Route path="/empresa/transport/:orderId/execution" element={<ExecutionRoute />} />
+          <Route path="/empresa/administracion/usuarios" element={<UsersRoute />} />
+          <Route path="/empresa/onboarding" element={<CompanyOnboardingPage />} />
         </Route>
 
         <Route element={<RoleGuard allowed={["superadmin"]} />}>
@@ -99,6 +105,7 @@ export function App() {
               element={<TransportRoute platform detail />}
             />
             <Route path="organizations/:organizationId/transport/:orderId/execution" element={<ExecutionRoute platform />} />
+            <Route path="organizations/:organizationId/users" element={<UsersRoute platform />} />
           </Route>
         </Route>
       </Route>

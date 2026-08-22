@@ -82,4 +82,6 @@ export interface AccessContext {
       >
     >
   >;
+  mustChangePassword?: boolean;
+  onboardingRequired?: boolean;
 }

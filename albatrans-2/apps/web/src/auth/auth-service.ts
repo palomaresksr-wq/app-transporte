@@ -137,6 +137,14 @@ export async function loadAccessContext(
     );
   }
 
+  const lifecycleResult = await client.from("company_user_lifecycle").select("must_change_password").eq("user_id", userId).maybeSingle();
+  if (lifecycleResult.error) throw new Error("No se pudo comprobar el estado de la contraseña inicial.");
+
+  const onboardingResult = membership.role === "admin_empresa"
+    ? await client.from("organization_onboarding").select("completed_at").eq("organization_id", membership.organizationId).maybeSingle()
+    : { data: null, error: null };
+  if (onboardingResult.error) throw new Error("No se pudo comprobar el onboarding de la empresa.");
+
   const { data: organizationData, error: organizationError } = await client
     .from("organizations")
     .select(
@@ -168,6 +176,8 @@ export async function loadAccessContext(
     organization,
     enabledModules,
     effectiveLimits: {}
+    ,mustChangePassword: lifecycleResult.data?.must_change_password === true,
+    onboardingRequired: onboardingResult.data !== null && onboardingResult.data.completed_at === null
   };
   const denial = accessDenialReason(context);
   if (denial) throw new AccessDeniedError(denialMessage(denial), denial);

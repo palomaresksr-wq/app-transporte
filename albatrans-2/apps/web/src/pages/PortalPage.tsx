@@ -83,6 +83,7 @@ export function PortalPage({
         {expectedRole === "admin_empresa" && (
           <nav className="panel master-data-nav" aria-label="Datos maestros">
             <h2>Datos maestros</h2>
+            <Link to="/empresa/administracion/usuarios">Usuarios</Link>
             {access?.enabledModules.includes("transport_management") && (
               <>
                 <Link to="/empresa/transport">Órdenes de transporte</Link>

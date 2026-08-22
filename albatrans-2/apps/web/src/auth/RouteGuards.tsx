@@ -29,6 +29,13 @@ export function AuthGuard() {
     );
   }
 
+  if (auth.access.mustChangePassword && location.pathname !== "/change-password") {
+    return <Navigate to="/change-password" replace />;
+  }
+  if (!auth.access.mustChangePassword && auth.access.onboardingRequired && location.pathname !== "/empresa/onboarding") {
+    return <Navigate to="/empresa/onboarding" replace />;
+  }
+
   return <Outlet />;
 }
 

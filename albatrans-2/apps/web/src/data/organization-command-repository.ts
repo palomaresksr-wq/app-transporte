@@ -2,6 +2,14 @@ import type { ChangeOrganizationLimitInput, ChangeOrganizationLimitResult, Chang
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { getSupabaseClient } from "../infrastructure/supabase/client";
 
+export interface OrganizationSetupOption { code: string; name: string; description: string | null; }
+export async function loadOrganizationSetupOptions(): Promise<{ plans: OrganizationSetupOption[]; modules: OrganizationSetupOption[] }> {
+  const client = getSupabaseClient(); if (!client) throw new Error("Supabase no está configurado.");
+  const [plans, modules] = await Promise.all([client.from("plans").select("code,name,description").eq("status", "active").order("sort_order"), client.from("modules").select("code,name,description").eq("status", "active").order("sort_order")]);
+  if (plans.error || modules.error) throw new Error("No se pudo cargar la configuración comercial.");
+  return { plans: plans.data, modules: modules.data };
+}
+
 export async function createOrganization(input: CreateOrganizationInput): Promise<CreateOrganizationResult> {
   const client = getSupabaseClient();
   if (!client) throw new Error("Supabase no está configurado.");
