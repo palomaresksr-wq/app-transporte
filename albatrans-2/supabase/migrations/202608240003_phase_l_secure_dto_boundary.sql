@@ -1,0 +1,22 @@
+-- Phase L hardening: external identities consume sanitized Edge DTOs only.
+begin;
+alter table public.documents add column if not exists client_visible boolean not null default false;
+create index if not exists documents_client_visible_idx on public.documents(organization_id,transport_order_id,created_at desc) where client_visible and archived_at is null;
+drop policy if exists organizations_client_portal_read on public.organizations;
+drop policy if exists clients_client_portal_read on public.clients;
+drop policy if exists orders_client_portal_read on public.transport_orders;
+drop policy if exists stops_client_portal_read on public.transport_stops;
+drop policy if exists items_client_portal_read on public.transport_items;
+drop policy if exists incidents_client_portal_read on public.transport_incidents;
+drop policy if exists events_client_portal_read on public.transport_events;
+drop policy if exists documents_client_portal_read on public.documents;
+drop policy if exists versions_client_portal_read on public.document_versions;
+drop policy if exists pods_client_portal_read on public.proofs_of_delivery;
+drop policy if exists signatures_client_portal_read on public.document_signatures;
+drop policy if exists invoices_client_portal_read on public.invoices;
+drop policy if exists invoice_lines_client_portal_read on public.invoice_lines;
+drop policy if exists invoice_payments_client_portal_read on public.invoice_payments;
+drop policy if exists regulatory_client_portal_read on public.transport_regulatory_documents;
+drop policy if exists regulatory_revisions_client_portal_read on public.transport_regulatory_revisions;
+comment on column public.documents.client_visible is 'Explicit opt-in for generic customer-portal download; POD, invoice and regulatory documents also require their feature policy.';
+commit;

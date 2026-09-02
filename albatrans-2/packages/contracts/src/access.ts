@@ -4,7 +4,7 @@ export type PlatformRole = (typeof PLATFORM_ROLES)[number];
 export const ORGANIZATION_ROLES = ["admin_empresa", "conductor"] as const;
 export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
-export type EffectiveRole = PlatformRole | OrganizationRole;
+export type EffectiveRole = PlatformRole | OrganizationRole | import("./client-portal").ClientPortalRole;
 
 export const PROFILE_STATUSES = ["active", "blocked"] as const;
 export type ProfileStatus = (typeof PROFILE_STATUSES)[number];
@@ -72,6 +72,7 @@ export interface AccessContext {
   effectiveRole: EffectiveRole;
   platformAdmin: PlatformAdmin | null;
   membership: OrganizationMembership | null;
+  clientPortalMembership?: import("./client-portal").ClientPortalMembership | null;
   organization: import("./organizations").Organization | null;
   enabledModules: readonly import("./entitlements").ModuleCode[];
   effectiveLimits: Readonly<

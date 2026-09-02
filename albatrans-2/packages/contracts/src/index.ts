@@ -18,3 +18,4 @@ export * from "./invoicing";
 export * from "./driver-portal";
 export * from "./regulatory-documents";
 export * from "./user-management";
+export * from "./client-portal";

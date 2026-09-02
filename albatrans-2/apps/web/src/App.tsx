@@ -24,6 +24,13 @@ const DriverPortalRoute = lazy(() => import("./pages/driver/DriverPortal").then(
 const UsersRoute = lazy(() => import("./pages/admin/UsersPage").then((module) => ({ default: module.UsersRoute })));
 const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage").then((module) => ({ default: module.ChangePasswordPage })));
 const CompanyOnboardingPage = lazy(() => import("./pages/admin/CompanyOnboardingPage").then((module) => ({ default: module.CompanyOnboardingPage })));
+const ClientDashboard = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientDashboard })));
+const ClientTransports = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientTransports })));
+const ClientTransportPage = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientTransportPage })));
+const ClientDocuments = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientDocuments })));
+const ClientInvoices = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientInvoices })));
+const ClientProfile = lazy(() => import("./pages/client/ClientPortal").then((module) => ({ default: module.ClientProfile })));
+const ClientAccessPage = lazy(() => import("./pages/admin/ClientAccessPage").then((module) => ({ default: module.ClientAccessPage })));
 
 export function App() {
   return (
@@ -50,6 +57,16 @@ export function App() {
           <Route path="/driver/transports/:orderId" element={<DriverPortalRoute />} />
         </Route>
 
+        <Route element={<RoleGuard allowed={["client_admin", "client_viewer"]} />}>
+          <Route path="/client" element={<ClientDashboard />} />
+          <Route path="/client/transports" element={<ClientTransports />} />
+          <Route path="/client/transports/:orderId" element={<ClientTransportPage />} />
+          <Route path="/client/documents" element={<ClientDocuments />} />
+          <Route path="/client/invoices" element={<ClientInvoices />} />
+          <Route path="/client/invoices/:invoiceId" element={<ClientInvoices />} />
+          <Route path="/client/profile" element={<ClientProfile />} />
+        </Route>
+
         <Route element={<RoleGuard allowed={["admin_empresa"]} />}>
           <Route
             path="/empresa"
@@ -68,6 +85,7 @@ export function App() {
           />
           <Route path="/empresa/transport/:orderId/execution" element={<ExecutionRoute />} />
           <Route path="/empresa/administracion/usuarios" element={<UsersRoute />} />
+          <Route path="/empresa/clientes/:customerId/accesos" element={<ClientAccessPage />} />
           <Route path="/empresa/onboarding" element={<CompanyOnboardingPage />} />
         </Route>
 
@@ -106,6 +124,7 @@ export function App() {
             />
             <Route path="organizations/:organizationId/transport/:orderId/execution" element={<ExecutionRoute platform />} />
             <Route path="organizations/:organizationId/users" element={<UsersRoute platform />} />
+            <Route path="organizations/:organizationId/clientes/:customerId/accesos" element={<ClientAccessPage />} />
           </Route>
         </Route>
       </Route>

@@ -24,6 +24,16 @@ const CONTENT: Record<
     description:
       "La gestión de empresas y usuarios se incorporará sobre el acceso de plataforma validado.",
   },
+  client_admin: {
+    label: "Portal cliente",
+    title: "Seguimiento de tus transportes",
+    description: "Acceso seguro a los servicios y documentos autorizados de tu empresa.",
+  },
+  client_viewer: {
+    label: "Portal cliente",
+    title: "Seguimiento de tus transportes",
+    description: "Consulta segura y de solo lectura de tus servicios autorizados.",
+  },
 };
 
 export function PortalPage({

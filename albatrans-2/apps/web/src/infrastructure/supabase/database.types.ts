@@ -662,6 +662,272 @@ export type Database = {
           },
         ]
       }
+      client_portal_branding: {
+        Row: {
+          created_at: string
+          display_name: string
+          logo_document_id: string | null
+          organization_id: string
+          support_email: string | null
+          support_phone: string | null
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          logo_document_id?: string | null
+          organization_id: string
+          support_email?: string | null
+          support_phone?: string | null
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          logo_document_id?: string | null
+          organization_id?: string
+          support_email?: string | null
+          support_phone?: string | null
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_branding_logo_document_id_fkey"
+            columns: ["logo_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_branding_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_branding_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      client_portal_commands: {
+        Row: {
+          action: string
+          actor_user_id: string
+          completed_at: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result: Json | null
+          status: Database["public"]["Enums"]["user_management_command_status"]
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          idempotency_key: string
+          organization_id: string
+          request_hash: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["user_management_command_status"]
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          idempotency_key?: string
+          organization_id?: string
+          request_hash?: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["user_management_command_status"]
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_commands_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "client_portal_commands_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_commands_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_memberships: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          id: string
+          last_access_at: string | null
+          organization_id: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["client_portal_role"]
+          status: Database["public"]["Enums"]["client_portal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id: string
+          id?: string
+          last_access_at?: string | null
+          organization_id: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["client_portal_role"]
+          status?: Database["public"]["Enums"]["client_portal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          id?: string
+          last_access_at?: string | null
+          organization_id?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["client_portal_role"]
+          status?: Database["public"]["Enums"]["client_portal_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_memberships_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "client_portal_memberships_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      client_portal_visibility_policies: {
+        Row: {
+          actual_dates: boolean
+          created_at: string
+          customer_id: string
+          goods_summary: boolean
+          incidents: boolean
+          invoices: boolean
+          organization_id: string
+          planned_dates: boolean
+          pod: boolean
+          regulatory_documents: boolean
+          signatures: boolean
+          transport_status: boolean
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          actual_dates?: boolean
+          created_at?: string
+          customer_id: string
+          goods_summary?: boolean
+          incidents?: boolean
+          invoices?: boolean
+          organization_id: string
+          planned_dates?: boolean
+          pod?: boolean
+          regulatory_documents?: boolean
+          signatures?: boolean
+          transport_status?: boolean
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          actual_dates?: boolean
+          created_at?: string
+          customer_id?: string
+          goods_summary?: boolean
+          incidents?: boolean
+          invoices?: boolean
+          organization_id?: string
+          planned_dates?: boolean
+          pod?: boolean
+          regulatory_documents?: boolean
+          signatures?: boolean
+          transport_status?: boolean
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_visibility_policies_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_visibility_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_visibility_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           archived_at: string | null
@@ -1082,6 +1348,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           client_id: string | null
+          client_visible: boolean
           created_at: string
           created_by: string
           current_version_id: string | null
@@ -1103,6 +1370,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           client_id?: string | null
+          client_visible?: boolean
           created_at?: string
           created_by: string
           current_version_id?: string | null
@@ -1124,6 +1392,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           client_id?: string | null
+          client_visible?: boolean
           created_at?: string
           created_by?: string
           current_version_id?: string | null
@@ -4122,6 +4391,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           category: Database["public"]["Enums"]["transport_incident_category"]
+          client_visibility: Database["public"]["Enums"]["client_incident_visibility"]
           description: string
           id: string
           organization_id: string
@@ -4139,6 +4409,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           category: Database["public"]["Enums"]["transport_incident_category"]
+          client_visibility?: Database["public"]["Enums"]["client_incident_visibility"]
           description: string
           id?: string
           organization_id: string
@@ -4156,6 +4427,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           category?: Database["public"]["Enums"]["transport_incident_category"]
+          client_visibility?: Database["public"]["Enums"]["client_incident_visibility"]
           description?: string
           id?: string
           organization_id?: string
@@ -5545,6 +5817,20 @@ export type Database = {
         }
         Returns: Json
       }
+      client_portal_context_active: {
+        Args: { p_customer: string; p_org: string }
+        Returns: boolean
+      }
+      client_portal_invoice_access: {
+        Args: { p_invoice: string }
+        Returns: boolean
+      }
+      client_portal_order_access: {
+        Args: { p_order: string }
+        Returns: boolean
+      }
+      client_portal_policy: { Args: { p_customer: string }; Returns: Json }
+      client_portal_touch_access: { Args: never; Returns: undefined }
       command_document_signature: {
         Args: {
           p_action: string
@@ -5573,6 +5859,19 @@ export type Database = {
           p_scope: Database["public"]["Enums"]["audit_actor_scope"]
           p_stop: string
           p_values: Json
+        }
+        Returns: Json
+      }
+      complete_client_portal_user: {
+        Args: {
+          p_actor: string
+          p_command: string
+          p_first: string
+          p_last: string
+          p_must_change: boolean
+          p_phone: string
+          p_role: Database["public"]["Enums"]["client_portal_role"]
+          p_user: string
         }
         Returns: Json
       }
@@ -5938,6 +6237,17 @@ export type Database = {
         Args: { p_code: string; p_org: string }
         Returns: number
       }
+      phase_l_module_enabled: { Args: { p_org: string }; Returns: boolean }
+      prepare_client_portal_user: {
+        Args: {
+          p_actor: string
+          p_customer: string
+          p_hash: string
+          p_key: string
+          p_org: string
+        }
+        Returns: Json
+      }
       prepare_company_user_command: {
         Args: {
           p_actor: string
@@ -6082,6 +6392,9 @@ export type Database = {
         | "cancelled"
         | "converted"
       billing_rate_status: "active" | "inactive" | "archived"
+      client_incident_visibility: "internal" | "client_visible"
+      client_portal_role: "client_admin" | "client_viewer"
+      client_portal_status: "active" | "blocked" | "revoked"
       company_user_lifecycle_status:
         | "pending"
         | "active"
@@ -6460,6 +6773,9 @@ export const Constants = {
         "converted",
       ],
       billing_rate_status: ["active", "inactive", "archived"],
+      client_incident_visibility: ["internal", "client_visible"],
+      client_portal_role: ["client_admin", "client_viewer"],
+      client_portal_status: ["active", "blocked", "revoked"],
       company_user_lifecycle_status: [
         "pending",
         "active",

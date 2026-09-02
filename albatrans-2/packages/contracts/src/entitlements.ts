@@ -14,7 +14,8 @@ export const MODULE_CODES = [
   "reports",
   "api_access",
   "support_access",
-  "audit_access"
+  "audit_access",
+  "client_portal"
 ] as const;
 export type ModuleCode = (typeof MODULE_CODES)[number];
 

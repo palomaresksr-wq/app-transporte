@@ -7,7 +7,10 @@ import type {
   OrganizationStatus,
   PlatformAdmin,
   PlatformAdminStatus,
-  Profile
+  Profile,
+  ClientPortalMembership,
+  ClientPortalRole,
+  ClientPortalStatus
 } from "@albatrans/contracts";
 import { accessDenialReason } from "@albatrans/domain";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -124,12 +127,7 @@ export async function loadAccessContext(
     ? mapMembership(membershipResult.data as Record<string, unknown>)
     : null;
 
-  if (!membership) {
-    throw new AccessDeniedError(
-      "Tu cuenta no tiene un rol de plataforma ni una empresa asignada.",
-      "access_assignment_missing"
-    );
-  }
+  if (!membership) return loadClientPortalAccess(userId, profile, client);
   if (membership.status !== "active") {
     throw new AccessDeniedError(
       denialMessage("membership_inactive"),
@@ -181,6 +179,29 @@ export async function loadAccessContext(
   };
   const denial = accessDenialReason(context);
   if (denial) throw new AccessDeniedError(denialMessage(denial), denial);
+  return context;
+}
+
+async function loadClientPortalAccess(userId: string, profile: Profile, client: SupabaseClient<Database>): Promise<AccessContext> {
+  const result = await client.from("client_portal_memberships").select("id,organization_id,customer_id,user_id,role,status,created_by,created_at,last_access_at").eq("user_id", userId).maybeSingle();
+  if (result.error || !result.data) throw new AccessDeniedError("Tu cuenta no tiene un acceso asignado.", "access_assignment_missing");
+  const row = result.data as Record<string, unknown>;
+  const portal: ClientPortalMembership = {
+    id: requiredString(row.id,"client_portal_memberships.id"), organizationId: requiredString(row.organization_id,"client_portal_memberships.organization_id"),
+    customerId: requiredString(row.customer_id,"client_portal_memberships.customer_id"), userId,
+    role: enumValue(row.role,["client_admin","client_viewer"],"client_portal_memberships.role") as ClientPortalRole,
+    status: enumValue(row.status,["active","blocked","revoked"],"client_portal_memberships.status") as ClientPortalStatus,
+    createdBy: requiredString(row.created_by,"client_portal_memberships.created_by"), createdAt: requiredString(row.created_at,"client_portal_memberships.created_at"), lastAccessAt: nullableString(row.last_access_at)
+  };
+  if (portal.status !== "active") throw new AccessDeniedError("Tu acceso al portal está bloqueado.","membership_inactive");
+  const organizationResult = await client.functions.invoke("client-portal",{body:{action:"profile"}});
+  if (organizationResult.error || !organizationResult.data?.organization) throw new AccessDeniedError("No se encontró la empresa del portal.","organization_missing");
+  const publicOrganization=organizationResult.data.organization as Record<string,unknown>;
+  const organizationRow:Record<string,unknown>={...publicOrganization,tax_id:null,status_reason:null,status_changed_at:publicOrganization.updated_at,status_changed_by:null,internal_notes:null,created_by:profile.userId,archived_at:null};
+  const lifecycle = await client.from("company_user_lifecycle").select("must_change_password").eq("user_id",userId).maybeSingle();
+  const context: AccessContext = { profile, effectiveRole: portal.role, platformAdmin:null, membership:null, clientPortalMembership:portal, organization:mapOrganization(organizationRow), enabledModules:["client_portal"], effectiveLimits:{}, mustChangePassword:lifecycle.data?.must_change_password===true, onboardingRequired:false };
+  const denial=accessDenialReason(context); if(denial) throw new AccessDeniedError(denialMessage(denial),denial);
+  void client.rpc("client_portal_touch_access");
   return context;
 }
 
